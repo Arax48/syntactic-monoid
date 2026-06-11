@@ -9,7 +9,7 @@ mediante Monoides de Transición e Implementación Computacional en Python.
 
 **Cursos:** Matemática Discreta II · Teoría de la Computación.
 
-**Periodo académico:** 2026 — Semestre 1.
+**Periodo académico:** 2026 - 1
 
 **Tipo de entregable:** Proyecto integrador final.
 
