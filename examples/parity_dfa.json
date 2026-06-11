@@ -1,10 +1,11 @@
 {
-  "states": ["q0", "q1"],
+  "name": "Paridad de 1s",
+  "states": ["Par", "Impar"],
   "alphabet": ["0", "1"],
   "transitions": {
-    "q0": {"0": "q0", "1": "q1"},
-    "q1": {"0": "q1", "1": "q0"}
+    "Par":   {"0": "Par",   "1": "Impar"},
+    "Impar": {"0": "Impar", "1": "Par"}
   },
-  "start": "q0",
-  "accepting": ["q0"]
+  "start": "Par",
+  "accepting": ["Par"]
 }

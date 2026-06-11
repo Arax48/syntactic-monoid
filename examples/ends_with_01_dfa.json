@@ -1,0 +1,12 @@
+{
+  "name": "Cadenas que terminan en 01",
+  "states": ["s0", "s1", "s2"],
+  "alphabet": ["0", "1"],
+  "transitions": {
+    "s0": {"0": "s1", "1": "s0"},
+    "s1": {"0": "s1", "1": "s2"},
+    "s2": {"0": "s1", "1": "s0"}
+  },
+  "start": "s0",
+  "accepting": ["s2"]
+}
