@@ -65,10 +65,11 @@ Para cada `w ∈ Σ*`:
 
 > `f_w : Q → Q,    f_w(q) = δ*(q, w)`.
 
-**Lema clave:** `f_{uv} = f_v ∘ f_u`.
+**Convención (composición diagramática).** `f · g := g ∘ f`.
 
-*Demostración.*
-`f_{uv}(q) = δ*(q, uv) = δ*(δ*(q,u), v) = f_v(f_u(q))`. ∎
+**Lema clave** (usando el Lema 0 `δ*(q, uv) = δ*(δ*(q,u), v)`):
+
+> `f_{uv} = f_u · f_v   =   f_v ∘ f_u`.
 
 Cuidado con el **orden**: como leemos izquierda a derecha, primero se
 aplica `f_u` y luego `f_v`.
@@ -81,21 +82,19 @@ aplica `f_u` y luego `f_v`.
 
 | Propiedad | Justificación |
 |----------|---------------|
-| Cerrado bajo `∘` | `f_v ∘ f_u = f_{uv} ∈ M(A)` |
+| Cerrado bajo `·` | `f_u · f_v = f_{uv} ∈ M(A)` |
 | Asociativa | Asociatividad de la composición de funciones |
 | Identidad | `id_Q = f_ε ∈ M(A)` |
 
-⇒ `(M(A), ∘, id_Q)` es un **monoide finito** con `|M(A)| ≤ |Q|^|Q|`.
+⇒ `(M(A), ·, id_Q)` es un **monoide finito** con `|M(A)| ≤ |Q|^|Q|`.
 
 ---
 
 ## Diapositiva 7 — Homomorfismo natural `φ`
 
-`φ : Σ* → M(A)`,  `φ(w) = f_w`.
+`φ : (Σ*, ·, ε) → (M(A), ·, id_Q)`,  `φ(w) = f_w`.
 
-Con `f ⋆ g := g ∘ f` (orden de lectura):
-
-> `φ(uv) = φ(u) ⋆ φ(v)`   y   `φ(ε) = id_Q`.
+> `φ(uv) = φ(u) · φ(v)`   y   `φ(ε) = id_Q`.
 
 ⇒ `φ` es homomorfismo **sobreyectivo** de monoides.
 

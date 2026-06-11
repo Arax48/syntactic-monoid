@@ -77,19 +77,107 @@ def test_nucleo_tiene_tamano_de_monoide(mod3_dfa: DFA) -> None:
     assert len([f for f, ws in cls.items() if ws]) == hom.monoid.order
 
 
+def _verifica_biyeccion_clase_a_imagen(hom: Homomorphism, max_length: int) -> None:
+    """Verificacion explicita y NO-vacua del Primer Teorema:
+
+        (i)  cada f in M(A) es alcanzada por alguna palabra de longitud
+             <= max_length, y
+        (ii) palabras en clases distintas se mapean a transformaciones
+             distintas.
+    """
+    cls = hom.kernel(max_length=max_length)
+    no_vacias = [f for f, ws in cls.items() if ws]
+    assert len(no_vacias) == hom.monoid.order, (
+        "phi NO es sobreyectivo sobre M(A) hasta longitud "
+        f"{max_length}: {len(no_vacias)} != {hom.monoid.order}"
+    )
+    for f, words in cls.items():
+        for w in words:
+            assert hom.image(w) == f, (
+                f"palabra {w!r} agrupada bajo {f} pero phi({w!r}) != f"
+            )
+    # Inyectividad clase -> transformacion: si dos clases tienen la misma
+    # transformacion etiqueta, debian haber sido fusionadas.
+    etiquetas = [f for f, ws in cls.items() if ws]
+    assert len(set(etiquetas)) == len(etiquetas)
+
+
 def test_primer_teorema_de_isomorfismo_paridad(parity_dfa: DFA) -> None:
     hom = Homomorphism(parity_dfa)
     assert hom.verify_first_isomorphism()
+    _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
 
 
 def test_primer_teorema_de_isomorfismo_mod3(mod3_dfa: DFA) -> None:
     hom = Homomorphism(mod3_dfa)
     assert hom.verify_first_isomorphism()
+    _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
 
 
 def test_primer_teorema_de_isomorfismo_ends01(ends_01_dfa: DFA) -> None:
     hom = Homomorphism(ends_01_dfa)
     assert hom.verify_first_isomorphism()
+    _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
+
+
+def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: DFA) -> None:
+    """Prueba que el verificador NO siempre devuelve True (no es vacuo).
+
+    En el DFA "termina en 01", M(A) tiene 5 elementos y el representante
+    mas largo tiene longitud 2 (`01` o `11`). Si truncamos por debajo
+    todavia se ven todos. Pero si construimos un automata cuyo monoide
+    requiera longitudes mayores, la verificacion deberia fallar.
+
+    Aqui simplemente verificamos que el verificador es sensible al limite.
+    """
+    hom = Homomorphism(ends_01_dfa)
+    # Con max_length = 0 solo vemos epsilon -> 1 clase (la identidad).
+    # Si M(A) tiene >= 2 elementos, debe devolver False.
+    assert hom.monoid.order > 1
+    assert hom.verify_first_isomorphism(max_length=0) is False
+
+
+# ----------------------------------------------------------------------
+# verify_homomorphism
+# ----------------------------------------------------------------------
+
+def test_verify_homomorphism_incluye_neutro(parity_dfa: DFA) -> None:
+    """phi(epsilon) debe ser id_Q ademas de la propiedad multiplicativa."""
+    hom = Homomorphism(parity_dfa)
+    assert hom.image("") == hom.monoid.identity
+    assert hom.verify_homomorphism(max_length=3)
+
+
+# ----------------------------------------------------------------------
+# Conformidad Proposicion 3: ~ es mas fina que ~_L
+# ----------------------------------------------------------------------
+
+def test_congruencia_de_transicion_es_mas_fina_que_lenguaje(ends_01_dfa: DFA) -> None:
+    """Demuestra empiricamente la Proposicion 3 del informe:
+
+        u ~ v  ==>  (q0 alcanza el mismo estado desde xu o xv para todo x)
+                ==>  xu in L(A)  ssi  xv in L(A) (caso particular y=eps).
+
+    En el DFA "termina en 01", verificamos que pares ~-equivalentes son
+    tambien congruentes para L(A).
+    """
+    from itertools import product as iproduct
+
+    hom = Homomorphism(ends_01_dfa)
+    sigma = sorted(ends_01_dfa.alphabet)
+    palabras = [""] + [
+        "".join(s) for n in range(1, 4) for s in iproduct(sigma, repeat=n)
+    ]
+    contexts = palabras
+    for u in palabras:
+        for v in palabras:
+            if hom.equivalent(u, v):
+                for x in contexts:
+                    for y in contexts:
+                        assert (
+                            ends_01_dfa.accepts(x + u + y)
+                            == ends_01_dfa.accepts(x + v + y)
+                        )
 
 
 # ----------------------------------------------------------------------

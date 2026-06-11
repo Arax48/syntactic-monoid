@@ -130,11 +130,67 @@ congruencia y existe un único isomorfismo `h̄ : M / ∼_h → Im(h)` tal que
 define `h̄([x]) = h(x)`, se verifica buena definición, homomorfismo,
 inyectividad y sobreyectividad sobre `Im(h)`.
 
+### 3.4 Convención de composición (fijada por todo el documento)
+
+Como las palabras se leen **de izquierda a derecha** y las funciones se
+componen **de derecha a izquierda** (`(g ∘ f)(q) := g(f(q))`), surge una
+posible confusión de orden al pasar de `Σ*` a transformaciones sobre `Q`.
+Para evitarla fijamos de una vez la siguiente convención, que será usada
+en todo el informe y en el código (método `Transformation.then`):
+
+> Sobre el conjunto `Q^Q` de funciones `Q → Q` definimos la operación
+> **diagramática** o de **lectura izquierda-a-derecha**:
+>
+> `(f · g)(q)  :=  g(f(q))`,   es decir,  `f · g  :=  g ∘ f`.
+
+La tripla `(Q^Q, ·, id_Q)` es un monoide (el llamado *monoide opuesto* del
+monoide funcional usual `(Q^Q, ∘, id_Q)`), pues `·` es asociativa e
+`id_Q` es neutro a ambos lados. En el código:
+
+```python
+f.then(g)(q) == g(f(q))      # corresponde a f · g
+```
+
+Con esta convención, **leer `uv` significa "primero aplicar `f_u`, luego
+`f_v`", igual que se compone con `·`**. Como consecuencia, `φ : Σ* → M(A)`
+resultará ser un homomorfismo *en el sentido estándar*, sin signo opuesto
+ni anti-homomorfismo. Todas las apariciones de `·` en este informe se
+entienden en esta convención.
+
 ---
 
 ## 4. Fundamentación matemática
 
-A lo largo de esta sección fijamos un DFA `A = (Q, Σ, δ, q₀, F)`.
+A lo largo de esta sección fijamos un DFA `A = (Q, Σ, δ, q₀, F)` y
+adoptamos la convención de composición fijada en §3.4: para `f, g ∈ Q^Q`,
+
+> `f · g := g ∘ f`   (lectura izquierda-a-derecha).
+
+### 4.0 Lema de separación de `δ*`
+
+Antes de definir el monoide necesitamos un lema fundamental que NO está
+explícito en la definición recursiva de `δ*`.
+
+**Lema 0 (separación).** Para todo `q ∈ Q` y `u, v ∈ Σ*`:
+
+> `δ*(q, uv) = δ*(δ*(q, u), v)`.
+
+*Demostración (inducción sobre `|v|`).*
+
+- *Base `v = ε`.* `δ*(q, uε) = δ*(q, u) = δ*(δ*(q, u), ε)` por la
+  definición de `δ*` aplicada al lado derecho.
+- *Paso `v = wa` con `a ∈ Σ` y `|w| < |v|`.* Asumimos por hipótesis de
+  inducción que `δ*(q, uw) = δ*(δ*(q, u), w)`. Entonces
+
+  ```
+  δ*(q, u(wa)) = δ*(q, (uw)a)                          [asociatividad de ·]
+              = δ(δ*(q, uw), a)                        [def. δ*]
+              = δ(δ*(δ*(q, u), w), a)                   [HI]
+              = δ*(δ*(q, u), wa)                        [def. δ*]
+              = δ*(δ*(q, u), v).
+  ```
+
+Esto cierra la inducción. ∎
 
 ### 4.1 Transformaciones inducidas por palabras
 
@@ -144,70 +200,74 @@ Para cada `w ∈ Σ*` definimos la transformación
 
 **Caso base.** `f_ε(q) = δ*(q, ε) = q`, luego `f_ε = id_Q`.
 
-**Composición.** Para `u, v ∈ Σ*` y `q ∈ Q`,
+**Identidad multiplicativa.** Para `u, v ∈ Σ*` y `q ∈ Q`, usando el
+Lema 0 y la convención `f · g = g ∘ f`:
 
-> `f_{uv}(q) = δ*(q, uv) = δ*(δ*(q, u), v) = f_v(f_u(q)) = (f_v ∘ f_u)(q)`.
+> `f_{uv}(q) = δ*(q, uv) = δ*(δ*(q, u), v) = f_v(f_u(q)) = (f_u · f_v)(q)`.
 
 Es decir,
 
-> `f_{uv} = f_v ∘ f_u`.   *(★)*
+> `f_{uv} = f_u · f_v   =   f_v ∘ f_u`.   *(★)*
 
-Observación de orden: como leemos la palabra de izquierda a derecha,
-**primero se aplica `f_u` y después `f_v`**. En la implementación esto se
-codifica con el método `Transformation.then(other)`: `f_u.then(f_v) = f_{uv}`.
+Esta identidad es **la pieza clave** de todo el desarrollo posterior: en la
+operación diagramática `·` (lectura izquierda-a-derecha) la concatenación de
+palabras se traduce literalmente como concatenación de transformaciones, sin
+inversión de orden. En el código:
+
+```python
+Transformation_of(u + v) == Transformation_of(u).then(Transformation_of(v))
+```
 
 ### 4.2 Definición y existencia de `M(A)`
 
 Sea
 > `M(A) = { f_w : w ∈ Σ* } ⊆ Q^Q`.
 
-**Lema 1 (Cerradura).** `M(A)` es cerrado bajo la composición de funciones.
+**Lema 1 (Cerradura).** `M(A)` es cerrado bajo la operación `·`.
 
 *Demostración.* Por (★), si `f_u, f_v ∈ M(A)` entonces
-`f_v ∘ f_u = f_{uv} ∈ M(A)`. ∎
+`f_u · f_v = f_{uv} ∈ M(A)`. ∎
 
-**Lema 2 (Asociatividad).** La composición de funciones es asociativa en
-`Q^Q`, en particular en `M(A)`.
+**Lema 2 (Asociatividad).** La operación `·` es asociativa en `Q^Q` (y por
+tanto en `M(A)`).
 
 *Demostración.* Para todo `q ∈ Q`,
-`((f ∘ g) ∘ h)(q) = (f ∘ g)(h(q)) = f(g(h(q))) = f((g ∘ h)(q)) = (f ∘ (g ∘ h))(q)`. ∎
+`((f · g) · h)(q) = h((f·g)(q)) = h(g(f(q))) = (g·h)(f(q)) = (f · (g · h))(q)`.
+∎
 
 **Lema 3 (Identidad).** `id_Q = f_ε ∈ M(A)` y es neutra a ambos lados.
 
 *Demostración.* `f_ε ∈ M(A)` por definición. Para cualquier `f_w`,
-`f_w ∘ f_ε = f_{εw} = f_w = f_{wε} = f_ε ∘ f_w` por (★) y las
-propiedades de la concatenación. ∎
+`f_w · f_ε = f_{wε} = f_w = f_{εw} = f_ε · f_w`, donde se usó (★) y
+las identidades `wε = w = εw` en `Σ*`. ∎
 
-**Teorema 1.** `(M(A), ∘, id_Q)` es un monoide finito y `|M(A)| ≤ |Q|^|Q|`.
+**Teorema 1.** `(M(A), ·, id_Q)` es un monoide finito y `|M(A)| ≤ |Q|^|Q|`.
 
-*Demostración.* Cerradura, asociatividad y existencia de neutro están
-probadas. La cota se sigue de que `M(A) ⊆ Q^Q` y `|Q^Q| = |Q|^|Q|`. ∎
+*Demostración.* Cerradura (Lema 1), asociatividad (Lema 2) y existencia de
+neutro (Lema 3) están probadas. La cota se sigue de que `M(A) ⊆ Q^Q` y
+`|Q^Q| = |Q|^|Q|`. ∎
 
 ### 4.3 El homomorfismo natural `φ`
 
 Definimos `φ : Σ* → M(A)` por `φ(w) = f_w`.
 
-**Teorema 2 (φ es homomorfismo).** Para todo `u, v ∈ Σ*`:
+**Teorema 2 (`φ` es homomorfismo de monoides).** La función
+`φ : (Σ*, ·, ε) → (M(A), ·, id_Q)` cumple:
 
-> `φ(uv) = φ(u) ⋆ φ(v)`
+> (i)  `φ(ε) = id_Q`,
+> (ii) `φ(uv) = φ(u) · φ(v)` para todo `u, v ∈ Σ*`.
 
-donde `⋆` denota la operación de `M(A)` cuando vemos `f_u` aplicada antes que
-`f_v`. Concretamente, definiendo `f ⋆ g := g ∘ f` (i.e. "primero `f`, luego
-`g`"), tenemos `φ(uv) = φ(u) ⋆ φ(v)` y `φ(ε) = id_Q`.
+*Demostración.* (i) `φ(ε) = f_ε = id_Q` por el caso base de §4.1.
+(ii) Por (★), `φ(uv) = f_{uv} = f_u · f_v = φ(u) · φ(v)`. ∎
 
-*Demostración.* Por (★),
-`φ(uv) = f_{uv} = f_v ∘ f_u = φ(u) ⋆ φ(v)` y `φ(ε) = f_ε = id_Q`. ∎
+**Observación de implementación.** La operación `·` en `M(A)` corresponde
+exactamente al método `Transformation.then`: `φ(u).then(φ(v)) = φ(uv)`.
+La igualdad se verifica empíricamente en `Homomorphism.verify_homomorphism`
+para todas las palabras hasta una longitud dada.
 
-**Observación de implementación.** En el código, `⋆` corresponde al método
-`Transformation.then`: dado `f = φ(u)` y `g = φ(v)`,
-`f.then(g) = φ(uv)`. Esto evita confusiones con el orden estándar de la
-composición funcional (`(g ∘ f)(q) = g(f(q))`), y nos permite trabajar con
-notación de lectura izquierda-a-derecha de palabras, que es la convención
-natural en autómatas.
+**Teorema 3 (`φ` es sobreyectivo).** `Im(φ) = M(A)`.
 
-**Teorema 3 (φ es sobreyectivo).** `Im(φ) = M(A)`.
-
-*Demostración.* Por construcción `M(A) = { f_w : w ∈ Σ* } = Im(φ)`. ∎
+*Demostración.* Por construcción `M(A) := { f_w : w ∈ Σ* } = Im(φ)`. ∎
 
 ### 4.4 Núcleo de `φ` y la congruencia `∼`
 
@@ -223,8 +283,8 @@ Transitividad: `f_u = f_v ∧ f_v = f_w ⇒ f_u = f_w`. ∎
 **Proposición 2 (`∼` es congruencia de monoide).** Si `u ∼ u'` y `v ∼ v'`,
 entonces `uv ∼ u'v'`.
 
-*Demostración.* Por (★),
-`f_{uv} = f_v ∘ f_u = f_{v'} ∘ f_{u'} = f_{u'v'}`. ∎
+*Demostración.* Por hipótesis `f_u = f_{u'}` y `f_v = f_{v'}`. Por (★),
+`f_{uv} = f_u · f_v = f_{u'} · f_{v'} = f_{u'v'}`. Luego `uv ∼ u'v'`. ∎
 
 Definimos `Ker(φ) := ∼`. En la literatura de monoides al núcleo de un
 homomorfismo se le llama también **congruencia inducida** por `φ`.
@@ -247,39 +307,92 @@ bien definida por la Proposición 2. La identidad es `[ε]`.
 **Teorema 4 (Primer Teorema del Isomorfismo).** Existe un único isomorfismo
 de monoides
 
-> `φ̄ : Σ* / Ker(φ)  →  M(A)`
+> `φ̄ : Σ* / Ker(φ)  →  Im(φ)`
 
 tal que `φ = φ̄ ∘ π`, donde `π : Σ* → Σ*/Ker(φ)` es la proyección canónica.
 
-*Demostración.* Definimos `φ̄([w]) := φ(w) = f_w`.
-- **Buena definición.** Si `[w] = [w']`, entonces `w ∼ w'`, es decir
-  `φ(w) = φ(w')`, de modo que el valor asignado no depende del representante.
-- **Homomorfismo.** `φ̄([u][v]) = φ̄([uv]) = φ(uv) = φ(u) ⋆ φ(v) = φ̄([u]) ⋆ φ̄([v])`
-  por el Teorema 2. Además `φ̄([ε]) = φ(ε) = id_Q`.
+*Demostración.* Definimos `φ̄ : Σ*/Ker(φ) → Im(φ)` por `φ̄([w]) := φ(w) = f_w`.
+- **Buena definición.** Si `[u] = [v]` en el cociente, entonces `u ∼ v`,
+  es decir `φ(u) = φ(v)`. Luego el valor `φ̄([w])` no depende del
+  representante elegido.
+- **Homomorfismo.** En `Σ*/Ker(φ)` la operación es `[u]·[v] := [uv]`
+  (bien definida por la Proposición 2). Por el Teorema 2,
+  `φ̄([u]·[v]) = φ̄([uv]) = φ(uv) = φ(u) · φ(v) = φ̄([u]) · φ̄([v])`,
+  y `φ̄([ε]) = φ(ε) = id_Q`.
 - **Inyectividad.** Si `φ̄([u]) = φ̄([v])`, entonces `φ(u) = φ(v)`, luego
   `u ∼ v` y `[u] = [v]`.
-- **Sobreyectividad sobre `Im(φ)`.** Para todo `f ∈ Im(φ)` existe `w ∈ Σ*`
-  con `φ(w) = f`, y entonces `φ̄([w]) = f`.
+- **Sobreyectividad sobre `Im(φ)`.** Trivial: si `f ∈ Im(φ)`, sea
+  `w` cualquier preimagen; entonces `φ̄([w]) = f`.
 - **Unicidad.** Cualquier `ψ` que cumpla `φ = ψ ∘ π` debe satisfacer
   `ψ([w]) = ψ(π(w)) = φ(w) = φ̄([w])`. ∎
 
-Combinando con el Teorema 3:
+Combinando con el Teorema 3 (`Im(φ) = M(A)`):
 
-> **Corolario 1.** `Σ* / Ker(φ)  ≅  M(A)`.
+> **Corolario 1.** `Σ* / Ker(φ)  ≅  M(A)`   (isomorfismo de monoides).
 
-### 4.6 Nota: monoide de transición vs. monoide sintáctico
+Este corolario está verificado computacionalmente en
+`Homomorphism.verify_first_isomorphism`, el cual comprueba dos condiciones:
+(a) toda transformación `f ∈ M(A)` aparece como `φ(w)` para alguna palabra
+de longitud `≤ |M(A)|`; (b) las clases agrupan únicamente palabras con la
+misma imagen. La cota `|M(A)|` es suficiente porque cada nivel del BFS
+añade al menos un elemento nuevo hasta agotar el monoide; por tanto el
+representante mínimo de cualquier `f ∈ M(A)` tiene longitud `≤ |M(A)| - 1`.
 
-El **monoide sintáctico** `M(L)` de un lenguaje `L ⊆ Σ*` se define mediante
-la congruencia sintáctica `∼_L`:
+### 4.6 Monoide de transición vs. monoide sintáctico
 
-> `u ∼_L v  ⟺  ∀ x, y ∈ Σ*: xuy ∈ L ⇔ xvy ∈ L`.
+El **monoide sintáctico** `M(L)` de un lenguaje `L ⊆ Σ*` se define a través
+de la **congruencia sintáctica** `≡_L`:
 
-`M(L) := Σ* / ∼_L`. Si `A` es el **DFA mínimo** que reconoce `L`, entonces
-`M(A) ≅ M(L)`. Si `A` no es mínimo, en general `M(A)` es un monoide más
-grande que admite a `M(L)` como cociente. En este proyecto tomamos `M(A)`
-como objeto principal porque (i) se construye algorítmicamente sin
-minimización previa y (ii) ya es suficiente para ilustrar el aparato
-algebraico completo.
+> `u ≡_L v  ⟺  ∀ x, y ∈ Σ*:  xuy ∈ L ⇔ xvy ∈ L`.
+
+`M(L) := Σ* / ≡_L`. La relación `≡_L` es una congruencia de monoide y de
+hecho es **la congruencia de monoide más gruesa que satura `L`** (cf. Pin,
+*Mathematical Foundations of Automata Theory*, §III.2).
+
+**Proposición 3 (relación entre las dos congruencias).** Para un DFA
+`A = (Q, Σ, δ, q₀, F)` que reconozca `L`, denotemos por `∼` la congruencia
+inducida por `φ_A : Σ* → M(A)` (es decir, `u ∼ v ⟺ f_u = f_v`). Entonces
+
+> `∼  ⊆  ≡_L`,
+
+esto es, `u ∼ v ⇒ u ≡_L v`.
+
+*Demostración.* Supongamos `u ∼ v`, es decir, `f_u = f_v`. Entonces para
+cualquier `x, y ∈ Σ*`, usando el Lema 0,
+
+```
+δ*(q₀, xuy) = δ*(δ*(q₀, x), uy) = δ*(δ*(δ*(q₀, x), u), y)
+            = δ*(f_u(δ*(q₀, x)), y) = δ*(f_v(δ*(q₀, x)), y)
+            = δ*(q₀, xvy).
+```
+
+Como `xuy` y `xvy` llevan a `q₀` al mismo estado, ambas pertenecen o no
+pertenecen simultáneamente a `L`. Luego `u ≡_L v`. ∎
+
+**Corolario 2.** Existe un homomorfismo sobreyectivo natural
+`π̄ : M(A) ↠ M(L)`, y en consecuencia `M(L)` es un cociente de `M(A)`.
+
+*Demostración.* La inclusión `∼ ⊆ ≡_L` implica que `≡_L` es una congruencia
+en `Σ* / ∼ = M(A)`. El cociente correspondiente coincide con `M(L)`. ∎
+
+**Teorema 5 (Caso de igualdad: DFA mínimo).** Si `A_min` es el DFA mínimo
+que reconoce `L`, entonces `M(A_min) ≅ M(L)`.
+
+*Demostración (esbozo).* Los estados de `A_min` son las clases de
+Myhill–Nerode `[x]_R` con la relación `x R y ⟺ ∀ z: xz ∈ L ⇔ yz ∈ L`. Su
+función de transición es `δ_min([x], a) = [xa]`. Calculamos `f_u = f_v` en
+`M(A_min)` sii `[xu]_R = [xv]_R` para todo `x ∈ Σ*`, esto es, sii para todo
+`x, y ∈ Σ*` se tiene `xuy ∈ L ⇔ xvy ∈ L`. Pero esto es exactamente
+`u ≡_L v`. Por tanto las congruencias `∼` y `≡_L` coinciden en este caso,
+y `M(A_min) = Σ*/∼ = Σ*/≡_L = M(L)`. ∎
+
+**Conclusión.** El monoide de transición `M(A)` es siempre tan fino o más
+fino que el monoide sintáctico `M(L(A))`; ambos coinciden exactamente
+cuando `A` es mínimo. En este proyecto trabajamos directamente con `M(A)`
+porque (i) se construye algorítmicamente sin minimización previa,
+(ii) ilustra completamente el aparato del Primer Teorema, y (iii) cuando
+los DFAs de ejemplo son ya mínimos (caso de los tres ejemplos incluidos),
+`M(A) = M(L)` y la información obtenida es la sintáctica.
 
 ---
 

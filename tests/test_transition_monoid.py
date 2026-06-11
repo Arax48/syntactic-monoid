@@ -120,3 +120,69 @@ def test_transformacion_of_concuerda_con_dfa(mod3_dfa: DFA) -> None:
     for w in ("", "0", "1", "10", "11", "101", "111"):
         esperado = Transformation(mod3_dfa.transformation(w))
         assert M.transformation_of(w) == esperado
+
+
+# ----------------------------------------------------------------------
+# Casos extremos
+# ----------------------------------------------------------------------
+
+def test_dfa_de_un_estado_y_alfabeto_unitario() -> None:
+    """Caso degenerado: |Q| = 1, |Sigma| = 1.
+
+    Hay una unica funcion Q -> Q (la identidad), de modo que
+    M(A) = {id_Q} y todas las palabras son equivalentes entre si.
+    """
+    dfa = DFA(
+        states={"q"},
+        alphabet={"a"},
+        transitions={"q": {"a": "q"}},
+        start="q",
+        accepting={"q"},
+        name="trivial",
+    )
+    M = TransitionMonoid(dfa)
+    assert M.order == 1
+    assert M.is_group()
+    assert M.is_commutative()
+    assert M.cayley_table() == [[0]]
+
+
+def test_dfa_alfabeto_unitario_dos_estados() -> None:
+    """|Q| = 2, |Sigma| = {a} con a actuando como permutacion.
+
+    M(A) debe ser ciclico de orden 2 ~= Z/2Z.
+    """
+    dfa = DFA(
+        states={"p", "q"},
+        alphabet={"a"},
+        transitions={"p": {"a": "q"}, "q": {"a": "p"}},
+        start="p",
+        accepting={"p"},
+        name="swap1",
+    )
+    M = TransitionMonoid(dfa)
+    assert M.order == 2
+    assert M.is_group()
+    # |M(A)|^2 lecturas: a, aa donde aa = identidad.
+    assert M.transformation_of("aa") == M.identity
+
+
+def test_palabras_representantes_son_shortlex(parity_dfa: DFA) -> None:
+    """Verifica que los representantes son shortlex (mas cortos primero,
+    desempate lexicografico) gracias al orden BFS + simbolos ordenados.
+    """
+    M = TransitionMonoid(parity_dfa)
+    reps = sorted(
+        (len(M.representatives[f]), M.representatives[f]) for f in M.elements
+    )
+    # Para paridad: ("", id), ("1", swap)
+    assert [r for _, r in reps] == ["", "1"]
+
+
+def test_orden_de_columnas_cayley_es_consistente(mod3_dfa: DFA) -> None:
+    """La fila i de la tabla es la imagen de elements[i] bajo `then`."""
+    M = TransitionMonoid(mod3_dfa)
+    table = M.cayley_table()
+    for i, f in enumerate(M.elements):
+        for j, g in enumerate(M.elements):
+            assert M.elements[table[i][j]] == f.then(g)

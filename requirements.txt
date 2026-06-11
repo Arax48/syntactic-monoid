@@ -1,7 +1,6 @@
-# Runtime
+# Runtime (visualizacion opcional, el nucleo del proyecto no la requiere)
 graphviz>=0.20      # Wrapper de Python sobre el binario `dot` (Graphviz).
 matplotlib>=3.7     # Tablas de Cayley y diagramas de clases.
-networkx>=3.1       # Utilidades opcionales para grafos (alternativa a Graphviz).
 
 # Pruebas y calidad
 pytest>=8.0

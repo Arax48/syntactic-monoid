@@ -41,6 +41,14 @@ from transformation import Transformation
 from transition_monoid import TransitionMonoid
 
 
+# Cota de profundidad de BFS suficiente para visitar todo M(A).
+# Justificacion: en el BFS de TransitionMonoid, cada nivel anade al menos
+# un elemento nuevo hasta agotar M(A); por lo tanto, la longitud del
+# representante minimo de cualquier f in M(A) es a lo sumo |M(A)| - 1.
+def _bfs_depth_bound(monoid_order: int) -> int:
+    return max(monoid_order, 1)
+
+
 class Homomorphism:
     """Homomorfismo natural phi : Sigma* -> M(A), phi(w) = f_w.
 
@@ -124,33 +132,56 @@ class Homomorphism:
     # ------------------------------------------------------------------
 
     def verify_homomorphism(self, max_length: int = 3) -> bool:
-        """Verifica numericamente que phi(uv) = phi(u) . phi(v).
+        """Verifica numericamente que phi(uv) = phi(u).then(phi(v)).
 
-        Aqui '.' significa "primero phi(u), luego phi(v)", i.e.,
-        phi(u).then(phi(v)).
+        Recuerde que `.then` es la composicion "primero phi(u), luego
+        phi(v)"; es decir, en (M(A), star) con star(f,g) := g o f,
+        comprobamos phi(uv) = phi(u) star phi(v).
         """
-        sigma = sorted(self.dfa.alphabet)
         words = list(self.words_up_to(max_length))
         for u in words:
             phi_u = self.image(u)
             for v in words:
                 if self.image(u + v) != phi_u.then(self.image(v)):
                     return False
-        return True
+        # Verificamos tambien phi(epsilon) = id_Q (neutro del monoide).
+        return self.image("") == self.monoid.identity
 
     def verify_first_isomorphism(self, max_length: int | None = None) -> bool:
-        """Verifica numericamente Sigma*/Ker(phi)  ~=  Im(phi)  =  M(A).
+        """Verifica numericamente el Primer Teorema del Isomorfismo:
 
-        Se comprueba que el numero de clases de equivalencia (truncadas a
-        max_length) coincide con |M(A)|. Si max_length es None, se elige
-        un valor grande pero finito a partir de |M(A)|.
+            Sigma* / Ker(phi)  ~=  Im(phi)  =  M(A).
+
+        La comprobacion realmente ejecutada es la siguiente:
+
+            (a) Cada transformacion de M(A) es alcanzada por alguna
+                palabra w in Sigma* con |w| <= max_length (verifica que
+                phi es sobreyectivo sobre M(A) y que la BFS no es
+                degenerada).
+            (b) Toda palabra de longitud <= max_length se asigna
+                exactamente a una transformacion (siempre cierto, pues
+                phi es funcion), y palabras asociadas a transformaciones
+                distintas son no-equivalentes (verifica inyectividad de
+                la asignacion clase -> transformacion).
+
+        Si max_length es None se usa max_length = |M(A)|, que es
+        suficiente por la cota de profundidad de la BFS.
         """
         if max_length is None:
-            # Toda transformacion aparece en a lo sumo |M(A)| pasos del BFS.
-            max_length = max(self.monoid.order, 2)
+            max_length = _bfs_depth_bound(self.monoid.order)
         cls = self.kernel(max_length)
-        # Im(phi) = M(A) por construccion del BFS en TransitionMonoid.
-        return len(cls) == self.monoid.order
+        # (a) Sobreyectividad: toda transformacion debe tener algun
+        #     representante en la truncacion.
+        nonempty = sum(1 for words in cls.values() if words)
+        if nonempty != self.monoid.order:
+            return False
+        # (b) Coherencia: cada palabra de su clase debe efectivamente
+        #     mapear, via phi, a la transformacion etiqueta.
+        for f, words in cls.items():
+            for w in words:
+                if self.image(w) != f:
+                    return False
+        return True
 
     # ------------------------------------------------------------------
     # Reportes textuales
