@@ -12,10 +12,18 @@ from backend.verification.equivalence import (
     check_against_regex,
     check_against_nfa,
 )
+from backend.verification.sample_set import (
+    SampleVerdict,
+    SampleSetResult,
+    verify_samples,
+)
 
 __all__ = [
     "EquivalenceResult",
     "check_equivalence",
     "check_against_regex",
     "check_against_nfa",
+    "SampleVerdict",
+    "SampleSetResult",
+    "verify_samples",
 ]
