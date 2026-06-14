@@ -1,0 +1,5 @@
+{
+  "_comment": "Muestra de palabras para verificar el DFA de paridad de 1s. Las palabras de 'accept' tienen numero PAR de 1s; las de 'reject', IMPAR. Para experimentar: mueva una palabra entre las dos listas y vuelva a correr `verify` para ver como la herramienta detecta el error.",
+  "accept": ["", "0", "00", "11", "1010", "1001", "00100100", "10010"],
+  "reject": ["1", "01", "10", "111", "1111111", "100100100"]
+}

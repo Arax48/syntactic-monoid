@@ -1,0 +1,13 @@
+{
+  "name": "Klein V4 (paridad de a por paridad de b)",
+  "states": ["00", "01", "10", "11"],
+  "alphabet": ["a", "b"],
+  "transitions": {
+    "00": {"a": "10", "b": "01"},
+    "01": {"a": "11", "b": "00"},
+    "10": {"a": "00", "b": "11"},
+    "11": {"a": "01", "b": "10"}
+  },
+  "start": "00",
+  "accepting": ["00"]
+}

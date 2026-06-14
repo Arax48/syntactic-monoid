@@ -87,6 +87,9 @@ Opciones:
 8. Mostrar clases de equivalencia
 9. Exportar reporte (texto + figuras)
 10. Ejecutar ejemplos canónicos
+11. Compilar regex a DFA (Thompson + subset construction)
+12. Verificar DFA contra regex o muestra accept/reject
+13. Generar hoja informativa pedagógica (álgebra + autómatas)
 
 ### Subcomandos directos
 
@@ -104,17 +107,41 @@ python main.py report  examples/ends_with_01_dfa.json
 python main.py examples
 ```
 
+### Subcomandos de la *slice 1* (lenguajes regulares, end-to-end)
+
+```bash
+# Compilar una regex a DFA (Thompson + construcción de subconjuntos)
+python main.py from-regex "(0|1)*01" --out output/ends_with_01.json
+
+# Verificar que un DFA reconoce el mismo lenguaje que una regex.
+# Si difieren, imprime el contraejemplo MÁS CORTO.
+python main.py verify examples/mod3_dfa.json --regex "0*(10*10*10*)*"
+
+# Verificar contra una muestra accept/reject (también funciona para
+# autómatas no decidibles en futuras slices: PDA, TM).
+python main.py verify examples/parity_dfa.json --samples examples/parity_samples.json
+
+# Hoja informativa pedagógica con la conexión algebraica de M(A):
+# ¿es grupo? ¿cuál? ¿qué dice eso del lenguaje?
+python main.py infosheet examples/mod3_dfa.json --out output/mod3_info.md --markdown
+```
+
 ## 4. Suite de pruebas
 
 ```bash
 pytest tests/ -v
 ```
 
-51 pruebas que cubren validación estructural del DFA, recursión de `δ*`,
-álgebra de transformaciones (asociatividad, identidad, hashing), construcción
-del monoide (cerradura, cota `|Q|^|Q|`, tabla de Cayley) y propiedades de `φ`
-(homomorfismo, reflexividad/simetría/transitividad de `∼`, Primer Teorema
-del Isomorfismo).
+149 pruebas que cubren: validación estructural y operaciones de DFA
+(minimización, intersección, equivalencia, contraejemplos); NFA con
+ε-transiciones (ε-closure, simulación, subset construction); álgebra
+de transformaciones (asociatividad, idempotencia, órbitas, ciclos);
+construcción del monoide M(A) (cerradura, cota `|Q|^|Q|`, tabla de
+Cayley, idempotentes, unidades, aperiodicidad); propiedades de `φ`
+(homomorfismo, reflexividad/simetría/transitividad de `∼`, Primer
+Teorema del Isomorfismo); parser de regex y construcción de Thompson;
+verificación por equivalencia y por muestras; análisis de estructura
+de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa.
 
 ## 5. Ejemplos incluidos
 
@@ -122,7 +149,12 @@ del Isomorfismo).
 |--------|---|---|---|---|---|
 | `parity_dfa.json` | 2 | nº par de 1s | 2 | sí | ≅ ℤ/2ℤ |
 | `mod3_dfa.json`   | 3 | nº de 1s ≡ 0 (mód 3) | 3 | sí | ≅ ℤ/3ℤ |
-| `ends_with_01_dfa.json` | 3 | termina en 01 | 5 | no | monoide aperiódico |
+| `ends_with_01_dfa.json` | 3 | termina en 01 | 5 | no | monoide aperiódico (star-free) |
+| `klein_v4_dfa.json` | 4 | paridad de `a` ∧ paridad de `b` | 4 | sí | ≅ V₄ = ℤ/2ℤ × ℤ/2ℤ |
+
+Más:
+
+- `parity_samples.json`: muestra accept/reject para `verify --samples`.
 
 ## 6. Documentación
 
