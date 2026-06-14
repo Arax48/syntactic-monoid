@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from dfa import DFA, DFAValidationError
+from backend.models import DFA, DFAValidationError
 
 
 # ----------------------------------------------------------------------

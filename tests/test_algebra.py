@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from itertools import product
 
-from dfa import DFA
-from algebra import Homomorphism
-from transition_monoid import TransitionMonoid
+from backend.models import DFA
+from backend.algebra import Homomorphism, TransitionMonoid
 
 
 # ----------------------------------------------------------------------

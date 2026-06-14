@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from itertools import product
 
-from dfa import DFA
-from transformation import Transformation
-from transition_monoid import TransitionMonoid
+from backend.models import DFA, Transformation
+from backend.algebra import TransitionMonoid
 
 
 # ----------------------------------------------------------------------

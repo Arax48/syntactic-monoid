@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from transformation import Transformation
+from backend.models import Transformation
 
 
 def test_identity_es_identidad() -> None:

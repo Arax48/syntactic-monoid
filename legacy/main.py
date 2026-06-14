@@ -27,8 +27,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from backend.models import DFA, DFAValidationError
-from backend.algebra import Homomorphism, TransitionMonoid
+from dfa import DFA, DFAValidationError
+from algebra import Homomorphism
+from transition_monoid import TransitionMonoid
 
 # Las funciones de visualizacion se importan en uso porque requieren
 # librerias graficas opcionales (graphviz, matplotlib).

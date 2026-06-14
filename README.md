@@ -15,24 +15,38 @@ Proyecto integrador de **Matemática Discreta II** y **Teoría de la Computació
 
 ## 1. Estructura del proyecto
 
+A partir del 14-06-2026 el código se reorganizó en el paquete `backend/`
+(los módulos planos originales se preservan en `legacy/` como referencia
+histórica). El paquete está dimensionado para crecer hacia PDAs y Turing
+en futuras *slices*.
+
 ```
 syntactic-monoid/
-├── main.py                  # CLI interactiva + subcomandos
-├── dfa.py                   # Clase DFA y δ*
-├── transformation.py        # Clase Transformation (f : Q→Q)
-├── transition_monoid.py     # Clase TransitionMonoid (BFS, Cayley)
-├── algebra.py               # Clase Homomorphism (φ, ker, cociente)
+├── main.py                  # CLI interactiva + subcomandos (importa desde backend/)
 ├── visualization.py         # Graphviz + matplotlib + reportes
+├── backend/                 # Motor de cómputo
+│   ├── models/              # Modelos formales
+│   │   ├── dfa.py           # DFA + minimización, producto, equivalencia
+│   │   ├── transformation.py# f : Q → Q con propiedades algebraicas
+│   │   ├── nfa.py           # NFA / ε-NFA (en construcción)
+│   │   ├── pda.py           # PDA (en construcción, slice futura)
+│   │   └── turing.py        # Máquina de Turing (en construcción, slice futura)
+│   ├── algebra/             # Análisis algebraico
+│   │   ├── transition_monoid.py  # M(A) + idempotentes, unidades, centro
+│   │   └── homomorphism.py       # φ, núcleo, cociente, primer teorema
+│   ├── language/            # Parseo y clasificación de lenguajes (en construcción)
+│   └── verification/        # Equivalencia y verificación (en construcción)
 ├── examples/                # DFAs de ejemplo en JSON
 │   ├── parity_dfa.json
 │   ├── mod3_dfa.json
 │   └── ends_with_01_dfa.json
-├── tests/                   # Suite pytest (≥ 51 pruebas)
+├── tests/                   # Suite pytest
 │   ├── conftest.py
 │   ├── test_dfa.py
 │   ├── test_transformation.py
 │   ├── test_transition_monoid.py
 │   └── test_algebra.py
+├── legacy/                  # Snapshot de los módulos planos originales
 ├── docs/
 │   ├── report.md            # Informe académico (13 secciones)
 │   └── presentation.md      # Presentación (≥ 15 diapositivas)

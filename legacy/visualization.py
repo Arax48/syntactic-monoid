@@ -21,8 +21,9 @@ import os
 from pathlib import Path
 from typing import Iterable, Optional
 
-from backend.models import DFA
-from backend.algebra import Homomorphism, TransitionMonoid
+from dfa import DFA
+from algebra import Homomorphism
+from transition_monoid import TransitionMonoid
 
 
 # ----------------------------------------------------------------------
