@@ -14,6 +14,7 @@ from backend.language.regex import (
     regex_to_nfa,
     regex_to_dfa,
 )
+from backend.language.info_sheet import InfoSheet, build_info_sheet
 
 __all__ = [
     "RegexParseError",
@@ -21,4 +22,6 @@ __all__ = [
     "collect_alphabet",
     "regex_to_nfa",
     "regex_to_dfa",
+    "InfoSheet",
+    "build_info_sheet",
 ]
