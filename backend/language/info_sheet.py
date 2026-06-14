@@ -228,12 +228,20 @@ def _connection_paragraphs(sheet: InfoSheet) -> List[str]:
         n = info.order
         w = info.cyclic_generator_word
         gen_label = "ε" if (w is None or w == "") else f'"{w}"'
+        if n == 1:
+            clases = "{[0]} (solo una clase, la trivial)"
+        elif n == 2:
+            clases = "{[0], [1]}"
+        elif n == 3:
+            clases = "{[0], [1], [2]}"
+        else:
+            clases = f"{{[0], [1], ..., [{n - 1}]}}"
         # El generador induce una "cuenta" sobre las palabras del alfabeto.
         return [
             f"   El monoide M(A) es CICLICO de orden {n}, es decir,",
             f"   M(A)  ≅  ℤ/{n}ℤ,",
             "   el MISMO objeto que ve en Discrete Math II como las clases",
-            f"   de equivalencia [0], [1], ..., [{n - 1}] modulo {n}.",
+            f"   de equivalencia {clases} modulo {n}.",
             "",
             f"   * El homomorfismo natural φ : Σ* → M(A) cuenta apariciones",
             f"     del generador {gen_label} modulo {n}.",

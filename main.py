@@ -23,12 +23,15 @@ Funciona en dos modos:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Optional
 
 from backend.models import DFA, DFAValidationError
 from backend.algebra import Homomorphism, TransitionMonoid
+from backend.language import build_info_sheet, regex_to_dfa
+from backend.verification import check_against_regex, verify_samples
 
 # Las funciones de visualizacion se importan en uso porque requieren
 # librerias graficas opcionales (graphviz, matplotlib).
@@ -213,6 +216,112 @@ def action_run_examples(session: Session) -> None:
 
 
 # ----------------------------------------------------------------------
+# Acciones nuevas: regex, verificacion, hoja informativa
+# ----------------------------------------------------------------------
+
+def _parse_alphabet_flag(raw: str) -> set[str]:
+    """Acepta 'abc' o 'a,b,c' o 'a, b, c'. Si hay coma, divide por coma;
+    si no, cada caracter es un simbolo."""
+    raw = raw.strip()
+    if not raw:
+        return set()
+    if "," in raw:
+        return {token.strip() for token in raw.split(",") if token.strip()}
+    return set(raw)
+
+
+def action_compile_regex(session: Session) -> None:
+    print("\n--- Compilar regex a DFA ---")
+    pattern = input("Expresion regular: ").strip()
+    if not pattern:
+        print("Regex vacia, abortando.")
+        return
+    raw_alpha = input(
+        "Alfabeto (separado por comas, o todos los caracteres juntos; "
+        "Enter para inferir): "
+    )
+    alphabet = _parse_alphabet_flag(raw_alpha) or None
+    try:
+        dfa = regex_to_dfa(pattern, alphabet=alphabet, name=f"L({pattern})")
+    except ValueError as exc:
+        print(f"Error compilando la regex: {exc}")
+        return
+    session.load(dfa)
+    print(f"Compilado y cargado en la sesion: {dfa}")
+    raw_save = input(
+        "Guardar el DFA como JSON? Ruta (Enter para omitir): "
+    ).strip()
+    if raw_save:
+        path = Path(raw_save).expanduser().resolve()
+        try:
+            dfa.to_json(path)
+            print(f"  Guardado: {path}")
+        except OSError as exc:
+            print(f"  Error al guardar: {exc}")
+
+
+def action_verify(session: Session) -> None:
+    dfa, _, _ = session.require()
+    print("\n--- Verificar el DFA contra una especificacion ---")
+    print("  r) regex")
+    print("  m) muestra accept/reject (archivo JSON)")
+    choice = input("Modo (r/m): ").strip()
+    if choice == "r":
+        pattern = input("Regex esperada: ").strip()
+        if not pattern:
+            return
+        raw_alpha = input(
+            "Alfabeto (Enter usa el del DFA): "
+        )
+        alphabet = _parse_alphabet_flag(raw_alpha) or None
+        try:
+            result = check_against_regex(dfa, pattern, alphabet=alphabet)
+        except ValueError as exc:
+            print(f"Error: {exc}")
+            return
+        print(result.summary("tu DFA", f"L({pattern})"))
+    elif choice == "m":
+        raw = input(
+            'Ruta a archivo JSON {"accept": [...], "reject": [...]}: '
+        ).strip()
+        if not raw:
+            return
+        try:
+            data = json.loads(
+                Path(raw).expanduser().read_text(encoding="utf-8")
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"Error al leer la muestra: {exc}")
+            return
+        result = verify_samples(
+            dfa, data.get("accept", []), data.get("reject", [])
+        )
+        print(result.summary("tu DFA"))
+        if result.total > 0:
+            print("\n" + result.pretty_table())
+    else:
+        print("Modo no reconocido.")
+
+
+def action_info_sheet(session: Session) -> None:
+    dfa, _, _ = session.require()
+    sheet = build_info_sheet(dfa)
+    print("\n" + sheet.as_text())
+    raw = input("\nGuardar tambien a archivo? Ruta (.md para markdown, "
+                "Enter para omitir): ").strip()
+    if raw:
+        path = Path(raw).expanduser().resolve()
+        try:
+            if path.suffix.lower() == ".md":
+                sheet.write_markdown(path)
+            else:
+                sheet.write(path)
+            print(f"  Guardado: {path}")
+        except OSError as exc:
+            print(f"  Error al guardar: {exc}")
+
+
+# ----------------------------------------------------------------------
 # Menu principal
 # ----------------------------------------------------------------------
 
@@ -230,6 +339,9 @@ MENU = """\
   8) Mostrar clases de equivalencia
   9) Exportar reporte (texto + figuras)
  10) Ejecutar ejemplos
+ 11) Compilar regex a DFA
+ 12) Verificar DFA contra regex o muestra
+ 13) Generar hoja informativa (algebra + automatas)
   0) Salir
 """
 
@@ -244,6 +356,9 @@ ACTIONS = {
     "8": action_show_classes,
     "9": action_export_report,
     "10": action_run_examples,
+    "11": action_compile_regex,
+    "12": action_verify,
+    "13": action_info_sheet,
 }
 
 
@@ -275,8 +390,9 @@ def cli(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="syntactic-monoid",
         description=(
-            "Herramienta para construir el monoide de transicion de un DFA "
-            "y verificar el primer teorema de isomorfismo."
+            "Herramienta para construir, verificar y analizar algebraicamente "
+            "automatas finitos: lenguajes regulares, monoide de transicion, "
+            "primer teorema del isomorfismo y conexion con teoria de grupos."
         ),
     )
     sub = parser.add_subparsers(dest="cmd")
@@ -294,6 +410,55 @@ def cli(argv: list[str] | None = None) -> int:
 
     sub.add_parser("examples", help="Procesar los tres ejemplos canonicos.")
 
+    p_compile = sub.add_parser(
+        "from-regex",
+        help="Compilar una regex a DFA (Thompson + subset construction).",
+    )
+    p_compile.add_argument("pattern", help="Expresion regular.")
+    p_compile.add_argument(
+        "--alphabet",
+        default=None,
+        help="Alfabeto: caracteres juntos ('01') o lista por comas ('a,b').",
+    )
+    p_compile.add_argument(
+        "--out",
+        default=None,
+        help="Ruta JSON donde guardar el DFA resultante.",
+    )
+
+    p_verify = sub.add_parser(
+        "verify",
+        help="Verificar un DFA contra una regex y/o una muestra accept/reject.",
+    )
+    p_verify.add_argument("dfa_json")
+    p_verify.add_argument(
+        "--regex",
+        default=None,
+        help="Regex esperada para comparar por equivalencia.",
+    )
+    p_verify.add_argument(
+        "--samples",
+        default=None,
+        help='Archivo JSON con {"accept": [...], "reject": [...]}.',
+    )
+    p_verify.add_argument(
+        "--alphabet",
+        default=None,
+        help="Alfabeto explicito para la regex (si difiere del DFA).",
+    )
+
+    p_info = sub.add_parser(
+        "infosheet",
+        help="Generar la hoja informativa pedagogica del DFA.",
+    )
+    p_info.add_argument("dfa_json")
+    p_info.add_argument("--out", default=None, help="Ruta de salida.")
+    p_info.add_argument(
+        "--markdown",
+        action="store_true",
+        help="Usar formato Markdown en lugar de texto plano.",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd is None:
@@ -305,6 +470,16 @@ def cli(argv: list[str] | None = None) -> int:
         action_run_examples(session)
         return 0
 
+    if args.cmd == "from-regex":
+        return _cli_from_regex(args)
+
+    if args.cmd == "verify":
+        return _cli_verify(args)
+
+    if args.cmd == "infosheet":
+        return _cli_infosheet(args)
+
+    # A partir de aqui los subcomandos requieren cargar el DFA.
     dfa = DFA.from_json(args.dfa_json)
     session = Session()
     session.load(dfa)
@@ -326,6 +501,82 @@ def cli(argv: list[str] | None = None) -> int:
         print(monoid.summary())
         print()
         print(monoid.pretty_cayley_table())
+    return 0
+
+
+# ----------------------------------------------------------------------
+# Subcomandos nuevos (logica de la CLI directa)
+# ----------------------------------------------------------------------
+
+def _cli_from_regex(args: argparse.Namespace) -> int:
+    alphabet = _parse_alphabet_flag(args.alphabet) if args.alphabet else None
+    try:
+        dfa = regex_to_dfa(
+            args.pattern, alphabet=alphabet, name=f"L({args.pattern})"
+        )
+    except ValueError as exc:
+        print(f"Error compilando la regex: {exc}", file=sys.stderr)
+        return 1
+    print(dfa)
+    print(dfa.pretty_transition_table())
+    if args.out:
+        path = Path(args.out).expanduser().resolve()
+        dfa.to_json(path)
+        print(f"DFA guardado en: {path}")
+    return 0
+
+
+def _cli_verify(args: argparse.Namespace) -> int:
+    dfa = DFA.from_json(args.dfa_json)
+    if args.regex is None and args.samples is None:
+        print(
+            "Debe especificar al menos --regex o --samples.", file=sys.stderr
+        )
+        return 1
+    failed = False
+    if args.regex is not None:
+        alphabet = (
+            _parse_alphabet_flag(args.alphabet) if args.alphabet else None
+        )
+        try:
+            result = check_against_regex(dfa, args.regex, alphabet=alphabet)
+        except ValueError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
+        print(result.summary("tu DFA", f"L({args.regex})"))
+        if not result.equivalent:
+            failed = True
+    if args.samples is not None:
+        try:
+            data = json.loads(
+                Path(args.samples).expanduser().read_text(encoding="utf-8")
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"Error al leer la muestra: {exc}", file=sys.stderr)
+            return 1
+        result = verify_samples(
+            dfa, data.get("accept", []), data.get("reject", [])
+        )
+        print(result.summary("tu DFA"))
+        if result.total > 0:
+            print("\n" + result.pretty_table())
+        if not result.all_pass:
+            failed = True
+    return 1 if failed else 0
+
+
+def _cli_infosheet(args: argparse.Namespace) -> int:
+    dfa = DFA.from_json(args.dfa_json)
+    sheet = build_info_sheet(dfa)
+    text = sheet.as_markdown() if args.markdown else sheet.as_text()
+    print(text)
+    if args.out:
+        path = Path(args.out).expanduser().resolve()
+        if args.markdown:
+            sheet.write_markdown(path)
+        else:
+            sheet.write(path)
+        print(f"\nGuardado en: {path}", file=sys.stderr)
     return 0
 
 
