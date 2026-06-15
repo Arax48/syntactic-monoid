@@ -15,7 +15,7 @@ donde:
     q0      : estado inicial, q0 ∈ Q.
     F       : conjunto de estados de aceptacion, F ⊆ Q.
 
-La diferencia fundamental con un DFA es que delta puede devolver
+La diferencia fundamental con un AFD es que delta puede devolver
 multiples estados (o ninguno) y admite transiciones epsilon (sin
 consumir simbolo).
 
@@ -29,7 +29,7 @@ Funcionalidad clave:
     - epsilon_closure(states) : cerradura epsilon de un conjunto de estados
     - move(states, symbol)    : estados alcanzables por un simbolo
     - accepts(word)           : simulacion no determinista
-    - to_dfa()                : construccion de subconjuntos (subset construction)
+    - to_afd()                : construccion de subconjuntos (subset construction)
     - run_trace()             : traza paso a paso para animacion
 """
 
@@ -216,25 +216,25 @@ class NFA:
         return trace
 
     # ------------------------------------------------------------------
-    # Conversion a DFA (Subset Construction)
+    # Conversion a AFD (Subset Construction)
     # ------------------------------------------------------------------
 
-    def to_dfa(self) -> "DFA":
-        """Convierte el NFA a un DFA equivalente usando la construccion
+    def to_afd(self) -> "AFD":
+        """Convierte el NFA a un AFD equivalente usando la construccion
         de subconjuntos (subset construction).
 
         Algoritmo:
-            1. El estado inicial del DFA es ε-closure({q0}).
+            1. El estado inicial del AFD es ε-closure({q0}).
             2. Para cada conjunto de estados S y cada simbolo a,
                el nuevo estado es ε-closure(move(S, a)).
-            3. Un estado del DFA es de aceptacion si contiene algun
+            3. Un estado del AFD es de aceptacion si contiene algun
                estado de aceptacion del NFA.
             4. Se construye solo los estados alcanzables (BFS).
 
         Este es uno de los teoremas fundamentales de la teoria de la
-        computacion: todo NFA tiene un DFA equivalente.
+        computacion: todo NFA tiene un AFD equivalente.
         """
-        from backend.models.dfa import DFA
+        from backend.models.afd import AFD
 
         symbols = sorted(self.alphabet)
         start_closure = self.epsilon_closure({self.start})
@@ -282,13 +282,13 @@ class NFA:
             if trap_name not in dfa_transitions:
                 dfa_transitions[trap_name] = {a: trap_name for a in symbols}
 
-        return DFA(
+        return AFD(
             states=set(state_map.values()),
             alphabet=set(self.alphabet),
             transitions=dfa_transitions,
             start=dfa_start,
             accepting=dfa_accepting,
-            name=f"DFA({self.name})",
+            name=f"AFD({self.name})",
         )
 
     # ------------------------------------------------------------------

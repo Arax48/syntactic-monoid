@@ -177,25 +177,25 @@ def test_accepts_simbolo_fuera_del_alfabeto_falla(nfa_termina_en_01: NFA) -> Non
 # Construccion de subconjuntos
 # ----------------------------------------------------------------------
 
-def test_to_dfa_reconoce_el_mismo_lenguaje(nfa_termina_en_01: NFA) -> None:
-    dfa = nfa_termina_en_01.to_dfa()
+def test_to_afd_reconoce_el_mismo_lenguaje(nfa_termina_en_01: NFA) -> None:
+    dfa = nfa_termina_en_01.to_afd()
     palabras = ["", "0", "1", "01", "001", "1101", "10", "11"]
     for w in palabras:
         assert dfa.accepts(w) == nfa_termina_en_01.accepts(w), w
 
 
-def test_to_dfa_de_nfa_con_epsilon(nfa_epsilon_choice: NFA) -> None:
-    dfa = nfa_epsilon_choice.to_dfa()
+def test_to_afd_de_nfa_con_epsilon(nfa_epsilon_choice: NFA) -> None:
+    dfa = nfa_epsilon_choice.to_afd()
     palabras = ["", "a", "b", "aa", "bb", "ab", "ba", "aaaaa"]
     for w in palabras:
         assert dfa.accepts(w) == nfa_epsilon_choice.accepts(w), w
 
 
-def test_to_dfa_genera_dfa_total_y_valido(nfa_termina_en_01: NFA) -> None:
-    """to_dfa() debe devolver un DFA estructuralmente valido (transicion
+def test_to_afd_genera_afd_total_y_valido(nfa_termina_en_01: NFA) -> None:
+    """to_afd() debe devolver un AFD estructuralmente valido (transicion
     total). Implicitamente esto verifica que el sumidero por subconjunto
     vacio se conecta correctamente cuando es alcanzable."""
-    dfa = nfa_termina_en_01.to_dfa()
+    dfa = nfa_termina_en_01.to_afd()
     for q in dfa.states:
         for a in dfa.alphabet:
             assert a in dfa.transitions[q]

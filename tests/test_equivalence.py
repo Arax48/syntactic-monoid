@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from backend.models import DFA, NFA
+from backend.models import AFD, NFA
 from backend.verification import (
     EquivalenceResult,
     check_against_nfa,
@@ -14,16 +14,16 @@ from backend.verification import (
 
 
 # ----------------------------------------------------------------------
-# DFA vs DFA
+# AFD vs AFD
 # ----------------------------------------------------------------------
 
-def test_equivalencia_es_reflexiva(parity_dfa: DFA) -> None:
+def test_equivalencia_es_reflexiva(parity_dfa: AFD) -> None:
     result = check_equivalence(parity_dfa, parity_dfa)
     assert result.equivalent
     assert result.counterexample is None
 
 
-def test_dfa_distintos_dan_contraejemplo(parity_dfa: DFA, mod3_dfa: DFA) -> None:
+def test_dfa_distintos_dan_contraejemplo(parity_dfa: AFD, mod3_dfa: AFD) -> None:
     result = check_equivalence(parity_dfa, mod3_dfa)
     assert not result.equivalent
     assert result.counterexample is not None
@@ -33,11 +33,11 @@ def test_dfa_distintos_dan_contraejemplo(parity_dfa: DFA, mod3_dfa: DFA) -> None
     )
 
 
-def test_contraejemplo_es_el_mas_corto_posible(mod3_dfa: DFA) -> None:
-    """Tomamos una variante del DFA mod 3 que rompe en una palabra
+def test_contraejemplo_es_el_mas_corto_posible(mod3_dfa: AFD) -> None:
+    """Tomamos una variante del AFD mod 3 que rompe en una palabra
     concreta y verificamos que el contraejemplo es el MAS CORTO."""
     # Variante: hacemos que r1 sea aceptante (mod 3 == 1 en lugar de 0).
-    roto = DFA(
+    roto = AFD(
         states=mod3_dfa.states,
         alphabet=mod3_dfa.alphabet,
         transitions={
@@ -56,8 +56,8 @@ def test_contraejemplo_es_el_mas_corto_posible(mod3_dfa: DFA) -> None:
     assert len(result.counterexample) <= 1
 
 
-def test_alfabetos_distintos_levantan_error(parity_dfa: DFA) -> None:
-    otro = DFA(
+def test_alfabetos_distintos_levantan_error(parity_dfa: AFD) -> None:
+    otro = AFD(
         states={"x"},
         alphabet={"a"},
         transitions={"x": {"a": "x"}},
@@ -69,7 +69,7 @@ def test_alfabetos_distintos_levantan_error(parity_dfa: DFA) -> None:
         check_equivalence(parity_dfa, otro)
 
 
-def test_summary_es_legible_cuando_son_equivalentes(parity_dfa: DFA) -> None:
+def test_summary_es_legible_cuando_son_equivalentes(parity_dfa: AFD) -> None:
     result = check_equivalence(parity_dfa, parity_dfa)
     s = result.summary("mio", "esperado")
     assert "✓" in s
@@ -77,7 +77,7 @@ def test_summary_es_legible_cuando_son_equivalentes(parity_dfa: DFA) -> None:
 
 
 def test_summary_distingue_quien_acepta_y_quien_rechaza(
-    parity_dfa: DFA, mod3_dfa: DFA
+    parity_dfa: AFD, mod3_dfa: AFD
 ) -> None:
     result = check_equivalence(parity_dfa, mod3_dfa)
     s = result.summary("paridad", "mod3")
@@ -87,26 +87,26 @@ def test_summary_distingue_quien_acepta_y_quien_rechaza(
 
 
 # ----------------------------------------------------------------------
-# DFA vs regex
+# AFD vs regex
 # ----------------------------------------------------------------------
 
-def test_dfa_paridad_es_equivalente_a_su_regex(parity_dfa: DFA) -> None:
+def test_dfa_paridad_es_equivalente_a_su_regex(parity_dfa: AFD) -> None:
     # (0*10*1)*0*  recognoce "numero par de 1s".
     result = check_against_regex(parity_dfa, "(0*10*1)*0*")
     assert result.equivalent, result.summary()
 
 
-def test_dfa_mod3_es_equivalente_a_su_regex(mod3_dfa: DFA) -> None:
+def test_dfa_mod3_es_equivalente_a_su_regex(mod3_dfa: AFD) -> None:
     result = check_against_regex(mod3_dfa, "0*(10*10*10*)*")
     assert result.equivalent, result.summary()
 
 
-def test_dfa_ends_with_01_es_equivalente_a_su_regex(ends_01_dfa: DFA) -> None:
+def test_dfa_ends_with_01_es_equivalente_a_su_regex(ends_01_dfa: AFD) -> None:
     result = check_against_regex(ends_01_dfa, "(0|1)*01")
     assert result.equivalent, result.summary()
 
 
-def test_dfa_paridad_no_coincide_con_regex_incorrecta(parity_dfa: DFA) -> None:
+def test_dfa_paridad_no_coincide_con_regex_incorrecta(parity_dfa: AFD) -> None:
     # Esta regex reconoce "termina en 0", no "numero par de 1s".
     result = check_against_regex(parity_dfa, "(0|1)*0")
     assert not result.equivalent
@@ -115,10 +115,10 @@ def test_dfa_paridad_no_coincide_con_regex_incorrecta(parity_dfa: DFA) -> None:
 
 
 # ----------------------------------------------------------------------
-# DFA vs NFA
+# AFD vs NFA
 # ----------------------------------------------------------------------
 
-def test_check_against_nfa_equivalente(ends_01_dfa: DFA) -> None:
+def test_check_against_nfa_equivalente(ends_01_dfa: AFD) -> None:
     # NFA clasico para "termina en 01"
     nfa = NFA(
         states={"q0", "q1", "q2"},

@@ -10,7 +10,7 @@ Por ahora expone una unica funcion publica:
 
 que produce una pagina HTML AUTOCONTENIDA con: la regex de entrada,
 una hoja de sintaxis en castellano, y los digrafos del NFA de Thompson,
-del DFA por construccion de subconjuntos y del DFA minimo. Los grafos
+del AFD por construccion de subconjuntos y del AFD minimo. Los grafos
 van inline como SVG (Graphviz). Sin servidor, sin dependencias en
 tiempo de ejecucion mas alla de Graphviz.
 """

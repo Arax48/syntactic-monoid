@@ -5,14 +5,14 @@ from __future__ import annotations
 import pytest
 
 from backend.algebra import TransitionMonoid, analyze
-from backend.models import DFA
+from backend.models import AFD
 
 
 # ----------------------------------------------------------------------
 # Ejemplos canonicos
 # ----------------------------------------------------------------------
 
-def test_paridad_es_Z2(parity_dfa: DFA) -> None:
+def test_paridad_es_Z2(parity_dfa: AFD) -> None:
     monoid = TransitionMonoid(parity_dfa)
     info = analyze(monoid)
     assert info.is_group
@@ -23,7 +23,7 @@ def test_paridad_es_Z2(parity_dfa: DFA) -> None:
     assert info.cyclic_generator_word == "1"
 
 
-def test_mod3_es_Z3(mod3_dfa: DFA) -> None:
+def test_mod3_es_Z3(mod3_dfa: AFD) -> None:
     monoid = TransitionMonoid(mod3_dfa)
     info = analyze(monoid)
     assert info.is_group
@@ -34,7 +34,7 @@ def test_mod3_es_Z3(mod3_dfa: DFA) -> None:
     assert info.cyclic_generator_word == "1"
 
 
-def test_termina_en_01_no_es_grupo(ends_01_dfa: DFA) -> None:
+def test_termina_en_01_no_es_grupo(ends_01_dfa: AFD) -> None:
     monoid = TransitionMonoid(ends_01_dfa)
     info = analyze(monoid)
     assert not info.is_group
@@ -52,8 +52,8 @@ def test_termina_en_01_no_es_grupo(ends_01_dfa: DFA) -> None:
 # ----------------------------------------------------------------------
 
 def test_grupo_trivial_se_identifica() -> None:
-    """DFA de un solo estado: monoide trivial {e}."""
-    dfa = DFA(
+    """AFD de un solo estado: monoide trivial {e}."""
+    dfa = AFD(
         states={"q"},
         alphabet={"a"},
         transitions={"q": {"a": "q"}},
@@ -70,12 +70,12 @@ def test_grupo_trivial_se_identifica() -> None:
 
 
 def test_klein_V4_via_dfa_de_estados_pares_de_dos_simbolos() -> None:
-    """DFA sobre {a, b} cuyo monoide es V₄ = ℤ/2ℤ × ℤ/2ℤ.
+    """AFD sobre {a, b} cuyo monoide es V₄ = ℤ/2ℤ × ℤ/2ℤ.
 
     Estados (par_a, par_b). a permuta par_a; b permuta par_b.
     Las transformaciones son: id, swap_a, swap_b, swap_ambos.
     """
-    dfa = DFA(
+    dfa = AFD(
         states={"00", "10", "01", "11"},
         alphabet={"a", "b"},
         transitions={
@@ -97,8 +97,8 @@ def test_klein_V4_via_dfa_de_estados_pares_de_dos_simbolos() -> None:
 
 
 def test_grupo_ciclico_de_orden_4_via_alfabeto_unitario() -> None:
-    """DFA con un simbolo `a` que rota 4 estados: monoide ciclico ℤ/4ℤ."""
-    dfa = DFA(
+    """AFD con un simbolo `a` que rota 4 estados: monoide ciclico ℤ/4ℤ."""
+    dfa = AFD(
         states={"s0", "s1", "s2", "s3"},
         alphabet={"a"},
         transitions={
@@ -124,7 +124,7 @@ def test_grupo_ciclico_de_orden_4_via_alfabeto_unitario() -> None:
 # Propiedades secundarias
 # ----------------------------------------------------------------------
 
-def test_order_de_elementos_es_consistente(parity_dfa: DFA) -> None:
+def test_order_de_elementos_es_consistente(parity_dfa: AFD) -> None:
     monoid = TransitionMonoid(parity_dfa)
     info = analyze(monoid)
     # En Z/2: identidad tiene orden 1, swap tiene orden 2.
@@ -132,12 +132,12 @@ def test_order_de_elementos_es_consistente(parity_dfa: DFA) -> None:
     assert valores == [1, 2]
 
 
-def test_centro_de_grupo_abeliano_es_todo_el_grupo(mod3_dfa: DFA) -> None:
+def test_centro_de_grupo_abeliano_es_todo_el_grupo(mod3_dfa: AFD) -> None:
     info = analyze(TransitionMonoid(mod3_dfa))
     assert info.center_size == info.order
 
 
-def test_aperiodicidad_en_monoide_no_grupo(ends_01_dfa: DFA) -> None:
+def test_aperiodicidad_en_monoide_no_grupo(ends_01_dfa: AFD) -> None:
     info = analyze(TransitionMonoid(ends_01_dfa))
     # M(A) tiene 5 elementos, no es grupo, pero es aperiodico
     # (todos los subgrupos triviales).

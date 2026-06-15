@@ -1,10 +1,10 @@
 """
-backend.models.dfa
+backend.models.afd
 ==================
 
-Modulo de Automata Finito Determinista (DFA).
+Modulo de Automata Finito Determinista (AFD).
 
-Un DFA se define formalmente como una 5-tupla:
+Un AFD se define formalmente como una 5-tupla:
 
     A = (Q, Sigma, delta, q0, F)
 
@@ -28,14 +28,14 @@ El lenguaje aceptado por A es:
     L(A) = { w in Sigma* : delta*(q0, w) in F }.
 
 Extended in the new backend with:
-    - minimize()       : Hopcroft's algorithm for DFA minimization
-    - complement()     : DFA that accepts the complement language
+    - minimize()       : Hopcroft's algorithm for AFD minimization
+    - complement()     : AFD that accepts the complement language
     - intersection()   : product construction for intersection
     - union()          : product construction for union
     - is_equivalent()  : check language equivalence via product construction
     - find_counterexample() : find a word accepted by one but not the other
     - reachable_states()    : states reachable from q0
-    - is_minimal()     : True if the DFA is already minimal
+    - is_minimal()     : True if the AFD is already minimal
 """
 
 from __future__ import annotations
@@ -50,12 +50,12 @@ from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 from backend.models.transformation import Transformation
 
 
-class DFAValidationError(ValueError):
-    """Se lanza cuando la definicion de un DFA no es estructuralmente valida."""
+class AFDValidationError(ValueError):
+    """Se lanza cuando la definicion de un AFD no es estructuralmente valida."""
 
 
 @dataclass
-class DFA:
+class AFD:
     """Automata Finito Determinista.
 
     Atributos
@@ -72,7 +72,7 @@ class DFA:
     accepting : set[str]
         Conjunto de estados de aceptacion F.
     name : str
-        Nombre legible del DFA (opcional, util para reportes).
+        Nombre legible del AFD (opcional, util para reportes).
     """
 
     states: Set[str]
@@ -80,7 +80,7 @@ class DFA:
     transitions: Dict[str, Dict[str, str]]
     start: str
     accepting: Set[str]
-    name: str = field(default="DFA")
+    name: str = field(default="AFD")
 
     def __post_init__(self) -> None:
         self.states = set(self.states)
@@ -93,7 +93,7 @@ class DFA:
     # ------------------------------------------------------------------
 
     def validate(self) -> None:
-        """Verifica que el DFA es estructuralmente correcto.
+        """Verifica que el AFD es estructuralmente correcto.
 
         En particular:
             * Q no es vacio.
@@ -104,31 +104,31 @@ class DFA:
               existe un valor delta(q, a) in Q.
         """
         if not self.states:
-            raise DFAValidationError("Q (estados) no puede ser vacio.")
+            raise AFDValidationError("Q (estados) no puede ser vacio.")
         if not self.alphabet:
-            raise DFAValidationError("Sigma (alfabeto) no puede ser vacio.")
+            raise AFDValidationError("Sigma (alfabeto) no puede ser vacio.")
         if self.start not in self.states:
-            raise DFAValidationError(
+            raise AFDValidationError(
                 f"El estado inicial {self.start!r} no pertenece a Q."
             )
         if not self.accepting.issubset(self.states):
             extra = self.accepting - self.states
-            raise DFAValidationError(
+            raise AFDValidationError(
                 f"Estados de aceptacion fuera de Q: {sorted(extra)!r}."
             )
         for q in self.states:
             if q not in self.transitions:
-                raise DFAValidationError(
+                raise AFDValidationError(
                     f"delta no esta definida para el estado {q!r}."
                 )
             row = self.transitions[q]
             for a in self.alphabet:
                 if a not in row:
-                    raise DFAValidationError(
+                    raise AFDValidationError(
                         f"delta({q!r}, {a!r}) no esta definida."
                     )
                 if row[a] not in self.states:
-                    raise DFAValidationError(
+                    raise AFDValidationError(
                         f"delta({q!r}, {a!r}) = {row[a]!r} no pertenece a Q."
                     )
 
@@ -214,13 +214,13 @@ class DFA:
                     queue.append(next_s)
         return visited
 
-    def complement(self) -> "DFA":
-        """Devuelve el DFA que acepta el complemento de L(A).
+    def complement(self) -> "AFD":
+        """Devuelve el AFD que acepta el complemento de L(A).
 
         El complemento se obtiene simplemente invirtiendo los estados
         de aceptacion: F' = Q - F.
         """
-        return DFA(
+        return AFD(
             states=set(self.states),
             alphabet=set(self.alphabet),
             transitions={q: dict(row) for q, row in self.transitions.items()},
@@ -229,8 +229,8 @@ class DFA:
             name=f"Complement({self.name})",
         )
 
-    def intersection(self, other: "DFA") -> "DFA":
-        """Construye el DFA producto que acepta L(A) ∩ L(B).
+    def intersection(self, other: "AFD") -> "AFD":
+        """Construye el AFD producto que acepta L(A) ∩ L(B).
 
         Usa la construccion de producto cartesiano:
             Q' = Q_A × Q_B
@@ -238,31 +238,31 @@ class DFA:
             F' = F_A × F_B
         """
         if self.alphabet != other.alphabet:
-            raise ValueError("Los DFAs deben tener el mismo alfabeto.")
+            raise ValueError("Los AFDs deben tener el mismo alfabeto.")
         return self._product(other, lambda a, b: a and b, "Intersection")
 
-    def union(self, other: "DFA") -> "DFA":
-        """Construye el DFA producto que acepta L(A) ∪ L(B)."""
+    def union(self, other: "AFD") -> "AFD":
+        """Construye el AFD producto que acepta L(A) ∪ L(B)."""
         if self.alphabet != other.alphabet:
-            raise ValueError("Los DFAs deben tener el mismo alfabeto.")
+            raise ValueError("Los AFDs deben tener el mismo alfabeto.")
         return self._product(other, lambda a, b: a or b, "Union")
 
-    def symmetric_difference(self, other: "DFA") -> "DFA":
-        """Construye el DFA que acepta L(A) △ L(B) (diferencia simetrica).
+    def symmetric_difference(self, other: "AFD") -> "AFD":
+        """Construye el AFD que acepta L(A) △ L(B) (diferencia simetrica).
 
         Util para verificar equivalencia: L(A) = L(B) ⟺ L(A) △ L(B) = ∅.
         """
         if self.alphabet != other.alphabet:
-            raise ValueError("Los DFAs deben tener el mismo alfabeto.")
+            raise ValueError("Los AFDs deben tener el mismo alfabeto.")
         return self._product(other, lambda a, b: a != b, "SymDiff")
 
     def _product(
         self,
-        other: "DFA",
+        other: "AFD",
         accept_fn,
         label: str,
-    ) -> "DFA":
-        """Construccion generica de producto de dos DFAs."""
+    ) -> "AFD":
+        """Construccion generica de producto de dos AFDs."""
         def pair(p: str, q: str) -> str:
             return f"({p},{q})"
 
@@ -290,7 +290,7 @@ class DFA:
                     visited.add((np, nq))
                     queue.append((np, nq))
 
-        return DFA(
+        return AFD(
             states=states,
             alphabet=set(self.alphabet),
             transitions=transitions,
@@ -307,17 +307,17 @@ class DFA:
         """
         return not (self.reachable_states() & self.accepting)
 
-    def is_equivalent(self, other: "DFA") -> bool:
+    def is_equivalent(self, other: "AFD") -> bool:
         """True si L(A) = L(B).
 
         Se verifica comprobando que la diferencia simetrica es vacia.
         """
         return self.symmetric_difference(other).is_empty()
 
-    def find_counterexample(self, other: "DFA") -> Optional[str]:
-        """Encuentra una palabra aceptada por exactamente uno de los dos DFAs.
+    def find_counterexample(self, other: "AFD") -> Optional[str]:
+        """Encuentra una palabra aceptada por exactamente uno de los dos AFDs.
 
-        Devuelve None si los DFAs son equivalentes.
+        Devuelve None si los AFDs son equivalentes.
         Util para dar feedback al estudiante: "Tu automata acepta '010'
         pero no deberia".
         """
@@ -349,10 +349,10 @@ class DFA:
 
         return None
 
-    def minimize(self) -> "DFA":
-        """Devuelve el DFA minimo equivalente usando el algoritmo de Hopcroft.
+    def minimize(self) -> "AFD":
+        """Devuelve el AFD minimo equivalente usando el algoritmo de Hopcroft.
 
-        El DFA minimo tiene el menor numero posible de estados y acepta
+        El AFD minimo tiene el menor numero posible de estados y acepta
         exactamente el mismo lenguaje. Es unico salvo renombramiento de estados.
         """
         # Step 1: Remove unreachable states
@@ -369,7 +369,7 @@ class DFA:
         if not accepting_r:
             # Empty language - single non-accepting state
             trap = "q0"
-            return DFA(
+            return AFD(
                 states={trap},
                 alphabet=set(self.alphabet),
                 transitions={trap: {a: trap for a in self.alphabet}},
@@ -380,7 +380,7 @@ class DFA:
         if not non_accepting_r:
             # Universal language (over reachable states) - single accepting state
             sink = "q0"
-            return DFA(
+            return AFD(
                 states={sink},
                 alphabet=set(self.alphabet),
                 transitions={sink: {a: sink for a in self.alphabet}},
@@ -420,7 +420,7 @@ class DFA:
                         new_partition.append(block)
                 partition = new_partition
 
-        # Step 3: Build minimized DFA
+        # Step 3: Build minimized AFD
         # Map each state to its block representative
         state_to_block: Dict[str, int] = {}
         for i, block in enumerate(partition):
@@ -444,7 +444,7 @@ class DFA:
 
         new_start = f"q{state_to_block[self.start]}"
 
-        return DFA(
+        return AFD(
             states=new_states,
             alphabet=set(self.alphabet),
             transitions=new_transitions,
@@ -454,9 +454,9 @@ class DFA:
         )
 
     def is_minimal(self) -> bool:
-        """True si el DFA ya es minimo.
+        """True si el AFD ya es minimo.
 
-        Un DFA es minimo si tiene el menor numero de estados posible
+        Un AFD es minimo si tiene el menor numero de estados posible
         para su lenguaje y todos sus estados son alcanzables.
         """
         minimized = self.minimize()
@@ -467,8 +467,8 @@ class DFA:
     # ------------------------------------------------------------------
 
     @classmethod
-    def from_dict(cls, data: dict) -> "DFA":
-        """Construye un DFA a partir de un diccionario simple."""
+    def from_dict(cls, data: dict) -> "AFD":
+        """Construye un AFD a partir de un diccionario simple."""
         return cls(
             states=set(data["states"]),
             alphabet=set(data["alphabet"]),
@@ -477,18 +477,18 @@ class DFA:
             },
             start=data["start"],
             accepting=set(data["accepting"]),
-            name=data.get("name", "DFA"),
+            name=data.get("name", "AFD"),
         )
 
     @classmethod
-    def from_json(cls, path: str | Path) -> "DFA":
-        """Carga un DFA desde un archivo JSON."""
+    def from_json(cls, path: str | Path) -> "AFD":
+        """Carga un AFD desde un archivo JSON."""
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return cls.from_dict(data)
 
     def to_dict(self) -> dict:
-        """Serializa el DFA a un diccionario compatible con from_dict."""
+        """Serializa el AFD a un diccionario compatible con from_dict."""
         return {
             "name": self.name,
             "states": sorted(self.states),
@@ -501,7 +501,7 @@ class DFA:
         }
 
     def to_json(self, path: str | Path) -> Path:
-        """Guarda el DFA en un archivo JSON."""
+        """Guarda el AFD en un archivo JSON."""
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -545,9 +545,9 @@ class DFA:
 
     def __str__(self) -> str:  # pragma: no cover - cosmetic
         return (
-            f"DFA(name={self.name!r}, |Q|={len(self.states)}, "
+            f"AFD(name={self.name!r}, |Q|={len(self.states)}, "
             f"|Sigma|={len(self.alphabet)}, |F|={len(self.accepting)})"
         )
 
 
-__all__ = ["DFA", "DFAValidationError"]
+__all__ = ["AFD", "AFDValidationError"]

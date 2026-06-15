@@ -9,10 +9,10 @@ Pipeline:
     pattern  --(parser + Thompson)-->  ε-NFA
                                         |
                                         v  subset construction
-                                       DFA
+                                       AFD
                                         |
                                         v  Hopcroft
-                                       DFA minimo
+                                       AFD minimo
 
 Cada autómata se renderiza como SVG mediante Graphviz y se incrusta
 directamente en una pagina HTML que ademas incluye:
@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
 from backend.language.regex import RegexParseError, regex_to_nfa
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 from backend.models.nfa import NFA
 
 
@@ -78,7 +78,7 @@ def regex_to_html(
         nfa = regex_to_nfa(pattern, alphabet=alphabet)
     except RegexParseError:
         raise
-    dfa = nfa.to_dfa()
+    dfa = nfa.to_afd()
     minimal = dfa.minimize()
 
     nfa_dot = _nfa_to_dot(nfa)
@@ -163,7 +163,7 @@ def _nfa_to_dot(nfa: NFA) -> str:
     return "\n".join(lines)
 
 
-def _dfa_to_dot(dfa: DFA) -> str:
+def _dfa_to_dot(dfa: AFD) -> str:
     lines = [
         "digraph G {",
         "  rankdir=LR;",
@@ -382,13 +382,13 @@ def _edge_count_nfa(nfa: NFA) -> int:
     return n
 
 
-def _edge_count_dfa(dfa: DFA) -> int:
+def _edge_count_dfa(dfa: AFD) -> int:
     return len(dfa.states) * len(dfa.alphabet)
 
 
 def _reduction_note(original: int, minimized: int) -> str:
     if minimized == original:
-        return " (el DFA por subconjuntos ya era minimo)"
+        return " (el AFD por subconjuntos ya era minimo)"
     return f" (reduccion: {original} → {minimized})"
 
 
@@ -397,8 +397,8 @@ def _render_html_page(
     pattern: str,
     alphabet: list[str],
     nfa: NFA,
-    dfa: DFA,
-    minimal: DFA,
+    dfa: AFD,
+    minimal: AFD,
     nfa_svg: str,
     dfa_svg: str,
     min_svg: str,
@@ -447,9 +447,9 @@ def _render_html_page(
   </section>
 
   <section class="diagram">
-    <h2>2. DFA por construccion de subconjuntos</h2>
+    <h2>2. AFD por construccion de subconjuntos</h2>
     <p class="stat">
-      Cada estado del DFA es un conjunto de estados del NFA (cerradura
+      Cada estado del AFD es un conjunto de estados del NFA (cerradura
       &epsilon;).
       <strong>{dfa_states} estados</strong>,
       <strong>{dfa_edges} transiciones</strong>.
@@ -462,9 +462,9 @@ def _render_html_page(
   </section>
 
   <section class="diagram">
-    <h2>3. DFA minimo (algoritmo de Hopcroft)</h2>
+    <h2>3. AFD minimo (algoritmo de Hopcroft)</h2>
     <p class="stat">
-      El DFA con la cantidad minima de estados que reconoce el mismo
+      El AFD con la cantidad minima de estados que reconoce el mismo
       lenguaje. Es unico salvo renombramiento.
       <strong>{min_states} estados</strong>,
       <strong>{min_edges} transiciones</strong>{_reduction_note(dfa_states, min_states)}.

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from itertools import product
 
-from backend.models import DFA, Transformation
+from backend.models import AFD, Transformation
 from backend.algebra import TransitionMonoid
 
 
@@ -12,16 +12,16 @@ from backend.algebra import TransitionMonoid
 # Tamanios esperados de los ejemplos canonicos
 # ----------------------------------------------------------------------
 
-def test_paridad_monoide_tiene_dos_elementos(parity_dfa: DFA) -> None:
+def test_paridad_monoide_tiene_dos_elementos(parity_dfa: AFD) -> None:
     M = TransitionMonoid(parity_dfa)
-    # En el DFA de paridad solo hay dos transformaciones: identidad y
+    # En el AFD de paridad solo hay dos transformaciones: identidad y
     # swap. Esto es Z/2Z como monoide.
     assert M.order == 2
     assert M.is_group()
     assert M.is_commutative()
 
 
-def test_mod3_monoide_tiene_tres_elementos(mod3_dfa: DFA) -> None:
+def test_mod3_monoide_tiene_tres_elementos(mod3_dfa: AFD) -> None:
     M = TransitionMonoid(mod3_dfa)
     # Z/3Z, exactamente 3 transformaciones.
     assert M.order == 3
@@ -29,9 +29,9 @@ def test_mod3_monoide_tiene_tres_elementos(mod3_dfa: DFA) -> None:
     assert M.is_commutative()
 
 
-def test_ends_with_01_monoide_no_es_grupo(ends_01_dfa: DFA) -> None:
+def test_ends_with_01_monoide_no_es_grupo(ends_01_dfa: AFD) -> None:
     M = TransitionMonoid(ends_01_dfa)
-    # Este DFA tiene "estados absorbentes" desde el punto de vista de
+    # Este AFD tiene "estados absorbentes" desde el punto de vista de
     # algunas transformaciones, por lo que M(A) no es un grupo.
     assert M.order > 0
     assert M.has_identity()
@@ -42,7 +42,7 @@ def test_ends_with_01_monoide_no_es_grupo(ends_01_dfa: DFA) -> None:
 # Propiedades algebraicas universales
 # ----------------------------------------------------------------------
 
-def test_identidad_pertenece_y_es_neutro(parity_dfa: DFA) -> None:
+def test_identidad_pertenece_y_es_neutro(parity_dfa: AFD) -> None:
     M = TransitionMonoid(parity_dfa)
     assert M.has_identity()
     for f in M.elements:
@@ -50,19 +50,19 @@ def test_identidad_pertenece_y_es_neutro(parity_dfa: DFA) -> None:
         assert f.then(M.identity) == f
 
 
-def test_cerradura(parity_dfa: DFA, mod3_dfa: DFA, ends_01_dfa: DFA) -> None:
+def test_cerradura(parity_dfa: AFD, mod3_dfa: AFD, ends_01_dfa: AFD) -> None:
     for dfa in (parity_dfa, mod3_dfa, ends_01_dfa):
         M = TransitionMonoid(dfa)
         assert M.is_closed()
 
 
-def test_asociatividad(parity_dfa: DFA, mod3_dfa: DFA, ends_01_dfa: DFA) -> None:
+def test_asociatividad(parity_dfa: AFD, mod3_dfa: AFD, ends_01_dfa: AFD) -> None:
     for dfa in (parity_dfa, mod3_dfa, ends_01_dfa):
         M = TransitionMonoid(dfa)
         assert M.is_associative()
 
 
-def test_cota_superior_QexpQ(parity_dfa: DFA, mod3_dfa: DFA, ends_01_dfa: DFA) -> None:
+def test_cota_superior_QexpQ(parity_dfa: AFD, mod3_dfa: AFD, ends_01_dfa: AFD) -> None:
     # |M(A)| <= |Q|^|Q|.
     for dfa in (parity_dfa, mod3_dfa, ends_01_dfa):
         M = TransitionMonoid(dfa)
@@ -74,7 +74,7 @@ def test_cota_superior_QexpQ(parity_dfa: DFA, mod3_dfa: DFA, ends_01_dfa: DFA) -
 # Tabla de Cayley
 # ----------------------------------------------------------------------
 
-def test_cayley_table_dimension(mod3_dfa: DFA) -> None:
+def test_cayley_table_dimension(mod3_dfa: AFD) -> None:
     M = TransitionMonoid(mod3_dfa)
     table = M.cayley_table()
     n = M.order
@@ -82,7 +82,7 @@ def test_cayley_table_dimension(mod3_dfa: DFA) -> None:
     assert all(len(row) == n for row in table)
 
 
-def test_cayley_table_consistente_con_then(mod3_dfa: DFA) -> None:
+def test_cayley_table_consistente_con_then(mod3_dfa: AFD) -> None:
     M = TransitionMonoid(mod3_dfa)
     table = M.cayley_table()
     for i, f in enumerate(M.elements):
@@ -91,7 +91,7 @@ def test_cayley_table_consistente_con_then(mod3_dfa: DFA) -> None:
             assert table[i][j] == esperado
 
 
-def test_cayley_table_paridad_es_z2(parity_dfa: DFA) -> None:
+def test_cayley_table_paridad_es_z2(parity_dfa: AFD) -> None:
     M = TransitionMonoid(parity_dfa)
     # En Z/2 la tabla es [[0,1],[1,0]].
     table = M.cayley_table()
@@ -105,16 +105,16 @@ def test_cayley_table_paridad_es_z2(parity_dfa: DFA) -> None:
 # Representantes minimos
 # ----------------------------------------------------------------------
 
-def test_palabra_representante_minima(parity_dfa: DFA) -> None:
+def test_palabra_representante_minima(parity_dfa: AFD) -> None:
     M = TransitionMonoid(parity_dfa)
-    # En el DFA de paridad:
+    # En el AFD de paridad:
     #   identidad: representada por epsilon (longitud 0)
     #   swap     : representada por "1" (longitud 1)
     longitudes = sorted(len(M.representatives[f]) for f in M.elements)
     assert longitudes == [0, 1]
 
 
-def test_transformacion_of_concuerda_con_dfa(mod3_dfa: DFA) -> None:
+def test_transformacion_of_concuerda_con_dfa(mod3_dfa: AFD) -> None:
     M = TransitionMonoid(mod3_dfa)
     for w in ("", "0", "1", "10", "11", "101", "111"):
         esperado = Transformation(mod3_dfa.transformation(w))
@@ -131,7 +131,7 @@ def test_dfa_de_un_estado_y_alfabeto_unitario() -> None:
     Hay una unica funcion Q -> Q (la identidad), de modo que
     M(A) = {id_Q} y todas las palabras son equivalentes entre si.
     """
-    dfa = DFA(
+    dfa = AFD(
         states={"q"},
         alphabet={"a"},
         transitions={"q": {"a": "q"}},
@@ -151,7 +151,7 @@ def test_dfa_alfabeto_unitario_dos_estados() -> None:
 
     M(A) debe ser ciclico de orden 2 ~= Z/2Z.
     """
-    dfa = DFA(
+    dfa = AFD(
         states={"p", "q"},
         alphabet={"a"},
         transitions={"p": {"a": "q"}, "q": {"a": "p"}},
@@ -166,7 +166,7 @@ def test_dfa_alfabeto_unitario_dos_estados() -> None:
     assert M.transformation_of("aa") == M.identity
 
 
-def test_palabras_representantes_son_shortlex(parity_dfa: DFA) -> None:
+def test_palabras_representantes_son_shortlex(parity_dfa: AFD) -> None:
     """Verifica que los representantes son shortlex (mas cortos primero,
     desempate lexicografico) gracias al orden BFS + simbolos ordenados.
     """
@@ -178,7 +178,7 @@ def test_palabras_representantes_son_shortlex(parity_dfa: DFA) -> None:
     assert [r for _, r in reps] == ["", "1"]
 
 
-def test_orden_de_columnas_cayley_es_consistente(mod3_dfa: DFA) -> None:
+def test_orden_de_columnas_cayley_es_consistente(mod3_dfa: AFD) -> None:
     """La fila i de la tabla es la imagen de elements[i] bajo `then`."""
     M = TransitionMonoid(mod3_dfa)
     table = M.cayley_table()

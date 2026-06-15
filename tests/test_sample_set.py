@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from backend.models import DFA
+from backend.models import AFD
 from backend.verification import (
     SampleSetResult,
     SampleVerdict,
@@ -21,7 +21,7 @@ def test_muestra_vacia_no_pasa_y_no_falla() -> None:
     assert "ninguna" in result.summary().lower()
 
 
-def test_todas_las_palabras_correctas(parity_dfa: DFA) -> None:
+def test_todas_las_palabras_correctas(parity_dfa: AFD) -> None:
     accept = ["", "11", "1001"]
     reject = ["1", "111"]
     result = verify_samples(parity_dfa, accept, reject)
@@ -36,7 +36,7 @@ def test_todas_las_palabras_correctas(parity_dfa: DFA) -> None:
 # Discrepancias
 # ----------------------------------------------------------------------
 
-def test_falso_negativo_detectado(parity_dfa: DFA) -> None:
+def test_falso_negativo_detectado(parity_dfa: AFD) -> None:
     # "1001" tiene 2 unos (par), pero la marcamos como reject por error.
     result = verify_samples(parity_dfa, [], ["1001"])
     assert result.failed == 1
@@ -47,7 +47,7 @@ def test_falso_negativo_detectado(parity_dfa: DFA) -> None:
     assert "acepto" in result.summary("paridad")
 
 
-def test_falso_positivo_detectado(parity_dfa: DFA) -> None:
+def test_falso_positivo_detectado(parity_dfa: AFD) -> None:
     # "1" tiene 1 uno (impar), pero la marcamos como accept por error.
     result = verify_samples(parity_dfa, ["1"], [])
     assert result.failed == 1
@@ -56,7 +56,7 @@ def test_falso_positivo_detectado(parity_dfa: DFA) -> None:
     assert verdict.actual is False
 
 
-def test_mezcla_de_aciertos_y_fallos(mod3_dfa: DFA) -> None:
+def test_mezcla_de_aciertos_y_fallos(mod3_dfa: AFD) -> None:
     accept = ["", "111", "010101"]    # 0, 3, 3 unos: todas multiplos de 3 ✓
     reject = ["1", "11", "11111"]      # 1, 2, 5 unos ✓
     rotas = ["1111"]                   # 4 unos: NO es multiplo de 3 -> deberia rechazar
@@ -71,7 +71,7 @@ def test_mezcla_de_aciertos_y_fallos(mod3_dfa: DFA) -> None:
 # Manejo de errores
 # ----------------------------------------------------------------------
 
-def test_simbolo_fuera_del_alfabeto_se_marca_como_error(parity_dfa: DFA) -> None:
+def test_simbolo_fuera_del_alfabeto_se_marca_como_error(parity_dfa: AFD) -> None:
     # 'x' no esta en {0, 1}, debe ser tratado como error y no como rechazo.
     result = verify_samples(parity_dfa, ["1x0"], [])
     assert result.failed == 1
@@ -88,7 +88,7 @@ def test_simbolo_fuera_del_alfabeto_se_marca_como_error(parity_dfa: DFA) -> None
 # Tabla legible
 # ----------------------------------------------------------------------
 
-def test_pretty_table_incluye_cabecera_y_simbolos(parity_dfa: DFA) -> None:
+def test_pretty_table_incluye_cabecera_y_simbolos(parity_dfa: AFD) -> None:
     result = verify_samples(parity_dfa, ["", "11"], ["1"])
     table = result.pretty_table()
     assert "palabra" in table
@@ -104,10 +104,10 @@ def test_pretty_table_incluye_cabecera_y_simbolos(parity_dfa: DFA) -> None:
 # Auxiliar
 # ----------------------------------------------------------------------
 
-def _dummy_dfa() -> DFA:
-    """DFA de un solo estado, usado en pruebas que solo necesitan un
+def _dummy_dfa() -> AFD:
+    """AFD de un solo estado, usado en pruebas que solo necesitan un
     objeto con .accepts(w) bien definido."""
-    return DFA(
+    return AFD(
         states={"q"},
         alphabet={"a"},
         transitions={"q": {"a": "q"}},

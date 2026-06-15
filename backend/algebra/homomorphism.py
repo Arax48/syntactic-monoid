@@ -4,7 +4,7 @@ backend.algebra.homomorphism
 
 Modulo de algebra: homomorfismo natural, nucleo y clases de equivalencia.
 
-Sea A = (Q, Sigma, delta, q0, F) un DFA y sea M(A) el monoide de transicion
+Sea A = (Q, Sigma, delta, q0, F) un AFD y sea M(A) el monoide de transicion
 construido en transition_monoid.py. Se define el homomorfismo natural
 
     phi : Sigma* -> M(A),    phi(w) = f_w,
@@ -36,7 +36,7 @@ from __future__ import annotations
 from itertools import product
 from typing import Dict, Iterable, List, Tuple
 
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 from backend.models.transformation import Transformation
 from backend.algebra.transition_monoid import TransitionMonoid
 
@@ -54,11 +54,11 @@ class Homomorphism:
 
     Atributos
     ---------
-    dfa : DFA
+    dfa : AFD
     monoid : TransitionMonoid
     """
 
-    def __init__(self, dfa: DFA, monoid: TransitionMonoid | None = None) -> None:
+    def __init__(self, dfa: AFD, monoid: TransitionMonoid | None = None) -> None:
         self.dfa = dfa
         self.monoid = monoid if monoid is not None else TransitionMonoid(dfa)
 

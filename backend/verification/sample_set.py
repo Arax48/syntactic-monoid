@@ -14,7 +14,7 @@ puede aplicar a CUALQUIER automata simulable — incluyendo PDAs y
 maquinas de Turing en slices posteriores donde la equivalencia es
 indecidible y solo nos queda el testeo basado en propiedades.
 
-Para automatas finitos (DFA/NFA) tambien sigue siendo util:
+Para automatas finitos (AFD/NFA) tambien sigue siendo util:
 pedagogicamente, "estos diez ejemplos no funcionan" es mas concreto
 que un contraejemplo abstracto.
 """

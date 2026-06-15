@@ -15,7 +15,7 @@ from backend.language.regex import (
     Union,
     collect_alphabet,
     parse,
-    regex_to_dfa,
+    regex_to_afd,
     regex_to_nfa,
 )
 
@@ -268,28 +268,28 @@ def test_regex_vacia_requiere_alfabeto_explicito() -> None:
 
 
 # ----------------------------------------------------------------------
-# Conversion a DFA via subset construction
+# Conversion a AFD via subset construction
 # ----------------------------------------------------------------------
 
 def test_dfa_de_regex_acepta_lo_mismo_que_el_nfa() -> None:
     nfa = regex_to_nfa("(0|1)*01")
-    dfa = nfa.to_dfa()
+    dfa = nfa.to_afd()
     for w in ("01", "001", "1101", "", "0", "1", "10", "111101", "100"):
         assert dfa.accepts(w) == nfa.accepts(w), w
 
 
-def test_regex_to_dfa_paridad_minimizado_tiene_dos_estados() -> None:
-    # El DFA minimo del lenguaje "numero par de 1s" tiene 2 estados.
-    dfa = regex_to_dfa("(0*10*1)*0*", alphabet={"0", "1"})
+def test_regex_to_afd_paridad_minimizado_tiene_dos_estados() -> None:
+    # El AFD minimo del lenguaje "numero par de 1s" tiene 2 estados.
+    dfa = regex_to_afd("(0*10*1)*0*", alphabet={"0", "1"})
     minimo = dfa.minimize()
     assert len(minimo.states) == 2
 
 
-def test_regex_to_dfa_mod3_minimizado_tiene_tres_estados() -> None:
+def test_regex_to_afd_mod3_minimizado_tiene_tres_estados() -> None:
     # |w|_1 ≡ 0 (mod 3): la regex 0*(10*10*10*)* admite ceros iniciales
     # libres y luego grupos de exactamente tres unos cada uno (con
     # ceros intercalados entre ellos), reconociendo asi todas las
     # palabras cuyo numero de unos es multiplo de 3.
-    dfa = regex_to_dfa("0*(10*10*10*)*", alphabet={"0", "1"})
+    dfa = regex_to_afd("0*(10*10*10*)*", alphabet={"0", "1"})
     minimo = dfa.minimize()
     assert len(minimo.states) == 3

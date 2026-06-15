@@ -28,9 +28,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from backend.models import DFA, DFAValidationError
+from backend.models import AFD, AFDValidationError
 from backend.algebra import Homomorphism, TransitionMonoid
-from backend.language import build_info_sheet, regex_to_dfa
+from backend.language import build_info_sheet, regex_to_afd
 from backend.language.regex import RegexParseError
 from backend.verification import check_against_regex, verify_samples
 from backend.visualization import regex_to_html
@@ -58,22 +58,22 @@ EXAMPLE_FILES = {
 # ----------------------------------------------------------------------
 
 class Session:
-    """Mantiene el DFA, el monoide y el homomorfismo cargados."""
+    """Mantiene el AFD, el monoide y el homomorfismo cargados."""
 
     def __init__(self) -> None:
-        self.dfa: Optional[DFA] = None
+        self.dfa: Optional[AFD] = None
         self.monoid: Optional[TransitionMonoid] = None
         self.hom: Optional[Homomorphism] = None
 
-    def load(self, dfa: DFA) -> None:
+    def load(self, dfa: AFD) -> None:
         self.dfa = dfa
         self.monoid = TransitionMonoid(dfa)
         self.hom = Homomorphism(dfa, self.monoid)
 
-    def require(self) -> tuple[DFA, TransitionMonoid, Homomorphism]:
+    def require(self) -> tuple[AFD, TransitionMonoid, Homomorphism]:
         if self.dfa is None or self.monoid is None or self.hom is None:
             raise RuntimeError(
-                "No hay un DFA cargado. Use la opcion 1 del menu."
+                "No hay un AFD cargado. Use la opcion 1 del menu."
             )
         return self.dfa, self.monoid, self.hom
 
@@ -83,7 +83,7 @@ class Session:
 # ----------------------------------------------------------------------
 
 def action_load(session: Session) -> None:
-    print("\n--- Cargar DFA ---")
+    print("\n--- Cargar AFD ---")
     print("Ejemplos disponibles:")
     for key, path in EXAMPLE_FILES.items():
         print(f"  {key}) {path.name}")
@@ -98,9 +98,9 @@ def action_load(session: Session) -> None:
         print("Opcion no reconocida.")
         return
     try:
-        dfa = DFA.from_json(path)
-    except (DFAValidationError, FileNotFoundError, ValueError) as exc:
-        print(f"Error al cargar el DFA: {exc}")
+        dfa = AFD.from_json(path)
+    except (AFDValidationError, FileNotFoundError, ValueError) as exc:
+        print(f"Error al cargar el AFD: {exc}")
         return
     session.load(dfa)
     print(f"Cargado: {dfa}")
@@ -108,7 +108,7 @@ def action_load(session: Session) -> None:
 
 def action_show_dfa(session: Session) -> None:
     dfa, _, _ = session.require()
-    print("\n--- DFA ---")
+    print("\n--- AFD ---")
     print(f"  Nombre  : {dfa.name}")
     print(f"  Q       : {sorted(dfa.states)}")
     print(f"  Sigma   : {sorted(dfa.alphabet)}")
@@ -186,9 +186,9 @@ def action_export_report(session: Session) -> None:
         from visualization import render_dfa, render_cayley_table, render_class_diagram
 
         png_dfa = render_dfa(dfa, base.with_name(base.name + "_dfa"))
-        print(f"Grafo del DFA  : {png_dfa}")
+        print(f"Grafo del AFD  : {png_dfa}")
     except RuntimeError as exc:
-        print(f"  (omitido grafo del DFA: {exc})")
+        print(f"  (omitido grafo del AFD: {exc})")
     try:
         from visualization import render_cayley_table, render_class_diagram
 
@@ -210,7 +210,7 @@ def action_run_examples(session: Session) -> None:
     print("\n--- Ejecucion de los tres ejemplos canonicos ---\n")
     for key in ("1", "2", "3"):
         path = EXAMPLE_FILES[key]
-        dfa = DFA.from_json(path)
+        dfa = AFD.from_json(path)
         session.load(dfa)
         print("=" * 60)
         print(f"Ejemplo {key}: {dfa.name}  ({path.name})")
@@ -237,7 +237,7 @@ def _parse_alphabet_flag(raw: str) -> set[str]:
 
 
 def action_compile_regex(session: Session) -> None:
-    print("\n--- Compilar regex a DFA ---")
+    print("\n--- Compilar regex a AFD ---")
     pattern = input("Expresion regular: ").strip()
     if not pattern:
         print("Regex vacia, abortando.")
@@ -248,14 +248,14 @@ def action_compile_regex(session: Session) -> None:
     )
     alphabet = _parse_alphabet_flag(raw_alpha) or None
     try:
-        dfa = regex_to_dfa(pattern, alphabet=alphabet, name=f"L({pattern})")
+        dfa = regex_to_afd(pattern, alphabet=alphabet, name=f"L({pattern})")
     except ValueError as exc:
         print(f"Error compilando la regex: {exc}")
         return
     session.load(dfa)
     print(f"Compilado y cargado en la sesion: {dfa}")
     raw_save = input(
-        "Guardar el DFA como JSON? Ruta (Enter para omitir): "
+        "Guardar el AFD como JSON? Ruta (Enter para omitir): "
     ).strip()
     if raw_save:
         path = Path(raw_save).expanduser().resolve()
@@ -268,7 +268,7 @@ def action_compile_regex(session: Session) -> None:
 
 def action_verify(session: Session) -> None:
     dfa, _, _ = session.require()
-    print("\n--- Verificar el DFA contra una especificacion ---")
+    print("\n--- Verificar el AFD contra una especificacion ---")
     print("  r) regex")
     print("  m) muestra accept/reject (archivo JSON)")
     choice = input("Modo (r/m): ").strip()
@@ -277,7 +277,7 @@ def action_verify(session: Session) -> None:
         if not pattern:
             return
         raw_alpha = input(
-            "Alfabeto (Enter usa el del DFA): "
+            "Alfabeto (Enter usa el del AFD): "
         )
         alphabet = _parse_alphabet_flag(raw_alpha) or None
         try:
@@ -285,7 +285,7 @@ def action_verify(session: Session) -> None:
         except ValueError as exc:
             print(f"Error: {exc}")
             return
-        print(result.summary("tu DFA", f"L({pattern})"))
+        print(result.summary("tu AFD", f"L({pattern})"))
     elif choice == "m":
         raw = input(
             'Ruta a archivo JSON {"accept": [...], "reject": [...]}: '
@@ -302,7 +302,7 @@ def action_verify(session: Session) -> None:
         result = verify_samples(
             dfa, data.get("accept", []), data.get("reject", [])
         )
-        print(result.summary("tu DFA"))
+        print(result.summary("tu AFD"))
         if result.total > 0:
             print("\n" + result.pretty_table())
     else:
@@ -343,7 +343,7 @@ def action_interactive(session: Session) -> None:
 
 
 def action_visualize_regex(session: Session) -> None:
-    print("\n--- Visualizar regex (HTML con NFA + DFA + DFA minimo) ---")
+    print("\n--- Visualizar regex (HTML con NFA + AFD + AFD minimo) ---")
     print("Sintaxis soportada: a, ab, a|b, a*, a+, a?, (...), [abc], [a-z], ., \\x")
     pattern = input("Expresion regular: ").strip()
     if not pattern:
@@ -381,8 +381,8 @@ MENU = """\
 ============================================================
   Monoide de Transicion - Menu principal
 ============================================================
-  1) Cargar DFA
-  2) Mostrar DFA
+  1) Cargar AFD
+  2) Mostrar AFD
   3) Evaluar palabra
   4) Construir monoide
   5) Mostrar transformaciones
@@ -391,10 +391,10 @@ MENU = """\
   8) Mostrar clases de equivalencia
   9) Exportar reporte (texto + figuras)
  10) Ejecutar ejemplos
- 11) Compilar regex a DFA
- 12) Verificar DFA contra regex o muestra
+ 11) Compilar regex a AFD
+ 12) Verificar AFD contra regex o muestra
  13) Generar hoja informativa (algebra + automatas)
- 14) Visualizar regex en HTML estatico (NFA + DFA + DFA minimo)
+ 14) Visualizar regex en HTML estatico (NFA + AFD + AFD minimo)
  15) ABRIR visualizador interactivo en el navegador (live, sin terminal)
   0) Salir
 """
@@ -457,7 +457,7 @@ def cli(argv: list[str] | None = None) -> int:
     p_report.add_argument("dfa_json")
     p_report.add_argument("--max-length", type=int, default=3)
 
-    p_run = sub.add_parser("run", help="Ejecutar una palabra sobre el DFA.")
+    p_run = sub.add_parser("run", help="Ejecutar una palabra sobre el AFD.")
     p_run.add_argument("dfa_json")
     p_run.add_argument("word")
 
@@ -468,7 +468,7 @@ def cli(argv: list[str] | None = None) -> int:
 
     p_compile = sub.add_parser(
         "from-regex",
-        help="Compilar una regex a DFA (Thompson + subset construction).",
+        help="Compilar una regex a AFD (Thompson + subset construction).",
     )
     p_compile.add_argument("pattern", help="Expresion regular.")
     p_compile.add_argument(
@@ -479,12 +479,12 @@ def cli(argv: list[str] | None = None) -> int:
     p_compile.add_argument(
         "--out",
         default=None,
-        help="Ruta JSON donde guardar el DFA resultante.",
+        help="Ruta JSON donde guardar el AFD resultante.",
     )
 
     p_verify = sub.add_parser(
         "verify",
-        help="Verificar un DFA contra una regex y/o una muestra accept/reject.",
+        help="Verificar un AFD contra una regex y/o una muestra accept/reject.",
     )
     p_verify.add_argument("dfa_json")
     p_verify.add_argument(
@@ -500,12 +500,12 @@ def cli(argv: list[str] | None = None) -> int:
     p_verify.add_argument(
         "--alphabet",
         default=None,
-        help="Alfabeto explicito para la regex (si difiere del DFA).",
+        help="Alfabeto explicito para la regex (si difiere del AFD).",
     )
 
     p_info = sub.add_parser(
         "infosheet",
-        help="Generar la hoja informativa pedagogica del DFA.",
+        help="Generar la hoja informativa pedagogica del AFD.",
     )
     p_info.add_argument("dfa_json")
     p_info.add_argument("--out", default=None, help="Ruta de salida.")
@@ -517,7 +517,7 @@ def cli(argv: list[str] | None = None) -> int:
 
     p_visual = sub.add_parser(
         "visualize",
-        help="Generar pagina HTML autocontenida con NFA + DFA + DFA minimo "
+        help="Generar pagina HTML autocontenida con NFA + AFD + AFD minimo "
              "de una regex.",
     )
     p_visual.add_argument("pattern", help="Expresion regular a visualizar.")
@@ -569,8 +569,8 @@ def cli(argv: list[str] | None = None) -> int:
     if args.cmd == "interactive":
         return _cli_interactive()
 
-    # A partir de aqui los subcomandos requieren cargar el DFA.
-    dfa = DFA.from_json(args.dfa_json)
+    # A partir de aqui los subcomandos requieren cargar el AFD.
+    dfa = AFD.from_json(args.dfa_json)
     session = Session()
     session.load(dfa)
 
@@ -601,7 +601,7 @@ def cli(argv: list[str] | None = None) -> int:
 def _cli_from_regex(args: argparse.Namespace) -> int:
     alphabet = _parse_alphabet_flag(args.alphabet) if args.alphabet else None
     try:
-        dfa = regex_to_dfa(
+        dfa = regex_to_afd(
             args.pattern, alphabet=alphabet, name=f"L({args.pattern})"
         )
     except ValueError as exc:
@@ -612,12 +612,12 @@ def _cli_from_regex(args: argparse.Namespace) -> int:
     if args.out:
         path = Path(args.out).expanduser().resolve()
         dfa.to_json(path)
-        print(f"DFA guardado en: {path}")
+        print(f"AFD guardado en: {path}")
     return 0
 
 
 def _cli_verify(args: argparse.Namespace) -> int:
-    dfa = DFA.from_json(args.dfa_json)
+    dfa = AFD.from_json(args.dfa_json)
     if args.regex is None and args.samples is None:
         print(
             "Debe especificar al menos --regex o --samples.", file=sys.stderr
@@ -633,7 +633,7 @@ def _cli_verify(args: argparse.Namespace) -> int:
         except ValueError as exc:
             print(f"Error: {exc}", file=sys.stderr)
             return 1
-        print(result.summary("tu DFA", f"L({args.regex})"))
+        print(result.summary("tu AFD", f"L({args.regex})"))
         if not result.equivalent:
             failed = True
     if args.samples is not None:
@@ -647,7 +647,7 @@ def _cli_verify(args: argparse.Namespace) -> int:
         result = verify_samples(
             dfa, data.get("accept", []), data.get("reject", [])
         )
-        print(result.summary("tu DFA"))
+        print(result.summary("tu AFD"))
         if result.total > 0:
             print("\n" + result.pretty_table())
         if not result.all_pass:
@@ -656,7 +656,7 @@ def _cli_verify(args: argparse.Namespace) -> int:
 
 
 def _cli_infosheet(args: argparse.Namespace) -> int:
-    dfa = DFA.from_json(args.dfa_json)
+    dfa = AFD.from_json(args.dfa_json)
     sheet = build_info_sheet(dfa)
     text = sheet.as_markdown() if args.markdown else sheet.as_text()
     print(text)

@@ -2,11 +2,11 @@
 backend.algebra.transition_monoid
 ==================================
 
-Construccion explicita del MONOIDE DE TRANSICION M(A) asociado a un DFA.
+Construccion explicita del MONOIDE DE TRANSICION M(A) asociado a un AFD.
 
 Definicion
 ----------
-Sea A = (Q, Sigma, delta, q0, F) un DFA. Para cada w in Sigma* definimos
+Sea A = (Q, Sigma, delta, q0, F) un AFD. Para cada w in Sigma* definimos
 la transformacion inducida
 
     f_w : Q -> Q,    f_w(q) = delta*(q, w).
@@ -33,17 +33,17 @@ from __future__ import annotations
 from collections import deque
 from typing import Deque, Dict, Iterable, List, Optional, Set, Tuple
 
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 from backend.models.transformation import Transformation
 
 
 class TransitionMonoid:
-    """Monoide de transicion M(A) de un DFA.
+    """Monoide de transicion M(A) de un AFD.
 
     Atributos publicos
     ------------------
-    dfa : DFA
-        DFA fuente.
+    dfa : AFD
+        AFD fuente.
     elements : list[Transformation]
         Lista de las transformaciones del monoide (sin repeticiones).
     representatives : dict[Transformation, str]
@@ -53,7 +53,7 @@ class TransitionMonoid:
         Elemento identidad del monoide (igual a f_epsilon = id_Q).
     """
 
-    def __init__(self, dfa: DFA) -> None:
+    def __init__(self, dfa: AFD) -> None:
         self.dfa = dfa
         self.identity: Transformation = Transformation.identity(dfa.states)
         self.elements: List[Transformation] = []
@@ -191,7 +191,7 @@ class TransitionMonoid:
         """Verifica asociatividad sobre todos los triples.
 
         Es siempre True para composicion de funciones; se incluye como
-        verificacion empirica para los DFAs pequenos usados en clase.
+        verificacion empirica para los AFDs pequenos usados en clase.
         """
         for f in self.elements:
             for g in self.elements:

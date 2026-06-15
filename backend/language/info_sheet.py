@@ -4,7 +4,7 @@ backend.language.info_sheet
 
 Hoja informativa para el estudiante.
 
-Dado un DFA, este modulo produce un reporte en castellano con secciones
+Dado un AFD, este modulo produce un reporte en castellano con secciones
 tematicas que materializan el puente entre TEORIA DE COMPUTACION y
 ALGEBRA (Discrete Math II). El objetivo es que tras CONSTRUIR o
 VERIFICAR un automata el estudiante reciba un resumen que conteste:
@@ -17,7 +17,7 @@ VERIFICAR un automata el estudiante reciba un resumen que conteste:
     * ¿que puedo hacer a continuacion?
 
 Por diseno, este modulo NO infiere descripciones del lenguaje a partir
-del DFA (eso es indecidible en general). Lo que si hace es interpretar
+del AFD (eso es indecidible en general). Lo que si hace es interpretar
 algebraicamente la estructura de M(A) y traducirla a frases que un
 estudiante de primer semestre pueda leer.
 """
@@ -31,7 +31,7 @@ from typing import List, Optional
 from backend.algebra.group_analysis import GroupAnalysis, analyze
 from backend.algebra.homomorphism import Homomorphism
 from backend.algebra.transition_monoid import TransitionMonoid
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 
 
 # ----------------------------------------------------------------------
@@ -40,9 +40,9 @@ from backend.models.dfa import DFA
 
 @dataclass(frozen=True)
 class InfoSheet:
-    """Hoja informativa para un DFA dado."""
+    """Hoja informativa para un AFD dado."""
 
-    dfa: DFA
+    dfa: AFD
     monoid: TransitionMonoid
     homomorphism: Homomorphism
     analysis: GroupAnalysis
@@ -69,7 +69,7 @@ class InfoSheet:
         return p
 
 
-def build_info_sheet(dfa: DFA) -> InfoSheet:
+def build_info_sheet(dfa: AFD) -> InfoSheet:
     monoid = TransitionMonoid(dfa)
     hom = Homomorphism(dfa, monoid)
     info = analyze(monoid)
@@ -271,7 +271,7 @@ def _connection_paragraphs(sheet: InfoSheet) -> List[str]:
             "   * El orden de composicion importa: hay palabras u, v",
             "     tales que φ(uv) ≠ φ(vu) aunque ambas sean equivalentes",
             "     a la misma transformacion individualmente.",
-            "   * Esto vincula su DFA con teoria de PERMUTACIONES (que es",
+            "   * Esto vincula su AFD con teoria de PERMUTACIONES (que es",
             "     el otro gran capitulo de su curso de algebra abstracta).",
         ]
     if not info.is_group and info.is_aperiodic:
@@ -366,7 +366,7 @@ def _recommendations(sheet: InfoSheet) -> List[str]:
         n = info.order
         w = info.cyclic_generator_word or ""
         recs.append(
-            f"   * Pruebe modificar el conjunto F del DFA: con F = {{q_i}}"
+            f"   * Pruebe modificar el conjunto F del AFD: con F = {{q_i}}"
             f" para distintos i obtiene los {n} lenguajes 'numero de "
             f"{w!r} ≡ i (mod {n})' y todos tienen el MISMO M(A) ≅ ℤ/{n}ℤ."
         )
@@ -388,7 +388,7 @@ def _recommendations(sheet: InfoSheet) -> List[str]:
         )
     recs.append(
         "   * Use `python main.py verify <su_dfa>.json --regex \"...\"` "
-        "para verificar que su DFA reconoce el lenguaje que cree."
+        "para verificar que su AFD reconoce el lenguaje que cree."
     )
     recs.append(
         "   * Use la opcion 6 del menu para ver la TABLA DE CAYLEY de M(A) "

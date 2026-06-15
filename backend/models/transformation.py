@@ -3,7 +3,7 @@ backend.models.transformation
 ==============================
 
 Modulo que define el objeto Transformation, una funcion total f : Q -> Q
-sobre el conjunto finito de estados de un DFA.
+sobre el conjunto finito de estados de un AFD.
 
 Toda palabra w in Sigma* induce una transformacion
 

@@ -4,7 +4,7 @@ visualization.py
 
 Utilidades de visualizacion y exportacion de reportes:
 
-    * render_dfa            : grafo del DFA en formato PNG/PDF/DOT (Graphviz).
+    * render_dfa            : grafo del AFD en formato PNG/PDF/DOT (Graphviz).
     * render_cayley_table   : tabla de Cayley como imagen PNG (matplotlib).
     * render_class_diagram  : diagrama de clases de equivalencia (matplotlib).
     * write_report          : reporte completo en texto plano / markdown.
@@ -21,25 +21,25 @@ import os
 from pathlib import Path
 from typing import Iterable, Optional
 
-from backend.models import DFA
+from backend.models import AFD
 from backend.algebra import Homomorphism, TransitionMonoid
 
 
 # ----------------------------------------------------------------------
-# DFA -> Graphviz
+# AFD -> Graphviz
 # ----------------------------------------------------------------------
 
 def render_dfa(
-    dfa: DFA,
+    dfa: AFD,
     output_path: str | Path,
     fmt: str = "png",
     view: bool = False,
 ) -> Path:
-    """Renderiza el DFA como un grafo dirigido usando Graphviz.
+    """Renderiza el AFD como un grafo dirigido usando Graphviz.
 
     Parametros
     ----------
-    dfa : DFA
+    dfa : AFD
     output_path : str | Path
         Ruta SIN extension donde guardar el archivo (Graphviz anade la
         extension correspondiente al formato).
@@ -217,14 +217,14 @@ def render_class_diagram(
 # ----------------------------------------------------------------------
 
 def write_report(
-    dfa: DFA,
+    dfa: AFD,
     output_path: str | Path,
     max_length: int = 3,
 ) -> Path:
     """Genera un reporte de texto plano con un resumen completo.
 
     Incluye:
-        * Definicion del DFA y tabla de transiciones.
+        * Definicion del AFD y tabla de transiciones.
         * Monoide de transicion (transformaciones, identidad, orden).
         * Tabla de Cayley.
         * Clases de equivalencia (Ker phi) hasta longitud max_length.
@@ -240,7 +240,7 @@ def write_report(
     parts.append(f"REPORTE - {dfa.name}")
     parts.append("=" * 72)
     parts.append("")
-    parts.append("DEFINICION DEL DFA")
+    parts.append("DEFINICION DEL AFD")
     parts.append("-" * 72)
     parts.append(f"  Q       = {sorted(dfa.states)}")
     parts.append(f"  Sigma   = {sorted(dfa.alphabet)}")

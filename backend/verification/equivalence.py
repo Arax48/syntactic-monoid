@@ -10,7 +10,7 @@ responde con un contraejemplo concreto y MAS CORTO cuando no:
 
     L(A) = L(B)  ⟺  L(A) △ L(B) = ∅
 
-La construccion de producto + BFS de DFA.find_counterexample garantiza
+La construccion de producto + BFS de AFD.find_counterexample garantiza
 que la palabra devuelta es la mas corta sobre la que ambos automatas
 discrepan. Pedagogicamente esto es oro: el estudiante recibe la palabra
 mas pequena que rompe su automata y el veredicto de cada uno sobre ella.
@@ -18,9 +18,9 @@ mas pequena que rompe su automata y el veredicto de cada uno sobre ella.
 API publica
 -----------
     EquivalenceResult       : resultado estructurado con palabra y veredictos.
-    check_equivalence       : DFA vs DFA.
-    check_against_regex     : DFA vs regex (compila la regex a DFA).
-    check_against_nfa       : DFA vs NFA (convierte el NFA con subset construction).
+    check_equivalence       : AFD vs AFD.
+    check_against_regex     : AFD vs regex (compila la regex a AFD).
+    check_against_nfa       : AFD vs NFA (convierte el NFA con subset construction).
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 from backend.models.nfa import NFA
 
 
@@ -81,18 +81,18 @@ class EquivalenceResult:
 # Verificadores
 # ----------------------------------------------------------------------
 
-def check_equivalence(left: DFA, right: DFA) -> EquivalenceResult:
-    """Compara dos DFAs y devuelve un EquivalenceResult.
+def check_equivalence(left: AFD, right: AFD) -> EquivalenceResult:
+    """Compara dos AFDs y devuelve un EquivalenceResult.
 
     Cumple las precondiciones:
-        * Ambos DFAs deben tener exactamente el mismo alfabeto.
+        * Ambos AFDs deben tener exactamente el mismo alfabeto.
 
     Devuelve el contraejemplo MAS CORTO (BFS sobre el producto) cuando
     no son equivalentes.
     """
     if left.alphabet != right.alphabet:
         raise ValueError(
-            f"Los DFAs tienen alfabetos diferentes: "
+            f"Los AFDs tienen alfabetos diferentes: "
             f"{sorted(left.alphabet)!r} vs {sorted(right.alphabet)!r}."
         )
     counter = left.find_counterexample(right)
@@ -107,27 +107,27 @@ def check_equivalence(left: DFA, right: DFA) -> EquivalenceResult:
 
 
 def check_against_regex(
-    dfa: DFA,
+    dfa: AFD,
     pattern: str,
     alphabet: Optional[Iterable[str]] = None,
 ) -> EquivalenceResult:
-    """Compara un DFA contra el lenguaje denotado por una regex.
+    """Compara un AFD contra el lenguaje denotado por una regex.
 
-    El alfabeto del DFA-especificacion se toma del propio DFA cuando
-    el parametro `alphabet` se omite, garantizando asi que ambos DFAs
+    El alfabeto del AFD-especificacion se toma del propio AFD cuando
+    el parametro `alphabet` se omite, garantizando asi que ambos AFDs
     sean comparables.
     """
     # Importacion diferida para evitar ciclos al cargar el paquete.
-    from backend.language.regex import regex_to_dfa
+    from backend.language.regex import regex_to_afd
 
     sigma = set(alphabet) if alphabet is not None else set(dfa.alphabet)
-    spec = regex_to_dfa(pattern, alphabet=sigma, name=f"L({pattern})")
+    spec = regex_to_afd(pattern, alphabet=sigma, name=f"L({pattern})")
     return check_equivalence(dfa, spec)
 
 
-def check_against_nfa(dfa: DFA, nfa: NFA) -> EquivalenceResult:
-    """Compara un DFA contra un NFA, determinizando el NFA primero."""
-    return check_equivalence(dfa, nfa.to_dfa())
+def check_against_nfa(dfa: AFD, nfa: NFA) -> EquivalenceResult:
+    """Compara un AFD contra un NFA, determinizando el NFA primero."""
+    return check_equivalence(dfa, nfa.to_afd())
 
 
 __all__ = [

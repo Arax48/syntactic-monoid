@@ -25,10 +25,10 @@ Este modulo provee:
         - escapes: '\\(' '\\*' '\\\\' ...
     * Construccion de Thompson R -> NFA con transiciones epsilon, que
       es la traduccion clasica regex -> automata vista en clase.
-    * Funciones de conveniencia regex_to_nfa y regex_to_dfa.
+    * Funciones de conveniencia regex_to_nfa y regex_to_afd.
 
 La cota teorica clasica: para una expresion regular de tamano n, el
-NFA de Thompson tiene a lo sumo 2n estados y 4n transiciones; el DFA
+NFA de Thompson tiene a lo sumo 2n estados y 4n transiciones; el AFD
 resultante de la construccion de subconjuntos puede tener hasta 2^(2n)
 estados en el peor caso (aunque para regexes pedagogicos suele ser
 mucho mas pequeno).
@@ -486,19 +486,19 @@ def regex_to_nfa(
     )
 
 
-def regex_to_dfa(
+def regex_to_afd(
     pattern: str,
     alphabet: Optional[Iterable[str]] = None,
     name: Optional[str] = None,
 ):
-    """Compila una regex directamente a un DFA: Thompson + construccion
-    de subconjuntos. Util cuando solo interesa el DFA (por ejemplo para
-    verificar equivalencia con un DFA del usuario).
+    """Compila una regex directamente a un AFD: Thompson + construccion
+    de subconjuntos. Util cuando solo interesa el AFD (por ejemplo para
+    verificar equivalencia con un AFD del usuario).
     """
-    from backend.models.dfa import DFA  # import diferido para evitar ciclo
+    from backend.models.afd import AFD  # import diferido para evitar ciclo
 
     nfa = regex_to_nfa(pattern, alphabet=alphabet, name=name)
-    dfa = nfa.to_dfa()
+    dfa = nfa.to_afd()
     if name:
         dfa.name = name
     return dfa
@@ -518,5 +518,5 @@ __all__ = [
     "parse",
     "collect_alphabet",
     "regex_to_nfa",
-    "regex_to_dfa",
+    "regex_to_afd",
 ]

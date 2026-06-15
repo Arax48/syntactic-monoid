@@ -18,7 +18,7 @@ from backend.visualization.regex_view import (
     _slug,
 )
 from backend.models import NFA
-from backend.models.dfa import DFA
+from backend.models.afd import AFD
 
 
 # ----------------------------------------------------------------------
@@ -39,8 +39,8 @@ def test_html_contiene_las_tres_secciones_de_grafo(tmp_path) -> None:
     )
     html = out.read_text(encoding="utf-8")
     assert "1. NFA por construccion de Thompson" in html
-    assert "2. DFA por construccion de subconjuntos" in html
-    assert "3. DFA minimo" in html
+    assert "2. AFD por construccion de subconjuntos" in html
+    assert "3. AFD minimo" in html
 
 
 def test_html_incrusta_tres_svgs(tmp_path) -> None:
@@ -120,10 +120,10 @@ def test_nfa_to_dot_es_un_digrafo() -> None:
     assert "doublecircle" in dot
 
 
-def test_dfa_to_dot_no_tiene_epsilon(parity_dfa: DFA) -> None:
+def test_dfa_to_dot_no_tiene_epsilon(parity_dfa: AFD) -> None:
     dot = _dfa_to_dot(parity_dfa)
     assert dot.startswith("digraph G {")
-    # En un DFA NO hay ε-transiciones, asi que tampoco hay 'dashed'
+    # En un AFD NO hay ε-transiciones, asi que tampoco hay 'dashed'
     # como estilo de arista.
     assert "dashed" not in dot
 

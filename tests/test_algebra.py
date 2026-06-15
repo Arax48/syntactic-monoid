@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from itertools import product
 
-from backend.models import DFA
+from backend.models import AFD
 from backend.algebra import Homomorphism, TransitionMonoid
 
 
@@ -12,17 +12,17 @@ from backend.algebra import Homomorphism, TransitionMonoid
 # phi(uv) = phi(u).then(phi(v))
 # ----------------------------------------------------------------------
 
-def test_phi_es_homomorfismo_paridad(parity_dfa: DFA) -> None:
+def test_phi_es_homomorfismo_paridad(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
     assert hom.verify_homomorphism(max_length=4)
 
 
-def test_phi_es_homomorfismo_mod3(mod3_dfa: DFA) -> None:
+def test_phi_es_homomorfismo_mod3(mod3_dfa: AFD) -> None:
     hom = Homomorphism(mod3_dfa)
     assert hom.verify_homomorphism(max_length=4)
 
 
-def test_phi_es_homomorfismo_ends01(ends_01_dfa: DFA) -> None:
+def test_phi_es_homomorfismo_ends01(ends_01_dfa: AFD) -> None:
     hom = Homomorphism(ends_01_dfa)
     assert hom.verify_homomorphism(max_length=4)
 
@@ -31,7 +31,7 @@ def test_phi_es_homomorfismo_ends01(ends_01_dfa: DFA) -> None:
 # Equivalencias entre palabras
 # ----------------------------------------------------------------------
 
-def test_equivalentes_en_paridad(parity_dfa: DFA) -> None:
+def test_equivalentes_en_paridad(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
     # epsilon, "00", "11" inducen la identidad
     assert hom.equivalent("", "00")
@@ -41,7 +41,7 @@ def test_equivalentes_en_paridad(parity_dfa: DFA) -> None:
     assert not hom.equivalent("1", "11")
 
 
-def test_equivalentes_en_mod3(mod3_dfa: DFA) -> None:
+def test_equivalentes_en_mod3(mod3_dfa: AFD) -> None:
     hom = Homomorphism(mod3_dfa)
     # En Z/3, dos palabras son equivalentes sii tienen el mismo numero
     # de unos modulo 3.
@@ -51,7 +51,7 @@ def test_equivalentes_en_mod3(mod3_dfa: DFA) -> None:
     assert not hom.equivalent("1", "11")
 
 
-def test_clase_de_equivalencia_paridad(parity_dfa: DFA) -> None:
+def test_clase_de_equivalencia_paridad(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
     clase = hom.equivalence_class("1", max_length=3)
     # Palabras de longitud <= 3 con numero IMPAR de unos.
@@ -67,7 +67,7 @@ def test_clase_de_equivalencia_paridad(parity_dfa: DFA) -> None:
 # Nucleo y primer teorema de isomorfismo
 # ----------------------------------------------------------------------
 
-def test_nucleo_tiene_tamano_de_monoide(mod3_dfa: DFA) -> None:
+def test_nucleo_tiene_tamano_de_monoide(mod3_dfa: AFD) -> None:
     hom = Homomorphism(mod3_dfa)
     cls = hom.kernel(max_length=4)
     # Toda transformacion debe haber sido alcanzada por alguna palabra
@@ -101,28 +101,28 @@ def _verifica_biyeccion_clase_a_imagen(hom: Homomorphism, max_length: int) -> No
     assert len(set(etiquetas)) == len(etiquetas)
 
 
-def test_primer_teorema_de_isomorfismo_paridad(parity_dfa: DFA) -> None:
+def test_primer_teorema_de_isomorfismo_paridad(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
     assert hom.verify_first_isomorphism()
     _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
 
 
-def test_primer_teorema_de_isomorfismo_mod3(mod3_dfa: DFA) -> None:
+def test_primer_teorema_de_isomorfismo_mod3(mod3_dfa: AFD) -> None:
     hom = Homomorphism(mod3_dfa)
     assert hom.verify_first_isomorphism()
     _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
 
 
-def test_primer_teorema_de_isomorfismo_ends01(ends_01_dfa: DFA) -> None:
+def test_primer_teorema_de_isomorfismo_ends01(ends_01_dfa: AFD) -> None:
     hom = Homomorphism(ends_01_dfa)
     assert hom.verify_first_isomorphism()
     _verifica_biyeccion_clase_a_imagen(hom, max_length=hom.monoid.order)
 
 
-def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: DFA) -> None:
+def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: AFD) -> None:
     """Prueba que el verificador NO siempre devuelve True (no es vacuo).
 
-    En el DFA "termina en 01", M(A) tiene 5 elementos y el representante
+    En el AFD "termina en 01", M(A) tiene 5 elementos y el representante
     mas largo tiene longitud 2 (`01` o `11`). Si truncamos por debajo
     todavia se ven todos. Pero si construimos un automata cuyo monoide
     requiera longitudes mayores, la verificacion deberia fallar.
@@ -140,7 +140,7 @@ def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: DFA
 # verify_homomorphism
 # ----------------------------------------------------------------------
 
-def test_verify_homomorphism_incluye_neutro(parity_dfa: DFA) -> None:
+def test_verify_homomorphism_incluye_neutro(parity_dfa: AFD) -> None:
     """phi(epsilon) debe ser id_Q ademas de la propiedad multiplicativa."""
     hom = Homomorphism(parity_dfa)
     assert hom.image("") == hom.monoid.identity
@@ -151,13 +151,13 @@ def test_verify_homomorphism_incluye_neutro(parity_dfa: DFA) -> None:
 # Conformidad Proposicion 3: ~ es mas fina que ~_L
 # ----------------------------------------------------------------------
 
-def test_congruencia_de_transicion_es_mas_fina_que_lenguaje(ends_01_dfa: DFA) -> None:
+def test_congruencia_de_transicion_es_mas_fina_que_lenguaje(ends_01_dfa: AFD) -> None:
     """Demuestra empiricamente la Proposicion 3 del informe:
 
         u ~ v  ==>  (q0 alcanza el mismo estado desde xu o xv para todo x)
                 ==>  xu in L(A)  ssi  xv in L(A) (caso particular y=eps).
 
-    En el DFA "termina en 01", verificamos que pares ~-equivalentes son
+    En el AFD "termina en 01", verificamos que pares ~-equivalentes son
     tambien congruentes para L(A).
     """
     from itertools import product as iproduct
@@ -183,7 +183,7 @@ def test_congruencia_de_transicion_es_mas_fina_que_lenguaje(ends_01_dfa: DFA) ->
 # Reflexividad / simetria / transitividad de ~
 # ----------------------------------------------------------------------
 
-def test_relacion_es_de_equivalencia(parity_dfa: DFA) -> None:
+def test_relacion_es_de_equivalencia(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
     palabras = ["", "0", "1", "00", "01", "10", "11", "010", "111"]
     # Reflexividad
@@ -201,7 +201,7 @@ def test_relacion_es_de_equivalencia(parity_dfa: DFA) -> None:
                     assert hom.equivalent(u, w)
 
 
-def test_quotient_estructura(mod3_dfa: DFA) -> None:
+def test_quotient_estructura(mod3_dfa: AFD) -> None:
     hom = Homomorphism(mod3_dfa)
     cociente = hom.quotient(max_length=4)
     assert len(cociente) == hom.monoid.order

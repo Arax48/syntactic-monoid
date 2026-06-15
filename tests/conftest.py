@@ -15,13 +15,13 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from backend.models import DFA  # noqa: E402
+from backend.models import AFD  # noqa: E402
 
 
 @pytest.fixture
-def parity_dfa() -> DFA:
-    """DFA de paridad de unos (ejemplo 1)."""
-    return DFA(
+def parity_dfa() -> AFD:
+    """AFD de paridad de unos (ejemplo 1)."""
+    return AFD(
         states={"Par", "Impar"},
         alphabet={"0", "1"},
         transitions={
@@ -35,9 +35,9 @@ def parity_dfa() -> DFA:
 
 
 @pytest.fixture
-def mod3_dfa() -> DFA:
-    """DFA que cuenta unos modulo 3 (ejemplo 2)."""
-    return DFA(
+def mod3_dfa() -> AFD:
+    """AFD que cuenta unos modulo 3 (ejemplo 2)."""
+    return AFD(
         states={"r0", "r1", "r2"},
         alphabet={"0", "1"},
         transitions={
@@ -52,9 +52,9 @@ def mod3_dfa() -> DFA:
 
 
 @pytest.fixture
-def ends_01_dfa() -> DFA:
-    """DFA de cadenas que terminan en 01 (ejemplo 3)."""
-    return DFA(
+def ends_01_dfa() -> AFD:
+    """AFD de cadenas que terminan en 01 (ejemplo 3)."""
+    return AFD(
         states={"s0", "s1", "s2"},
         alphabet={"0", "1"},
         transitions={
