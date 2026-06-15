@@ -90,6 +90,7 @@ Opciones:
 11. Compilar regex a DFA (Thompson + subset construction)
 12. Verificar DFA contra regex o muestra accept/reject
 13. Generar hoja informativa pedagógica (álgebra + autómatas)
+14. Visualizar regex en HTML (NFA + DFA + DFA mínimo, abre en navegador)
 
 ### Subcomandos directos
 
@@ -124,7 +125,34 @@ python main.py verify examples/parity_dfa.json --samples examples/parity_samples
 # Hoja informativa pedagógica con la conexión algebraica de M(A):
 # ¿es grupo? ¿cuál? ¿qué dice eso del lenguaje?
 python main.py infosheet examples/mod3_dfa.json --out output/mod3_info.md --markdown
+
+# Visualizar una regex como página HTML autocontenida: muestra el NFA
+# de Thompson, el DFA por subconjuntos y el DFA mínimo (Hopcroft) en
+# un solo archivo. Auto-abre el navegador.
+python main.py visualize "(0|1)*01"
+python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
+python main.py visualize "(0|1)*01" --no-open   # solo genera, no abre
 ```
+
+### Sintaxis de las expresiones regulares
+
+| Sintaxis | Significado | Ejemplo |
+|---|---|---|
+| `a` | símbolo literal | `0` reconoce `"0"` |
+| `ab` | concatenación | `01` reconoce `"01"` |
+| `a\|b` | alternativa | `0\|1` reconoce `"0"` o `"1"` |
+| `a*` | cero o más (Kleene) | `0*` reconoce `""`, `"0"`, `"00"`, … |
+| `a+` | una o más | `1+` reconoce `"1"`, `"11"`, … |
+| `a?` | cero o una | `0?1` reconoce `"1"` o `"01"` |
+| `(...)` | agrupación | `(01)*` reconoce `""`, `"01"`, `"0101"`, … |
+| `[abc]` | clase de caracteres | `[01]+` = cualquier cadena binaria no vacía |
+| `[a-z]` | rango | `[a-c]` = `a`, `b` o `c` |
+| `.` | cualquier símbolo del alfabeto | `.*01` = termina en `01` |
+| `\x` | literal escapado | `\*` = el carácter `*` |
+
+Precedencia (menor → mayor): unión `|` < concatenación < repetición `* + ?`.
+
+**Nota:** una expresión regular sólo describe lenguajes **regulares**. Lenguajes como `aⁿbⁿ` requieren un PDA o una Máquina de Turing — esto será parte de la *slice 2*.
 
 ## 4. Suite de pruebas
 

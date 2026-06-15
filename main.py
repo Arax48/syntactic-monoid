@@ -31,7 +31,9 @@ from typing import Optional
 from backend.models import DFA, DFAValidationError
 from backend.algebra import Homomorphism, TransitionMonoid
 from backend.language import build_info_sheet, regex_to_dfa
+from backend.language.regex import RegexParseError
 from backend.verification import check_against_regex, verify_samples
+from backend.visualization import regex_to_html
 
 # Las funciones de visualizacion se importan en uso porque requieren
 # librerias graficas opcionales (graphviz, matplotlib).
@@ -321,6 +323,37 @@ def action_info_sheet(session: Session) -> None:
             print(f"  Error al guardar: {exc}")
 
 
+def action_visualize_regex(session: Session) -> None:
+    print("\n--- Visualizar regex (HTML con NFA + DFA + DFA minimo) ---")
+    print("Sintaxis soportada: a, ab, a|b, a*, a+, a?, (...), [abc], [a-z], ., \\x")
+    pattern = input("Expresion regular: ").strip()
+    if not pattern:
+        print("Regex vacia, abortando.")
+        return
+    raw_alpha = input(
+        "Alfabeto (caracteres juntos '01' o por comas 'a,b,c'; "
+        "Enter para inferir): "
+    )
+    alphabet = _parse_alphabet_flag(raw_alpha) or None
+    raw_out = input("Ruta del HTML (Enter usa output/ por defecto): ").strip()
+    out_path = Path(raw_out).expanduser().resolve() if raw_out else None
+    raw_open = input("Abrir en el navegador? [S/n]: ").strip().lower()
+    open_browser = raw_open != "n"
+    try:
+        path = regex_to_html(
+            pattern,
+            alphabet=alphabet,
+            output_path=out_path,
+            open_browser=open_browser,
+        )
+    except (RegexParseError, ValueError) as exc:
+        print(f"Error al compilar la regex: {exc}")
+        return
+    print(f"  HTML generado: {path}")
+    if open_browser:
+        print("  (abierto en el navegador por defecto)")
+
+
 # ----------------------------------------------------------------------
 # Menu principal
 # ----------------------------------------------------------------------
@@ -342,6 +375,7 @@ MENU = """\
  11) Compilar regex a DFA
  12) Verificar DFA contra regex o muestra
  13) Generar hoja informativa (algebra + automatas)
+ 14) Visualizar regex en HTML (NFA + DFA + DFA minimo)
   0) Salir
 """
 
@@ -359,6 +393,7 @@ ACTIONS = {
     "11": action_compile_regex,
     "12": action_verify,
     "13": action_info_sheet,
+    "14": action_visualize_regex,
 }
 
 
@@ -459,6 +494,28 @@ def cli(argv: list[str] | None = None) -> int:
         help="Usar formato Markdown en lugar de texto plano.",
     )
 
+    p_visual = sub.add_parser(
+        "visualize",
+        help="Generar pagina HTML autocontenida con NFA + DFA + DFA minimo "
+             "de una regex.",
+    )
+    p_visual.add_argument("pattern", help="Expresion regular a visualizar.")
+    p_visual.add_argument(
+        "--alphabet",
+        default=None,
+        help="Alfabeto: caracteres juntos ('01') o lista por comas ('a,b').",
+    )
+    p_visual.add_argument(
+        "--out",
+        default=None,
+        help="Ruta del archivo HTML resultante.",
+    )
+    p_visual.add_argument(
+        "--no-open",
+        action="store_true",
+        help="No abrir automaticamente el HTML en el navegador.",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd is None:
@@ -478,6 +535,9 @@ def cli(argv: list[str] | None = None) -> int:
 
     if args.cmd == "infosheet":
         return _cli_infosheet(args)
+
+    if args.cmd == "visualize":
+        return _cli_visualize(args)
 
     # A partir de aqui los subcomandos requieren cargar el DFA.
     dfa = DFA.from_json(args.dfa_json)
@@ -577,6 +637,25 @@ def _cli_infosheet(args: argparse.Namespace) -> int:
         else:
             sheet.write(path)
         print(f"\nGuardado en: {path}", file=sys.stderr)
+    return 0
+
+
+def _cli_visualize(args: argparse.Namespace) -> int:
+    alphabet = _parse_alphabet_flag(args.alphabet) if args.alphabet else None
+    out_path = Path(args.out).expanduser().resolve() if args.out else None
+    try:
+        path = regex_to_html(
+            args.pattern,
+            alphabet=alphabet,
+            output_path=out_path,
+            open_browser=not args.no_open,
+        )
+    except (RegexParseError, ValueError) as exc:
+        print(f"Error al compilar la regex: {exc}", file=sys.stderr)
+        return 1
+    print(f"HTML generado: {path}")
+    if not args.no_open:
+        print("(abierto en el navegador por defecto)")
     return 0
 
 
