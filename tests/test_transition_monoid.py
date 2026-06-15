@@ -108,7 +108,7 @@ def test_cayley_table_paridad_es_z2(parity_dfa: AFD) -> None:
 def test_palabra_representante_minima(parity_dfa: AFD) -> None:
     M = TransitionMonoid(parity_dfa)
     # En el AFD de paridad:
-    #   identidad: representada por epsilon (longitud 0)
+    #   identidad: representada por λ (longitud 0)
     #   swap     : representada por "1" (longitud 1)
     longitudes = sorted(len(M.representatives[f]) for f in M.elements)
     assert longitudes == [0, 1]

@@ -94,8 +94,8 @@ def test_pretty_table_incluye_cabecera_y_simbolos(parity_dfa: AFD) -> None:
     assert "palabra" in table
     assert "esperado" in table
     assert "actual" in table
-    # ε se representa con el simbolo griego en la celda
-    assert "ε" in table
+    # λ se representa con el simbolo griego en la celda
+    assert "λ" in table
     # Marcadores de exito
     assert "✓" in table
 

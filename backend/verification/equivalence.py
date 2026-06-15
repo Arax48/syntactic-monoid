@@ -20,7 +20,7 @@ API publica
     EquivalenceResult       : resultado estructurado con palabra y veredictos.
     check_equivalence       : AFD vs AFD.
     check_against_regex     : AFD vs regex (compila la regex a AFD).
-    check_against_nfa       : AFD vs NFA (convierte el NFA con subset construction).
+    check_against_nfa       : AFD vs AFN (convierte el AFN con subset construction).
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional
 
 from backend.models.afd import AFD
-from backend.models.nfa import NFA
+from backend.models.afn import AFN
 
 
 @dataclass(frozen=True)
@@ -62,7 +62,7 @@ class EquivalenceResult:
         """Mensaje legible en castellano, listo para mostrar al estudiante."""
         if self.equivalent:
             return f"✓ {left_name} y {right_name} reconocen el mismo lenguaje."
-        w = "ε (cadena vacia)" if self.counterexample == "" else repr(self.counterexample)
+        w = "λ (cadena vacia)" if self.counterexample == "" else repr(self.counterexample)
         if self.accepted_by_left and not self.accepted_by_right:
             who_si, who_no = left_name, right_name
         else:
@@ -125,9 +125,9 @@ def check_against_regex(
     return check_equivalence(dfa, spec)
 
 
-def check_against_nfa(dfa: AFD, nfa: NFA) -> EquivalenceResult:
-    """Compara un AFD contra un NFA, determinizando el NFA primero."""
-    return check_equivalence(dfa, nfa.to_afd())
+def check_against_nfa(dfa: AFD, afn: AFN) -> EquivalenceResult:
+    """Compara un AFD contra un AFN, determinizando el AFN primero."""
+    return check_equivalence(dfa, afn.to_afd())
 
 
 __all__ = [

@@ -33,7 +33,7 @@ def test_phi_es_homomorfismo_ends01(ends_01_dfa: AFD) -> None:
 
 def test_equivalentes_en_paridad(parity_dfa: AFD) -> None:
     hom = Homomorphism(parity_dfa)
-    # epsilon, "00", "11" inducen la identidad
+    # λ, "00", "11" inducen la identidad
     assert hom.equivalent("", "00")
     assert hom.equivalent("", "11")
     assert hom.equivalent("00", "11")
@@ -130,7 +130,7 @@ def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: AFD
     Aqui simplemente verificamos que el verificador es sensible al limite.
     """
     hom = Homomorphism(ends_01_dfa)
-    # Con max_length = 0 solo vemos epsilon -> 1 clase (la identidad).
+    # Con max_length = 0 solo vemos λ -> 1 clase (la identidad).
     # Si M(A) tiene >= 2 elementos, debe devolver False.
     assert hom.monoid.order > 1
     assert hom.verify_first_isomorphism(max_length=0) is False
@@ -141,7 +141,7 @@ def test_verify_first_isomorphism_detecta_truncado_insuficiente(ends_01_dfa: AFD
 # ----------------------------------------------------------------------
 
 def test_verify_homomorphism_incluye_neutro(parity_dfa: AFD) -> None:
-    """phi(epsilon) debe ser id_Q ademas de la propiedad multiplicativa."""
+    """phi(λ) debe ser id_Q ademas de la propiedad multiplicativa."""
     hom = Homomorphism(parity_dfa)
     assert hom.image("") == hom.monoid.identity
     assert hom.verify_homomorphism(max_length=3)

@@ -112,7 +112,7 @@ def _render_text(sheet: InfoSheet) -> List[str]:
         _SUB,
         f"   |M(A)|        : {info.order}",
         f"   Cota |Q|^|Q|  : {cota}    (M es a lo sumo de este tamano)",
-        f"   Identidad     : f_ε = id_Q",
+        f"   Identidad     : f_λ = id_Q",
         f"   |Idempotentes|: {info.num_idempotents}",
         f"   |Unidades|    : {info.invertible_count}",
         f"   |Centro Z(M)| : {info.center_size}",
@@ -129,7 +129,7 @@ def _render_text(sheet: InfoSheet) -> List[str]:
         ]
         if info.is_cyclic and info.cyclic_generator_word is not None:
             w = info.cyclic_generator_word
-            label = "ε" if w == "" else repr(w)
+            label = "λ" if w == "" else repr(w)
             out += [f"   Generador     : la palabra {label}"]
         out += ["", f"   Su monoide M(A)  ≅  {info.isomorphic_to}"]
     else:
@@ -193,7 +193,7 @@ def _render_markdown(sheet: InfoSheet) -> List[str]:
         out.append(f"- Cíclico: {'sí' if info.is_cyclic else 'no'}")
         if info.is_cyclic and info.cyclic_generator_word is not None:
             w = info.cyclic_generator_word
-            label = "ε" if w == "" else f"`{w}`"
+            label = "λ" if w == "" else f"`{w}`"
             out.append(f"- Generador: la palabra {label}")
     else:
         out.append("**No** — existen elementos sin inverso.")
@@ -227,7 +227,7 @@ def _connection_paragraphs(sheet: InfoSheet) -> List[str]:
     if info.is_group and info.is_cyclic:
         n = info.order
         w = info.cyclic_generator_word
-        gen_label = "ε" if (w is None or w == "") else f'"{w}"'
+        gen_label = "λ" if (w is None or w == "") else f'"{w}"'
         if n == 1:
             clases = "{[0]} (solo una clase, la trivial)"
         elif n == 2:

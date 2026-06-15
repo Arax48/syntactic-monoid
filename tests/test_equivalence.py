@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from backend.models import AFD, NFA
+from backend.models import AFD, AFN
 from backend.verification import (
     EquivalenceResult,
     check_against_nfa,
@@ -49,8 +49,8 @@ def test_contraejemplo_es_el_mas_corto_posible(mod3_dfa: AFD) -> None:
     )
     result = check_equivalence(mod3_dfa, roto)
     assert not result.equivalent
-    # El contraejemplo mas corto debe ser de longitud 0 ("ε") o 1 ("1").
-    # Estos son los dos discrepan: ε es aceptada por mod3_dfa y no por
+    # El contraejemplo mas corto debe ser de longitud 0 ("λ") o 1 ("1").
+    # Estos son los dos discrepan: λ es aceptada por mod3_dfa y no por
     # roto (r0 aceptante vs r1 aceptante); "1" es aceptada por roto
     # (r1 aceptante) y no por mod3_dfa.
     assert len(result.counterexample) <= 1
@@ -115,12 +115,12 @@ def test_dfa_paridad_no_coincide_con_regex_incorrecta(parity_dfa: AFD) -> None:
 
 
 # ----------------------------------------------------------------------
-# AFD vs NFA
+# AFD vs AFN
 # ----------------------------------------------------------------------
 
 def test_check_against_nfa_equivalente(ends_01_dfa: AFD) -> None:
-    # NFA clasico para "termina en 01"
-    nfa = NFA(
+    # AFN clasico para "termina en 01"
+    afn = AFN(
         states={"q0", "q1", "q2"},
         alphabet={"0", "1"},
         transitions={
@@ -128,10 +128,10 @@ def test_check_against_nfa_equivalente(ends_01_dfa: AFD) -> None:
             "q1": {"0": set(), "1": {"q2"}},
             "q2": {"0": set(), "1": set()},
         },
-        epsilon_transitions={},
+        lambda_transitions={},
         start="q0",
         accepting={"q2"},
         name="termina_en_01_nfa",
     )
-    result = check_against_nfa(ends_01_dfa, nfa)
+    result = check_against_nfa(ends_01_dfa, afn)
     assert result.equivalent, result.summary()

@@ -158,7 +158,7 @@ class TransitionMonoid:
     def _label(self, i: int) -> str:
         """Etiqueta legible para el i-esimo elemento.
 
-        Se usa la palabra representante: 'e' para epsilon, las demas se
+        Se usa la palabra representante: 'e' para λ, las demas se
         muestran tal cual.
         """
         w = self.representatives[self.elements[i]]

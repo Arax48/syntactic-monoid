@@ -144,7 +144,7 @@ class Homomorphism:
             for v in words:
                 if self.image(u + v) != phi_u.then(self.image(v)):
                     return False
-        # Verificamos tambien phi(epsilon) = id_Q (neutro del monoide).
+        # Verificamos tambien phi(λ) = id_Q (neutro del monoide).
         return self.image("") == self.monoid.identity
 
     def verify_first_isomorphism(self, max_length: int | None = None) -> bool:

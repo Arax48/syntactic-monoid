@@ -120,7 +120,7 @@ def action_show_dfa(session: Session) -> None:
 
 def action_run_word(session: Session) -> None:
     dfa, _, _ = session.require()
-    word = input("Palabra a evaluar (Enter para epsilon): ").strip()
+    word = input("Palabra a evaluar (Enter para λ): ").strip()
     try:
         final = dfa.run(word)
     except ValueError as exc:
@@ -343,7 +343,7 @@ def action_interactive(session: Session) -> None:
 
 
 def action_visualize_regex(session: Session) -> None:
-    print("\n--- Visualizar regex (HTML con NFA + AFD + AFD minimo) ---")
+    print("\n--- Visualizar regex (HTML con AFN + AFD + AFD minimo) ---")
     print("Sintaxis soportada: a, ab, a|b, a*, a+, a?, (...), [abc], [a-z], ., \\x")
     pattern = input("Expresion regular: ").strip()
     if not pattern:
@@ -394,7 +394,7 @@ MENU = """\
  11) Compilar regex a AFD
  12) Verificar AFD contra regex o muestra
  13) Generar hoja informativa (algebra + automatas)
- 14) Visualizar regex en HTML estatico (NFA + AFD + AFD minimo)
+ 14) Visualizar regex en HTML estatico (AFN + AFD + AFD minimo)
  15) ABRIR visualizador interactivo en el navegador (live, sin terminal)
   0) Salir
 """
@@ -517,7 +517,7 @@ def cli(argv: list[str] | None = None) -> int:
 
     p_visual = sub.add_parser(
         "visualize",
-        help="Generar pagina HTML autocontenida con NFA + AFD + AFD minimo "
+        help="Generar pagina HTML autocontenida con AFN + AFD + AFD minimo "
              "de una regex.",
     )
     p_visual.add_argument("pattern", help="Expresion regular a visualizar.")

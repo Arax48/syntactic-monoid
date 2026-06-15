@@ -7,7 +7,7 @@ Expresiones regulares y construccion de Thompson.
 Una expresion regular sobre un alfabeto Sigma se define inductivamente:
 
     R  ::=  empty           (denota el lenguaje vacio ∅)
-         |  epsilon          (denota {ε})
+         |  λ          (denota {λ})
          |  a in Sigma       (denota {a})
          |  R | R            (union)
          |  R R              (concatenacion)
@@ -15,7 +15,7 @@ Una expresion regular sobre un alfabeto Sigma se define inductivamente:
 
 Este modulo provee:
 
-    * Un AST inmutable (Empty, Epsilon, Symbol, CharClass, AnyChar,
+    * Un AST inmutable (Empty, Lambda, Symbol, CharClass, AnyChar,
       Union, Concat, Star) con `__str__` que recompone la expresion.
     * Un parser recursivo descendente con sintaxis concreta clasica:
         - operadores: '|', concatenacion implicita, '*', '+', '?'
@@ -23,12 +23,12 @@ Este modulo provee:
         - clases de caracteres: '[abc]' y rangos '[a-z]'
         - comodin: '.' (= union de todos los simbolos del alfabeto)
         - escapes: '\\(' '\\*' '\\\\' ...
-    * Construccion de Thompson R -> NFA con transiciones epsilon, que
+    * Construccion de Thompson R -> AFN con transiciones λ, que
       es la traduccion clasica regex -> automata vista en clase.
-    * Funciones de conveniencia regex_to_nfa y regex_to_afd.
+    * Funciones de conveniencia regex_to_afn y regex_to_afd.
 
 La cota teorica clasica: para una expresion regular de tamano n, el
-NFA de Thompson tiene a lo sumo 2n estados y 4n transiciones; el AFD
+AFN de Thompson tiene a lo sumo 2n estados y 4n transiciones; el AFD
 resultante de la construccion de subconjuntos puede tener hasta 2^(2n)
 estados en el peor caso (aunque para regexes pedagogicos suele ser
 mucho mas pequeno).
@@ -39,7 +39,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import FrozenSet, Iterable, Optional, Set, Tuple
 
-from backend.models.nfa import NFA
+from backend.models.afn import AFN
 
 
 class RegexParseError(ValueError):
@@ -65,11 +65,11 @@ class Empty(RegexNode):
 
 
 @dataclass(frozen=True)
-class Epsilon(RegexNode):
-    """Denota el lenguaje {ε}."""
+class Lambda(RegexNode):
+    """Denota el lenguaje {λ}."""
 
     def __str__(self) -> str:
-        return "ε"
+        return "λ"
 
 
 @dataclass(frozen=True)
@@ -157,7 +157,7 @@ def collect_alphabet(node: RegexNode) -> FrozenSet[str]:
     alfabeto externo). Util para inferir Sigma cuando el usuario no lo
     suministra explicitamente.
     """
-    if isinstance(node, (Empty, Epsilon, AnyChar)):
+    if isinstance(node, (Empty, Lambda, AnyChar)):
         return frozenset()
     if isinstance(node, Symbol):
         return frozenset({node.char})
@@ -184,8 +184,8 @@ class _Parser:
         repeat  ::=  atom ( '*' | '+' | '?' )*
         atom    ::=  '(' union ')' | charclass | '.' | escape | literal
 
-    La concatenacion vacia (cuando los dos lados son epsilon) y la union
-    con un lado vacio (e.g. 'a|') producen un nodo Epsilon en ese lugar,
+    La concatenacion vacia (cuando los dos lados son λ) y la union
+    con un lado vacio (e.g. 'a|') producen un nodo Lambda en ese lugar,
     siguiendo la convencion estandar.
     """
 
@@ -199,7 +199,7 @@ class _Parser:
 
     def parse(self) -> RegexNode:
         if not self.src:
-            return Epsilon()
+            return Lambda()
         node = self._parse_union()
         if self.pos != len(self.src):
             raise RegexParseError(
@@ -225,7 +225,7 @@ class _Parser:
         while self.pos < len(self.src) and self._peek() not in (")", "|"):
             nodes.append(self._parse_repeat())
         if not nodes:
-            return Epsilon()
+            return Lambda()
         result = nodes[0]
         for n in nodes[1:]:
             result = Concat(result, n)
@@ -242,8 +242,8 @@ class _Parser:
                 # r+  ≡  r r*
                 atom = Concat(atom, Star(atom))
             else:  # '?'
-                # r?  ≡  r | ε
-                atom = Union(atom, Epsilon())
+                # r?  ≡  r | λ
+                atom = Union(atom, Lambda())
         return atom
 
     def _parse_atom(self) -> RegexNode:
@@ -338,7 +338,7 @@ def parse(pattern: str) -> RegexNode:
 # ----------------------------------------------------------------------
 
 class _ThompsonBuilder:
-    """Acumulador mutable para los estados y transiciones del NFA.
+    """Acumulador mutable para los estados y transiciones del AFN.
 
     Se reciclan los nombres q0, q1, q2, ... como en Thompson clasico.
     """
@@ -346,7 +346,7 @@ class _ThompsonBuilder:
     def __init__(self) -> None:
         self.states: Set[str] = set()
         self.transitions: dict[str, dict[str, Set[str]]] = {}
-        self.epsilon: dict[str, Set[str]] = {}
+        self.lambda_transitions: dict[str, Set[str]] = {}
         self._counter = 0
 
     def fresh(self) -> str:
@@ -354,11 +354,11 @@ class _ThompsonBuilder:
         self._counter += 1
         self.states.add(name)
         self.transitions[name] = {}
-        self.epsilon[name] = set()
+        self.lambda_transitions[name] = set()
         return name
 
-    def add_epsilon(self, src: str, dst: str) -> None:
-        self.epsilon[src].add(dst)
+    def add_lambda(self, src: str, dst: str) -> None:
+        self.lambda_transitions[src].add(dst)
 
     def add_symbol(self, src: str, sym: str, dst: str) -> None:
         self.transitions[src].setdefault(sym, set()).add(dst)
@@ -369,22 +369,22 @@ def _compile(
     builder: _ThompsonBuilder,
     alphabet: FrozenSet[str],
 ) -> Tuple[str, str]:
-    """Devuelve (estado_inicial, estado_final) del fragmento NFA del nodo."""
+    """Devuelve (estado_inicial, estado_final) del fragmento AFN del nodo."""
     if isinstance(node, Empty):
         # ∅: dos estados sin transicion entre ellos; el final es inalcanzable.
         s = builder.fresh()
         a = builder.fresh()
         return s, a
-    if isinstance(node, Epsilon):
+    if isinstance(node, Lambda):
         s = builder.fresh()
         a = builder.fresh()
-        builder.add_epsilon(s, a)
+        builder.add_lambda(s, a)
         return s, a
     if isinstance(node, Symbol):
         if node.char not in alphabet:
             # No es un error: Thompson sigue construyendo, pero el simbolo
-            # no estara en el alfabeto del NFA y la palabra que lo
-            # contiene sera rechazada por el validador del NFA. Mejor
+            # no estara en el alfabeto del AFN y la palabra que lo
+            # contiene sera rechazada por el validador del AFN. Mejor
             # avisar al usuario explicitamente.
             raise ValueError(
                 f"El simbolo {node.char!r} no esta en el alfabeto "
@@ -413,51 +413,51 @@ def _compile(
     if isinstance(node, Concat):
         s1, a1 = _compile(node.left, builder, alphabet)
         s2, a2 = _compile(node.right, builder, alphabet)
-        builder.add_epsilon(a1, s2)
+        builder.add_lambda(a1, s2)
         return s1, a2
     if isinstance(node, Union):
         s1, a1 = _compile(node.left, builder, alphabet)
         s2, a2 = _compile(node.right, builder, alphabet)
         s = builder.fresh()
         a = builder.fresh()
-        builder.add_epsilon(s, s1)
-        builder.add_epsilon(s, s2)
-        builder.add_epsilon(a1, a)
-        builder.add_epsilon(a2, a)
+        builder.add_lambda(s, s1)
+        builder.add_lambda(s, s2)
+        builder.add_lambda(a1, a)
+        builder.add_lambda(a2, a)
         return s, a
     if isinstance(node, Star):
         s_inner, a_inner = _compile(node.child, builder, alphabet)
         s = builder.fresh()
         a = builder.fresh()
-        builder.add_epsilon(s, s_inner)
-        builder.add_epsilon(s, a)
-        builder.add_epsilon(a_inner, s_inner)
-        builder.add_epsilon(a_inner, a)
+        builder.add_lambda(s, s_inner)
+        builder.add_lambda(s, a)
+        builder.add_lambda(a_inner, s_inner)
+        builder.add_lambda(a_inner, a)
         return s, a
     raise TypeError(f"Nodo de AST desconocido: {type(node).__name__}")
 
 
-def regex_to_nfa(
+def regex_to_afn(
     pattern: str,
     alphabet: Optional[Iterable[str]] = None,
     name: Optional[str] = None,
-) -> NFA:
-    """Compila una regex a un ε-NFA via Thompson.
+) -> AFN:
+    """Compila una regex a un λ-AFN via Thompson.
 
     Parametros
     ----------
     pattern : str
         Expresion regular en sintaxis concreta.
     alphabet : Iterable[str], opcional
-        Alfabeto Sigma del NFA resultante. Si es None, se infiere a
+        Alfabeto Sigma del AFN resultante. Si es None, se infiere a
         partir de los literales del patron. Si el patron contiene el
         comodin '.' o esta vacio, conviene pasar el alfabeto explicito.
     name : str, opcional
-        Nombre legible para el NFA.
+        Nombre legible para el AFN.
 
     Devuelve
     --------
-    NFA : ε-NFA cuyo lenguaje es el de la expresion regular.
+    AFN : λ-AFN cuyo lenguaje es el de la expresion regular.
     """
     ast = parse(pattern)
     inferred = collect_alphabet(ast)
@@ -475,14 +475,14 @@ def regex_to_nfa(
 
     builder = _ThompsonBuilder()
     start, accept = _compile(ast, builder, sigma)
-    return NFA(
+    return AFN(
         states=builder.states,
         alphabet=set(sigma),
         transitions=builder.transitions,
-        epsilon_transitions=builder.epsilon,
+        lambda_transitions=builder.lambda_transitions,
         start=start,
         accepting={accept},
-        name=name or f"NFA({pattern})",
+        name=name or f"AFN({pattern})",
     )
 
 
@@ -497,8 +497,8 @@ def regex_to_afd(
     """
     from backend.models.afd import AFD  # import diferido para evitar ciclo
 
-    nfa = regex_to_nfa(pattern, alphabet=alphabet, name=name)
-    dfa = nfa.to_afd()
+    afn = regex_to_afn(pattern, alphabet=alphabet, name=name)
+    dfa = afn.to_afd()
     if name:
         dfa.name = name
     return dfa
@@ -507,7 +507,7 @@ def regex_to_afd(
 __all__ = [
     "RegexNode",
     "Empty",
-    "Epsilon",
+    "Lambda",
     "Symbol",
     "CharClass",
     "AnyChar",
@@ -517,6 +517,6 @@ __all__ = [
     "RegexParseError",
     "parse",
     "collect_alphabet",
-    "regex_to_nfa",
+    "regex_to_afn",
     "regex_to_afd",
 ]

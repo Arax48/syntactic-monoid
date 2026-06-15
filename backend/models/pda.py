@@ -12,17 +12,17 @@ donde:
     Q       : conjunto finito de estados.
     Sigma   : alfabeto de entrada.
     Gamma   : alfabeto de pila.
-    delta   : Q x (Sigma ∪ {ε}) x Gamma -> P(Q x Gamma*),
+    delta   : Q x (Sigma ∪ {λ}) x Gamma -> P(Q x Gamma*),
               funcion de transicion.
     q0      : estado inicial.
     Z0      : simbolo inicial de la pila.
     F       : conjunto de estados de aceptacion.
 
 El PDA acepta por estado final:
-    L(P) = { w : (q0, w, Z0) ⊢* (q_f, ε, γ), q_f ∈ F }
+    L(P) = { w : (q0, w, Z0) ⊢* (q_f, λ, γ), q_f ∈ F }
 
 o por pila vacia:
-    N(P) = { w : (q0, w, Z0) ⊢* (q, ε, ε) }
+    N(P) = { w : (q0, w, Z0) ⊢* (q, λ, λ) }
 
 Este modulo implementa la simulacion no determinista con backtracking
 limitado (BFS con cota de pasos) y produce trazas paso a paso para
@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
 
-EPSILON = "ε"
+LAMBDA = "λ"
 
 
 class PDAValidationError(ValueError):
@@ -62,14 +62,14 @@ class PDATransition:
     (el primer simbolo queda en el tope).
     """
     from_state: str
-    input_symbol: str   # symbol from Sigma, or EPSILON
+    input_symbol: str   # symbol from Sigma, or LAMBDA
     stack_top: str      # symbol from Gamma to pop
     to_state: str
     push_symbols: List[str]  # symbols to push (first = new top), empty = pop without push
 
     def __str__(self) -> str:
-        inp = self.input_symbol if self.input_symbol != EPSILON else "ε"
-        push = "".join(self.push_symbols) if self.push_symbols else "ε"
+        inp = self.input_symbol if self.input_symbol != LAMBDA else "λ"
+        push = "".join(self.push_symbols) if self.push_symbols else "λ"
         return f"δ({self.from_state}, {inp}, {self.stack_top}) → ({self.to_state}, {push})"
 
 
@@ -144,7 +144,7 @@ class PDA:
         """Obtiene las transiciones aplicables desde la configuracion dada.
 
         Busca transiciones que coincidan con (state, symbol, stack_top)
-        y tambien transiciones epsilon (symbol = ε).
+        y tambien transiciones λ (symbol = λ).
         """
         result: List[PDATransition] = []
         for t in self.transitions:
@@ -152,7 +152,7 @@ class PDA:
                 continue
             if t.stack_top != stack_top:
                 continue
-            if t.input_symbol == symbol or t.input_symbol == EPSILON:
+            if t.input_symbol == symbol or t.input_symbol == LAMBDA:
                 result.append(t)
         return result
 
@@ -247,15 +247,15 @@ class PDA:
                 symbol = word[pos]
                 applicable.extend(self.get_transitions(state, symbol, stack_top))
 
-            # Epsilon transitions (don't consume input)
+            # Lambda transitions (don't consume input)
             for t in self.transitions:
                 if (t.from_state == state and
-                    t.input_symbol == EPSILON and
+                    t.input_symbol == LAMBDA and
                     t.stack_top == stack_top):
                     applicable.append(t)
 
             for t in applicable:
-                new_pos = pos if t.input_symbol == EPSILON else pos + 1
+                new_pos = pos if t.input_symbol == LAMBDA else pos + 1
                 # Pop stack_top, push new symbols
                 new_stack = stack[:-1]  # pop
                 # Push symbols (last element of push_symbols goes deepest)
@@ -310,7 +310,7 @@ class PDA:
         for rule in data.get("transitions", []):
             transitions.append(PDATransition(
                 from_state=rule["from"],
-                input_symbol=rule.get("input", EPSILON),
+                input_symbol=rule.get("input", LAMBDA),
                 stack_top=rule["stack_top"],
                 to_state=rule["to"],
                 push_symbols=rule.get("push", []),
@@ -364,4 +364,4 @@ class PDA:
         )
 
 
-__all__ = ["PDA", "PDATransition", "PDAStep", "PDAValidationError", "EPSILON"]
+__all__ = ["PDA", "PDATransition", "PDAStep", "PDAValidationError", "LAMBDA"]

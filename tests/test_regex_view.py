@@ -17,7 +17,7 @@ from backend.visualization.regex_view import (
     _nfa_to_dot,
     _slug,
 )
-from backend.models import NFA
+from backend.models import AFN
 from backend.models.afd import AFD
 
 
@@ -38,7 +38,7 @@ def test_html_contiene_las_tres_secciones_de_grafo(tmp_path) -> None:
         open_browser=False,
     )
     html = out.read_text(encoding="utf-8")
-    assert "1. NFA por construccion de Thompson" in html
+    assert "1. AFN por construccion de Thompson" in html
     assert "2. AFD por construccion de subconjuntos" in html
     assert "3. AFD minimo" in html
 
@@ -78,7 +78,7 @@ def test_html_muestra_el_patron(tmp_path) -> None:
 
 
 def test_html_indica_reduccion_cuando_hay(tmp_path) -> None:
-    # (0|1)*01: Thompson da NFA de muchos estados; subset construction
+    # (0|1)*01: Thompson da AFN de muchos estados; subset construction
     # produce 4 estados; el minimo tiene 3. Debe aparecer la nota.
     out = regex_to_html(
         "(0|1)*01",
@@ -103,18 +103,18 @@ def test_regex_invalida_propaga_error(tmp_path) -> None:
 # ----------------------------------------------------------------------
 
 def test_nfa_to_dot_es_un_digrafo() -> None:
-    nfa = NFA(
+    afn = AFN(
         states={"q0", "q1"},
         alphabet={"a"},
         transitions={"q0": {"a": {"q1"}}, "q1": {"a": set()}},
-        epsilon_transitions={"q0": {"q1"}},
+        lambda_transitions={"q0": {"q1"}},
         start="q0",
         accepting={"q1"},
     )
-    dot = _nfa_to_dot(nfa)
+    dot = _nfa_to_dot(afn)
     assert dot.startswith("digraph G {")
     assert dot.rstrip().endswith("}")
-    # ε-transicion estilizada con dashed
+    # λ-transicion estilizada con dashed
     assert "dashed" in dot
     # estado de aceptacion con doublecircle
     assert "doublecircle" in dot
@@ -123,7 +123,7 @@ def test_nfa_to_dot_es_un_digrafo() -> None:
 def test_dfa_to_dot_no_tiene_epsilon(parity_dfa: AFD) -> None:
     dot = _dfa_to_dot(parity_dfa)
     assert dot.startswith("digraph G {")
-    # En un AFD NO hay ε-transiciones, asi que tampoco hay 'dashed'
+    # En un AFD NO hay λ-transiciones, asi que tampoco hay 'dashed'
     # como estilo de arista.
     assert "dashed" not in dot
 

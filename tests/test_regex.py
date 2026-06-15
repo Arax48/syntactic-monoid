@@ -8,7 +8,7 @@ from backend.language.regex import (
     AnyChar,
     CharClass,
     Concat,
-    Epsilon,
+    Lambda,
     RegexParseError,
     Star,
     Symbol,
@@ -16,7 +16,7 @@ from backend.language.regex import (
     collect_alphabet,
     parse,
     regex_to_afd,
-    regex_to_nfa,
+    regex_to_afn,
 )
 
 
@@ -25,7 +25,7 @@ from backend.language.regex import (
 # ----------------------------------------------------------------------
 
 def test_parse_vacio_es_epsilon() -> None:
-    assert parse("") == Epsilon()
+    assert parse("") == Lambda()
 
 
 def test_parse_simbolo_literal() -> None:
@@ -77,7 +77,7 @@ def test_parse_plus_es_azucar_para_concatenacion_con_estrella() -> None:
 
 
 def test_parse_interrogacion_es_azucar_para_union_con_epsilon() -> None:
-    assert parse("a?") == Union(Symbol("a"), Epsilon())
+    assert parse("a?") == Union(Symbol("a"), Lambda())
 
 
 def test_parse_clase_de_caracteres() -> None:
@@ -103,12 +103,12 @@ def test_parse_escape_de_caracter_especial() -> None:
 
 
 def test_parse_union_con_lado_vacio_produce_epsilon() -> None:
-    # "a|" significa "a o epsilon"
-    assert parse("a|") == Union(Symbol("a"), Epsilon())
+    # "a|" significa "a o λ"
+    assert parse("a|") == Union(Symbol("a"), Lambda())
 
 
 def test_parse_grupo_vacio_es_epsilon() -> None:
-    assert parse("()") == Epsilon()
+    assert parse("()") == Lambda()
 
 
 # ----------------------------------------------------------------------
@@ -162,109 +162,109 @@ def test_collect_alphabet_incluye_clase_de_caracteres() -> None:
 
 
 # ----------------------------------------------------------------------
-# Thompson - NFA acepta / rechaza
+# Thompson - AFN acepta / rechaza
 # ----------------------------------------------------------------------
 
 def test_nfa_simbolo_simple() -> None:
-    nfa = regex_to_nfa("a")
-    assert nfa.accepts("a")
-    assert not nfa.accepts("")
-    assert not nfa.accepts("aa")
+    afn = regex_to_afn("a")
+    assert afn.accepts("a")
+    assert not afn.accepts("")
+    assert not afn.accepts("aa")
 
 
 def test_nfa_concatenacion() -> None:
-    nfa = regex_to_nfa("ab")
-    assert nfa.accepts("ab")
-    assert not nfa.accepts("a")
-    assert not nfa.accepts("b")
-    assert not nfa.accepts("aab")
+    afn = regex_to_afn("ab")
+    assert afn.accepts("ab")
+    assert not afn.accepts("a")
+    assert not afn.accepts("b")
+    assert not afn.accepts("aab")
 
 
 def test_nfa_union() -> None:
-    nfa = regex_to_nfa("a|b")
-    assert nfa.accepts("a")
-    assert nfa.accepts("b")
-    assert not nfa.accepts("ab")
-    assert not nfa.accepts("")
+    afn = regex_to_afn("a|b")
+    assert afn.accepts("a")
+    assert afn.accepts("b")
+    assert not afn.accepts("ab")
+    assert not afn.accepts("")
 
 
-def test_nfa_kleene_acepta_epsilon_y_repeticiones() -> None:
-    # 'a*' debe aceptar ε, a, aa, aaa, ...
-    nfa = regex_to_nfa("a*")
-    assert nfa.accepts("")
-    assert nfa.accepts("a")
-    assert nfa.accepts("aaaa")
+def test_nfa_kleene_acepta_lambda_y_repeticiones() -> None:
+    # 'a*' debe aceptar λ, a, aa, aaa, ...
+    afn = regex_to_afn("a*")
+    assert afn.accepts("")
+    assert afn.accepts("a")
+    assert afn.accepts("aaaa")
 
 
 def test_nfa_plus_no_acepta_epsilon() -> None:
-    nfa = regex_to_nfa("a+")
-    assert not nfa.accepts("")
-    assert nfa.accepts("a")
-    assert nfa.accepts("aaa")
+    afn = regex_to_afn("a+")
+    assert not afn.accepts("")
+    assert afn.accepts("a")
+    assert afn.accepts("aaa")
 
 
 def test_nfa_interrogacion_acepta_cero_o_uno() -> None:
-    nfa = regex_to_nfa("a?", alphabet={"a"})
-    assert nfa.accepts("")
-    assert nfa.accepts("a")
-    assert not nfa.accepts("aa")
+    afn = regex_to_afn("a?", alphabet={"a"})
+    assert afn.accepts("")
+    assert afn.accepts("a")
+    assert not afn.accepts("aa")
 
 
 def test_nfa_de_clase_de_caracteres() -> None:
-    nfa = regex_to_nfa("[ab]+", alphabet={"a", "b"})
-    assert nfa.accepts("ababab")
-    assert nfa.accepts("a")
-    assert not nfa.accepts("")
-    # Un simbolo fuera del alfabeto del NFA es un error de uso, no un
-    # "rechazo": la API del NFA lo senala con ValueError.
+    afn = regex_to_afn("[ab]+", alphabet={"a", "b"})
+    assert afn.accepts("ababab")
+    assert afn.accepts("a")
+    assert not afn.accepts("")
+    # Un simbolo fuera del alfabeto del AFN es un error de uso, no un
+    # "rechazo": la API del AFN lo senala con ValueError.
     with pytest.raises(ValueError):
-        nfa.accepts("c")
+        afn.accepts("c")
 
 
 def test_nfa_termina_en_01() -> None:
     # Regex clasica: (0|1)*01
-    nfa = regex_to_nfa("(0|1)*01")
-    assert nfa.accepts("01")
-    assert nfa.accepts("001")
-    assert nfa.accepts("1101")
-    assert not nfa.accepts("")
-    assert not nfa.accepts("0")
-    assert not nfa.accepts("1")
-    assert not nfa.accepts("10")
+    afn = regex_to_afn("(0|1)*01")
+    assert afn.accepts("01")
+    assert afn.accepts("001")
+    assert afn.accepts("1101")
+    assert not afn.accepts("")
+    assert not afn.accepts("0")
+    assert not afn.accepts("1")
+    assert not afn.accepts("10")
 
 
 def test_nfa_paridad_de_unos() -> None:
     # Numero par de 1s sobre el alfabeto {0, 1}.
     # Regex equivalente: (0*10*1)*0*
-    nfa = regex_to_nfa("(0*10*1)*0*", alphabet={"0", "1"})
-    assert nfa.accepts("")          # 0 unos: par
-    assert nfa.accepts("0")
-    assert nfa.accepts("11")
-    assert nfa.accepts("1010")
-    assert nfa.accepts("00100100")
-    assert not nfa.accepts("1")
-    assert not nfa.accepts("111")
-    assert not nfa.accepts("0010")
+    afn = regex_to_afn("(0*10*1)*0*", alphabet={"0", "1"})
+    assert afn.accepts("")          # 0 unos: par
+    assert afn.accepts("0")
+    assert afn.accepts("11")
+    assert afn.accepts("1010")
+    assert afn.accepts("00100100")
+    assert not afn.accepts("1")
+    assert not afn.accepts("111")
+    assert not afn.accepts("0010")
 
 
 def test_nfa_comodin_punto_recorre_alfabeto() -> None:
-    nfa = regex_to_nfa(".", alphabet={"a", "b", "c"})
-    assert nfa.accepts("a")
-    assert nfa.accepts("b")
-    assert nfa.accepts("c")
-    assert not nfa.accepts("")
-    assert not nfa.accepts("ab")
+    afn = regex_to_afn(".", alphabet={"a", "b", "c"})
+    assert afn.accepts("a")
+    assert afn.accepts("b")
+    assert afn.accepts("c")
+    assert not afn.accepts("")
+    assert not afn.accepts("ab")
 
 
 def test_regex_vacia_requiere_alfabeto_explicito() -> None:
-    # Sin literales ni alfabeto explicito no podemos construir el NFA
-    # (el validador del NFA exige Sigma no vacio).
+    # Sin literales ni alfabeto explicito no podemos construir el AFN
+    # (el validador del AFN exige Sigma no vacio).
     with pytest.raises(ValueError):
-        regex_to_nfa("")
+        regex_to_afn("")
     # Pero con alfabeto explicito si:
-    nfa = regex_to_nfa("", alphabet={"a"})
-    assert nfa.accepts("")
-    assert not nfa.accepts("a")
+    afn = regex_to_afn("", alphabet={"a"})
+    assert afn.accepts("")
+    assert not afn.accepts("a")
 
 
 # ----------------------------------------------------------------------
@@ -272,10 +272,10 @@ def test_regex_vacia_requiere_alfabeto_explicito() -> None:
 # ----------------------------------------------------------------------
 
 def test_dfa_de_regex_acepta_lo_mismo_que_el_nfa() -> None:
-    nfa = regex_to_nfa("(0|1)*01")
-    dfa = nfa.to_afd()
+    afn = regex_to_afn("(0|1)*01")
+    dfa = afn.to_afd()
     for w in ("01", "001", "1101", "", "0", "1", "10", "111101", "100"):
-        assert dfa.accepts(w) == nfa.accepts(w), w
+        assert dfa.accepts(w) == afn.accepts(w), w
 
 
 def test_regex_to_afd_paridad_minimizado_tiene_dos_estados() -> None:

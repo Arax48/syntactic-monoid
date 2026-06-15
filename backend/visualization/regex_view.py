@@ -6,7 +6,7 @@ Visualizacion de expresiones regulares como pagina HTML autocontenida.
 
 Pipeline:
 
-    pattern  --(parser + Thompson)-->  ε-NFA
+    pattern  --(parser + Thompson)-->  λ-AFN
                                         |
                                         v  subset construction
                                        AFD
@@ -36,9 +36,9 @@ import webbrowser
 from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
-from backend.language.regex import RegexParseError, regex_to_nfa
+from backend.language.regex import RegexParseError, regex_to_afn
 from backend.models.afd import AFD
-from backend.models.nfa import NFA
+from backend.models.afn import AFN
 
 
 # ----------------------------------------------------------------------
@@ -75,13 +75,13 @@ def regex_to_html(
                       capturarlo y mostrar el mensaje al usuario.
     """
     try:
-        nfa = regex_to_nfa(pattern, alphabet=alphabet)
+        afn = regex_to_afn(pattern, alphabet=alphabet)
     except RegexParseError:
         raise
-    dfa = nfa.to_afd()
+    dfa = afn.to_afd()
     minimal = dfa.minimize()
 
-    nfa_dot = _nfa_to_dot(nfa)
+    nfa_dot = _nfa_to_dot(afn)
     dfa_dot = _dfa_to_dot(dfa)
     min_dot = _dfa_to_dot(minimal)
 
@@ -91,8 +91,8 @@ def regex_to_html(
 
     html = _render_html_page(
         pattern=pattern,
-        alphabet=sorted(nfa.alphabet),
-        nfa=nfa,
+        alphabet=sorted(afn.alphabet),
+        afn=afn,
         dfa=dfa,
         minimal=minimal,
         nfa_svg=nfa_svg,
@@ -129,7 +129,7 @@ def _dot_id(name: str) -> str:
     return f'"{safe}"'
 
 
-def _nfa_to_dot(nfa: NFA) -> str:
+def _nfa_to_dot(afn: AFN) -> str:
     lines = [
         "digraph G {",
         "  rankdir=LR;",
@@ -138,26 +138,26 @@ def _nfa_to_dot(nfa: NFA) -> str:
         '  edge [fontname="Helvetica", fontsize=10];',
         '  __start__ [shape=none, label="", width=0, height=0];',
     ]
-    for q in sorted(nfa.states):
-        shape = "doublecircle" if q in nfa.accepting else "circle"
+    for q in sorted(afn.states):
+        shape = "doublecircle" if q in afn.accepting else "circle"
         lines.append(f"  {_dot_id(q)} [shape={shape}];")
-    lines.append(f"  __start__ -> {_dot_id(nfa.start)};")
+    lines.append(f"  __start__ -> {_dot_id(afn.start)};")
     # Aristas con simbolos (agrupar a, b sobre misma arista)
-    for q in sorted(nfa.states):
+    for q in sorted(afn.states):
         bucket: dict[str, list[str]] = {}
-        for a in sorted(nfa.alphabet):
-            for t in sorted(nfa.transitions.get(q, {}).get(a, set())):
+        for a in sorted(afn.alphabet):
+            for t in sorted(afn.transitions.get(q, {}).get(a, set())):
                 bucket.setdefault(t, []).append(a)
         for t, syms in bucket.items():
             label = ",".join(syms)
             lines.append(
                 f"  {_dot_id(q)} -> {_dot_id(t)} [label={_dot_id(label)}];"
             )
-        # ε-transiciones (linea discontinua gris)
-        for t in sorted(nfa.epsilon_transitions.get(q, set())):
+        # λ-transiciones (linea discontinua gris)
+        for t in sorted(afn.lambda_transitions.get(q, set())):
             lines.append(
                 f'  {_dot_id(q)} -> {_dot_id(t)} '
-                f'[label="ε", style="dashed", color="#888888", fontcolor="#666666"];'
+                f'[label="λ", style="dashed", color="#888888", fontcolor="#666666"];'
             )
     lines.append("}")
     return "\n".join(lines)
@@ -373,12 +373,12 @@ def _slug(s: str) -> str:
     return safe[:40] or "regex"
 
 
-def _edge_count_nfa(nfa: NFA) -> int:
+def _edge_count_nfa(afn: AFN) -> int:
     n = 0
-    for q in nfa.states:
-        for a in nfa.alphabet:
-            n += len(nfa.transitions.get(q, {}).get(a, set()))
-        n += len(nfa.epsilon_transitions.get(q, set()))
+    for q in afn.states:
+        for a in afn.alphabet:
+            n += len(afn.transitions.get(q, {}).get(a, set()))
+        n += len(afn.lambda_transitions.get(q, set()))
     return n
 
 
@@ -396,7 +396,7 @@ def _render_html_page(
     *,
     pattern: str,
     alphabet: list[str],
-    nfa: NFA,
+    afn: AFN,
     dfa: AFD,
     minimal: AFD,
     nfa_svg: str,
@@ -406,7 +406,7 @@ def _render_html_page(
     dfa_dot: str,
     min_dot: str,
 ) -> str:
-    nfa_states, nfa_edges = len(nfa.states), _edge_count_nfa(nfa)
+    nfa_states, nfa_edges = len(afn.states), _edge_count_nfa(afn)
     dfa_states, dfa_edges = len(dfa.states), _edge_count_dfa(dfa)
     min_states, min_edges = len(minimal.states), _edge_count_dfa(minimal)
     title = f"Visualizacion: {pattern}"
@@ -432,10 +432,10 @@ def _render_html_page(
   </section>
 
   <section class="diagram">
-    <h2>1. NFA por construccion de Thompson</h2>
+    <h2>1. AFN por construccion de Thompson</h2>
     <p class="stat">
-      Cada operador de la regex genera un fragmento de NFA con sus
-      &epsilon;-transiciones (lineas discontinuas grises).
+      Cada operador de la regex genera un fragmento de AFN con sus
+      &λ;-transiciones (lineas discontinuas grises).
       <strong>{nfa_states} estados</strong>,
       <strong>{nfa_edges} transiciones</strong>.
     </p>
@@ -449,8 +449,8 @@ def _render_html_page(
   <section class="diagram">
     <h2>2. AFD por construccion de subconjuntos</h2>
     <p class="stat">
-      Cada estado del AFD es un conjunto de estados del NFA (cerradura
-      &epsilon;).
+      Cada estado del AFD es un conjunto de estados del AFN (cerradura
+      &λ;).
       <strong>{dfa_states} estados</strong>,
       <strong>{dfa_edges} transiciones</strong>.
     </p>

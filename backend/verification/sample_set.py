@@ -14,7 +14,7 @@ puede aplicar a CUALQUIER automata simulable — incluyendo PDAs y
 maquinas de Turing en slices posteriores donde la equivalencia es
 indecidible y solo nos queda el testeo basado en propiedades.
 
-Para automatas finitos (AFD/NFA) tambien sigue siendo util:
+Para automatas finitos (AFD/AFN) tambien sigue siendo util:
 pedagogicamente, "estos diez ejemplos no funcionan" es mas concreto
 que un contraejemplo abstracto.
 """
@@ -94,7 +94,7 @@ class SampleSetResult:
             f"esperado. {self.failed} discrepan:",
         ]
         for v in self.mismatches:
-            w = "ε" if v.word == "" else repr(v.word)
+            w = "λ" if v.word == "" else repr(v.word)
             if v.error is not None:
                 lineas.append(f"  - {w}: error ({v.error}).")
                 continue
@@ -112,7 +112,7 @@ class SampleSetResult:
         header = ("palabra", "esperado", "actual", "ok")
         rows: List[tuple[str, str, str, str]] = []
         for v in self.verdicts:
-            w = "ε" if v.word == "" else v.word
+            w = "λ" if v.word == "" else v.word
             esp = "acepta" if v.expected else "rechaza"
             if v.error is not None:
                 act = f"error: {v.error}"

@@ -18,7 +18,7 @@ donde:
 La funcion de transicion extendida delta* : Q x Sigma* -> Q se define
 recursivamente como:
 
-    delta*(q, epsilon) = q
+    delta*(q, λ) = q
     delta*(q, wa)      = delta(delta*(q, w), a)
 
 para todo q in Q, w in Sigma* y a in Sigma.
@@ -148,7 +148,7 @@ class AFD:
         """Aplica la funcion de transicion extendida delta*(state, word).
 
         Sigue la definicion recursiva:
-            delta*(q, epsilon) = q
+            delta*(q, λ) = q
             delta*(q, wa)      = delta(delta*(q, w), a)
         implementada iterativamente para eficiencia.
         """
