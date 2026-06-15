@@ -35,6 +35,10 @@ from backend.language.regex import RegexParseError
 from backend.verification import check_against_regex, verify_samples
 from backend.visualization import regex_to_html
 
+INTERACTIVE_HTML = (
+    Path(__file__).resolve().parent / "web" / "regex_visualizer.html"
+)
+
 # Las funciones de visualizacion se importan en uso porque requieren
 # librerias graficas opcionales (graphviz, matplotlib).
 
@@ -323,6 +327,21 @@ def action_info_sheet(session: Session) -> None:
             print(f"  Error al guardar: {exc}")
 
 
+def action_interactive(session: Session) -> None:
+    print("\n--- Visualizador interactivo de regex (en el navegador) ---")
+    if not INTERACTIVE_HTML.exists():
+        print(f"  Error: no encuentro {INTERACTIVE_HTML}")
+        return
+    import webbrowser
+    print(f"  Abriendo {INTERACTIVE_HTML.name} en el navegador por defecto...")
+    print(f"  (escribe regexes en la pagina; los grafos se actualizan en vivo.)")
+    try:
+        webbrowser.open(INTERACTIVE_HTML.as_uri())
+    except Exception as exc:
+        print(f"  No se pudo abrir el navegador: {exc}")
+        print(f"  Abre manualmente: {INTERACTIVE_HTML}")
+
+
 def action_visualize_regex(session: Session) -> None:
     print("\n--- Visualizar regex (HTML con NFA + DFA + DFA minimo) ---")
     print("Sintaxis soportada: a, ab, a|b, a*, a+, a?, (...), [abc], [a-z], ., \\x")
@@ -375,7 +394,8 @@ MENU = """\
  11) Compilar regex a DFA
  12) Verificar DFA contra regex o muestra
  13) Generar hoja informativa (algebra + automatas)
- 14) Visualizar regex en HTML (NFA + DFA + DFA minimo)
+ 14) Visualizar regex en HTML estatico (NFA + DFA + DFA minimo)
+ 15) ABRIR visualizador interactivo en el navegador (live, sin terminal)
   0) Salir
 """
 
@@ -394,6 +414,7 @@ ACTIONS = {
     "12": action_verify,
     "13": action_info_sheet,
     "14": action_visualize_regex,
+    "15": action_interactive,
 }
 
 
@@ -516,6 +537,12 @@ def cli(argv: list[str] | None = None) -> int:
         help="No abrir automaticamente el HTML en el navegador.",
     )
 
+    sub.add_parser(
+        "interactive",
+        help="Abrir el visualizador interactivo en el navegador "
+             "(typing -> grafo en vivo, todo del lado del cliente).",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd is None:
@@ -538,6 +565,9 @@ def cli(argv: list[str] | None = None) -> int:
 
     if args.cmd == "visualize":
         return _cli_visualize(args)
+
+    if args.cmd == "interactive":
+        return _cli_interactive()
 
     # A partir de aqui los subcomandos requieren cargar el DFA.
     dfa = DFA.from_json(args.dfa_json)
@@ -637,6 +667,24 @@ def _cli_infosheet(args: argparse.Namespace) -> int:
         else:
             sheet.write(path)
         print(f"\nGuardado en: {path}", file=sys.stderr)
+    return 0
+
+
+def _cli_interactive() -> int:
+    """Abre web/regex_visualizer.html en el navegador por defecto."""
+    if not INTERACTIVE_HTML.exists():
+        print(
+            f"Error: no encuentro {INTERACTIVE_HTML}", file=sys.stderr
+        )
+        return 1
+    import webbrowser
+    print(f"Abriendo {INTERACTIVE_HTML} en el navegador...")
+    try:
+        webbrowser.open(INTERACTIVE_HTML.as_uri())
+    except Exception as exc:
+        print(f"No se pudo abrir el navegador: {exc}", file=sys.stderr)
+        print(f"Abre manualmente: {INTERACTIVE_HTML}")
+        return 1
     return 0
 
 

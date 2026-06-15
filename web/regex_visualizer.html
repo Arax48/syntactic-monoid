@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visualizador interactivo de regex</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+  max-width: 1200px; margin: 0 auto; padding: 1.2rem 1.6rem 4rem;
+  line-height: 1.5; color: #1f2328; background: #fff;
+}
+h1 { font-size: 1.5rem; margin: 0 0 .3rem 0; }
+header .lead { color: #57606a; margin: 0 0 1rem; }
+h2 { font-size: 1.05rem; margin: 1.6rem 0 .5rem;
+     padding-bottom: .3rem; border-bottom: 2px solid #eaecef; }
+h2 .stat { color: #6e7681; font-size: .88rem; font-weight: 400; }
+
+.controls {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 10px;
+  padding: 1rem 1.2rem; margin: .6rem 0;
+}
+.controls label { display: block; font-size: .9rem; color: #57606a;
+                  margin-bottom: .3rem; }
+.controls input[type="text"] {
+  width: 100%; padding: .55rem .8rem; border: 1px solid #d0d7de;
+  border-radius: 6px; font-size: 1.05rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #fff;
+}
+.controls input[type="text"]:focus { outline: 2px solid #0969da; outline-offset: -1px; }
+.controls .row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+@media (max-width: 720px) { .controls .row { grid-template-columns: 1fr; } }
+.examples { margin-top: .8rem; color: #57606a; font-size: .9rem; }
+.examples button {
+  background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: .25rem .55rem; font-size: .85rem; cursor: pointer;
+  margin: .15rem .15rem 0 0; color: #1f2328;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.examples button:hover { background: #f0f3f6; border-color: #8c959f; }
+
+#error {
+  background: #ffebe9; border: 1px solid #ff8182; border-radius: 6px;
+  padding: .6rem 1rem; margin: 1rem 0; color: #82071e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+#status { color: #6e7681; font-size: .85rem; margin: .5rem 0 0; }
+
+code, .pattern-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+code { background: #f0f3f6; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
+
+details.syntax { margin: 1rem 0; }
+details.syntax summary { cursor: pointer; color: #0969da; font-size: .92rem;
+                         user-select: none; padding: .4rem 0; }
+details.syntax summary:hover { text-decoration: underline; }
+details.syntax table { border-collapse: collapse; width: 100%;
+                       font-size: .9rem; margin-top: .5rem; }
+details.syntax th { text-align: left; background: #f0f3f6;
+                    padding: .4rem .7rem; font-weight: 600; }
+details.syntax td { border-top: 1px solid #eaecef; padding: .4rem .7rem;
+                    vertical-align: top; }
+details.syntax td:first-child { width: 8rem; }
+.note { background: #fff8e1; border-left: 4px solid #ffca28;
+        padding: .5rem .9rem; border-radius: 4px; margin: .7rem 0;
+        font-size: .88rem; }
+
+.svg-wrap {
+  overflow-x: auto; padding: .8rem; background: #fbfbfd;
+  border-radius: 8px; border: 1px solid #eaecef;
+  display: flex; justify-content: center; min-height: 80px;
+}
+.svg-wrap svg { max-width: 100%; height: auto; }
+.dot-fallback-pre {
+  background: #fff; border: 1px dashed #bbb; padding: .7rem 1rem;
+  border-radius: 4px; font-size: .8rem; line-height: 1.4;
+  overflow-x: auto; white-space: pre; margin: 0; width: 100%;
+}
+
+.test-words { margin-top: 2rem; }
+.test-words p { color: #57606a; font-size: .9rem; margin: .3rem 0 .6rem; }
+.test-words textarea {
+  width: 100%; min-height: 120px; padding: .6rem .8rem;
+  border: 1px solid #d0d7de; border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .92rem; resize: vertical; background: #fff;
+}
+.test-words textarea:focus { outline: 2px solid #0969da; outline-offset: -1px; }
+#words-result { border-collapse: collapse; width: 100%; margin-top: .8rem;
+                font-size: .92rem; }
+#words-result th { text-align: left; background: #f0f3f6;
+                   padding: .4rem .7rem; font-weight: 600; }
+#words-result td { border-top: 1px solid #eaecef; padding: .4rem .7rem; }
+#words-result td.r-accept { color: #1a7f37; font-weight: 600; }
+#words-result td.r-reject { color: #6e7681; }
+#words-result td.r-error  { color: #cf222e; font-size: .85rem; }
+
+footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
+         border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.10.0/lib/viz-standalone.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Visualizador interactivo de expresiones regulares</h1>
+  <p class="lead">
+    Escribe una regex y mira como se construyen el NFA de Thompson, el
+    DFA por subconjuntos y el DFA minimo. Todo en tu navegador, sin
+    instalacion ni terminal.
+  </p>
+</header>
+
+<section class="controls">
+  <div class="row">
+    <div>
+      <label for="pattern">Expresion regular</label>
+      <input id="pattern" type="text" value="(0|1)*01"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div>
+      <label for="alphabet">Alfabeto (opcional)</label>
+      <input id="alphabet" type="text" placeholder="auto (se infiere)"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+  </div>
+  <div class="examples">
+    Prueba estos:
+    <button data-pattern="(0|1)*01">termina en 01</button>
+    <button data-pattern="(0*10*1)*0*">paridad de 1s</button>
+    <button data-pattern="0*(10*10*10*)*">|1|s ≡ 0 (mod 3)</button>
+    <button data-pattern="(ab)+">una o mas 'ab'</button>
+    <button data-pattern="a?b*c+">a?b*c+</button>
+    <button data-pattern="[01]+0">binario que acaba en 0</button>
+    <button data-pattern=".*ab.*">contiene 'ab'</button>
+  </div>
+  <p id="status"></p>
+</section>
+
+<details class="syntax">
+  <summary>Como escribir tu regex (sintaxis y operadores)</summary>
+  <table>
+    <thead><tr><th>Sintaxis</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td><code>a</code></td><td>simbolo literal <code>a</code></td>
+          <td><code>0</code> reconoce <code>"0"</code></td></tr>
+      <tr><td><code>ab</code></td><td>concatenacion: a seguido de b</td>
+          <td><code>01</code> reconoce <code>"01"</code></td></tr>
+      <tr><td><code>a|b</code></td><td>alternativa: a o b</td>
+          <td><code>0|1</code> reconoce <code>"0"</code> o <code>"1"</code></td></tr>
+      <tr><td><code>a*</code></td><td>cero o mas a (Kleene)</td>
+          <td><code>0*</code> reconoce <code>""</code>, <code>"0"</code>, <code>"00"</code>...</td></tr>
+      <tr><td><code>a+</code></td><td>una o mas a</td>
+          <td><code>1+</code> reconoce <code>"1"</code>, <code>"11"</code>...</td></tr>
+      <tr><td><code>a?</code></td><td>cero o una a</td>
+          <td><code>0?1</code> reconoce <code>"1"</code> o <code>"01"</code></td></tr>
+      <tr><td><code>(...)</code></td><td>agrupacion</td>
+          <td><code>(01)*</code> reconoce <code>""</code>, <code>"01"</code>, <code>"0101"</code>...</td></tr>
+      <tr><td><code>[abc]</code></td><td>clase de caracteres</td>
+          <td><code>[01]+</code> = cadena binaria no vacia</td></tr>
+      <tr><td><code>[a-z]</code></td><td>rango</td>
+          <td><code>[a-c]</code> = a, b o c</td></tr>
+      <tr><td><code>.</code></td><td>cualquier simbolo del alfabeto</td>
+          <td><code>.*01</code> = termina en <code>01</code></td></tr>
+      <tr><td><code>\x</code></td><td>literal escapado</td>
+          <td><code>\*</code> = el caracter <code>*</code></td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    <strong>Precedencia (menor → mayor):</strong>
+    union <code>|</code> &lt; concatenacion &lt; repeticion <code>* + ?</code>.
+    Usa parentesis para forzar agrupamiento: <code>(0|1)*</code> &ne; <code>0|1*</code>.
+  </p>
+  <p class="note">
+    <strong>Alfabeto:</strong> si lo dejas vacio, se infiere de los
+    literales. Para usar el comodin <code>.</code> con simbolos no
+    presentes literalmente, especifica el alfabeto (por ejemplo:
+    <code>01</code> o <code>a,b,c</code>).
+  </p>
+  <p class="note">
+    <strong>Importante:</strong> una expresion regular solo describe
+    lenguajes <strong>regulares</strong>. Lenguajes como
+    <code>a<sup>n</sup>b<sup>n</sup></code> requieren un PDA o una
+    Maquina de Turing y no pueden expresarse aqui.
+  </p>
+</details>
+
+<div id="error" hidden></div>
+
+<section>
+  <h2>1. NFA por construccion de Thompson <span class="stat" id="nfa-stat"></span></h2>
+  <div class="svg-wrap" id="nfa-svg"></div>
+</section>
+
+<section>
+  <h2>2. DFA por construccion de subconjuntos <span class="stat" id="dfa-stat"></span></h2>
+  <div class="svg-wrap" id="dfa-svg"></div>
+</section>
+
+<section>
+  <h2>3. DFA minimo (Hopcroft) <span class="stat" id="min-stat"></span></h2>
+  <div class="svg-wrap" id="min-svg"></div>
+</section>
+
+<section class="test-words">
+  <h2>Probar palabras</h2>
+  <p>Una palabra por linea. Se evaluan sobre el DFA minimo. Linea vacia = palabra vacia ε.</p>
+  <textarea id="words" autocomplete="off" autocapitalize="off"
+            spellcheck="false">01
+001
+1101
+
+0
+1
+10</textarea>
+  <table id="words-result"></table>
+</section>
+
+<footer>
+  syntactic-monoid &middot; renderizado con <a href="https://github.com/mdaines/viz-js" target="_blank" rel="noopener">viz.js</a>
+  &middot; sin servidor: todo corre en tu navegador
+</footer>
+
+<script>
+"use strict";
+
+/* ==================================================================
+ * 1. AST y parser de regex (portado de backend/language/regex.py)
+ * ================================================================== */
+
+class Empty   {}
+class Epsilon {}
+class Sym     { constructor(c){ this.char = c; } }
+class CharCls { constructor(chars){ this.chars = chars; } }   // Set<string>
+class AnyCh   {}
+class Uni     { constructor(l,r){ this.left = l; this.right = r; } }
+class Cat     { constructor(l,r){ this.left = l; this.right = r; } }
+class Kln     { constructor(c){ this.child = c; } }
+
+class RegexParser {
+  constructor(src){ this.src = src; this.pos = 0; }
+  peek(){ return this.pos >= this.src.length ? null : this.src[this.pos]; }
+  parse(){
+    if (this.src === "") return new Epsilon();
+    const n = this.parseUnion();
+    if (this.pos !== this.src.length) {
+      throw new Error(`Caracter inesperado en posicion ${this.pos}: '${this.src[this.pos]}'`);
+    }
+    return n;
+  }
+  parseUnion(){
+    let left = this.parseConcat();
+    while (this.peek() === "|"){
+      this.pos++;
+      const right = this.parseConcat();
+      left = new Uni(left, right);
+    }
+    return left;
+  }
+  parseConcat(){
+    const nodes = [];
+    while (this.pos < this.src.length && this.peek() !== ")" && this.peek() !== "|") {
+      nodes.push(this.parseRepeat());
+    }
+    if (nodes.length === 0) return new Epsilon();
+    let r = nodes[0];
+    for (let i = 1; i < nodes.length; i++) r = new Cat(r, nodes[i]);
+    return r;
+  }
+  parseRepeat(){
+    let atom = this.parseAtom();
+    while (["*", "+", "?"].includes(this.peek())) {
+      const op = this.src[this.pos]; this.pos++;
+      if (op === "*") atom = new Kln(atom);
+      else if (op === "+") atom = new Cat(atom, new Kln(atom));
+      else atom = new Uni(atom, new Epsilon());
+    }
+    return atom;
+  }
+  parseAtom(){
+    const c = this.peek();
+    if (c === null || [")", "|", "*", "+", "?"].includes(c)) {
+      throw new Error(`Atomo invalido en posicion ${this.pos}: '${c}'`);
+    }
+    if (c === "(") {
+      this.pos++;
+      const inner = this.parseUnion();
+      if (this.peek() !== ")") throw new Error("Falta ')' de cierre.");
+      this.pos++;
+      return inner;
+    }
+    if (c === "[") return this.parseCharClass();
+    if (c === ".") { this.pos++; return new AnyCh(); }
+    if (c === "\\") {
+      this.pos++;
+      if (this.pos >= this.src.length) throw new Error("Escape '\\' al final.");
+      const esc = this.src[this.pos]; this.pos++;
+      return new Sym(esc);
+    }
+    this.pos++;
+    return new Sym(c);
+  }
+  parseCharClass(){
+    this.pos++;  // consume '['
+    const chars = new Set();
+    while (this.peek() !== "]") {
+      if (this.peek() === null) throw new Error("Clase de caracteres sin cerrar.");
+      let c = this.src[this.pos]; this.pos++;
+      if (c === "\\") {
+        if (this.pos >= this.src.length) throw new Error("Escape '\\' al final en clase.");
+        c = this.src[this.pos]; this.pos++;
+      }
+      if (this.peek() === "-" && this.pos + 1 < this.src.length && this.src[this.pos + 1] !== "]") {
+        this.pos++;  // consume '-'
+        let end = this.src[this.pos]; this.pos++;
+        if (end === "\\") {
+          if (this.pos >= this.src.length) throw new Error("Escape '\\' al final en rango.");
+          end = this.src[this.pos]; this.pos++;
+        }
+        if (c.charCodeAt(0) > end.charCodeAt(0)) {
+          throw new Error(`Rango invalido: '${c}'-'${end}'`);
+        }
+        for (let k = c.charCodeAt(0); k <= end.charCodeAt(0); k++) {
+          chars.add(String.fromCharCode(k));
+        }
+      } else {
+        chars.add(c);
+      }
+    }
+    this.pos++;  // consume ']'
+    if (chars.size === 0) throw new Error("Clase de caracteres vacia.");
+    return new CharCls(chars);
+  }
+}
+
+function collectAlphabet(node) {
+  if (node instanceof Empty || node instanceof Epsilon || node instanceof AnyCh) return new Set();
+  if (node instanceof Sym) return new Set([node.char]);
+  if (node instanceof CharCls) return new Set(node.chars);
+  if (node instanceof Uni || node instanceof Cat) {
+    const s = collectAlphabet(node.left);
+    for (const x of collectAlphabet(node.right)) s.add(x);
+    return s;
+  }
+  if (node instanceof Kln) return collectAlphabet(node.child);
+  throw new Error("Nodo desconocido");
+}
+
+/* ==================================================================
+ * 2. Construccion de Thompson
+ * ================================================================== */
+
+class NFABuilder {
+  constructor(){
+    this.states = new Set();
+    this.trans  = new Map();   // state -> Map<sym, Set<state>>
+    this.eps    = new Map();   // state -> Set<state>
+    this.counter = 0;
+  }
+  fresh(){
+    const name = `q${this.counter++}`;
+    this.states.add(name);
+    this.trans.set(name, new Map());
+    this.eps.set(name, new Set());
+    return name;
+  }
+  addEps(p, q){ this.eps.get(p).add(q); }
+  addSym(p, a, q){
+    if (!this.trans.get(p).has(a)) this.trans.get(p).set(a, new Set());
+    this.trans.get(p).get(a).add(q);
+  }
+}
+
+function compileThompson(node, b, alpha) {
+  if (node instanceof Empty) {
+    const s = b.fresh(), a = b.fresh();
+    return [s, a];
+  }
+  if (node instanceof Epsilon) {
+    const s = b.fresh(), a = b.fresh();
+    b.addEps(s, a);
+    return [s, a];
+  }
+  if (node instanceof Sym) {
+    if (!alpha.has(node.char)) {
+      throw new Error(`El simbolo '${node.char}' no esta en el alfabeto. Agregalo en el campo "Alfabeto".`);
+    }
+    const s = b.fresh(), a = b.fresh();
+    b.addSym(s, node.char, a);
+    return [s, a];
+  }
+  if (node instanceof CharCls) {
+    const s = b.fresh(), a = b.fresh();
+    for (const c of node.chars) {
+      if (!alpha.has(c)) throw new Error(`El simbolo '${c}' de la clase no esta en el alfabeto.`);
+      b.addSym(s, c, a);
+    }
+    return [s, a];
+  }
+  if (node instanceof AnyCh) {
+    const s = b.fresh(), a = b.fresh();
+    for (const c of alpha) b.addSym(s, c, a);
+    return [s, a];
+  }
+  if (node instanceof Cat) {
+    const [s1, a1] = compileThompson(node.left,  b, alpha);
+    const [s2, a2] = compileThompson(node.right, b, alpha);
+    b.addEps(a1, s2);
+    return [s1, a2];
+  }
+  if (node instanceof Uni) {
+    const [s1, a1] = compileThompson(node.left,  b, alpha);
+    const [s2, a2] = compileThompson(node.right, b, alpha);
+    const s = b.fresh(), a = b.fresh();
+    b.addEps(s, s1); b.addEps(s, s2);
+    b.addEps(a1, a); b.addEps(a2, a);
+    return [s, a];
+  }
+  if (node instanceof Kln) {
+    const [si, ai] = compileThompson(node.child, b, alpha);
+    const s = b.fresh(), a = b.fresh();
+    b.addEps(s, si); b.addEps(s, a);
+    b.addEps(ai, si); b.addEps(ai, a);
+    return [s, a];
+  }
+  throw new Error("Nodo desconocido en Thompson");
+}
+
+function regexToNFA(pattern, alphaInput) {
+  const ast = new RegexParser(pattern).parse();
+  const inferred = collectAlphabet(ast);
+  let alpha;
+  if (!alphaInput || alphaInput.size === 0) {
+    if (inferred.size === 0) {
+      throw new Error("No se pudo inferir el alfabeto (la regex no tiene literales). Especifica el alfabeto, por ejemplo: 01");
+    }
+    alpha = inferred;
+  } else {
+    alpha = new Set([...alphaInput, ...inferred]);
+  }
+  const b = new NFABuilder();
+  const [start, accept] = compileThompson(ast, b, alpha);
+  return {
+    states: b.states, alphabet: alpha,
+    trans: b.trans, eps: b.eps,
+    start, accepting: new Set([accept]),
+  };
+}
+
+/* ==================================================================
+ * 3. Simulacion del NFA, subset construction, Hopcroft
+ * ================================================================== */
+
+function epsilonClosure(nfa, statesIter) {
+  const closure = new Set(statesIter);
+  const queue = [...closure];
+  while (queue.length > 0) {
+    const q = queue.shift();
+    for (const t of nfa.eps.get(q) || []) {
+      if (!closure.has(t)) { closure.add(t); queue.push(t); }
+    }
+  }
+  return closure;
+}
+
+function move(nfa, states, sym) {
+  const out = new Set();
+  for (const q of states) {
+    const tr = nfa.trans.get(q);
+    if (tr && tr.has(sym)) for (const t of tr.get(sym)) out.add(t);
+  }
+  return out;
+}
+
+function nfaToDFA(nfa) {
+  const symbols = [...nfa.alphabet].sort();
+  const nameOf = ss => ss.length === 0 ? "∅" : "{" + ss.join(",") + "}";
+
+  const states = new Set();
+  const trans = new Map();
+  const accepting = new Set();
+  const seen = new Map();
+  const queue = [];
+
+  function visit(ssArr) {
+    const name = nameOf(ssArr);
+    if (seen.has(name)) return name;
+    seen.set(name, ssArr);
+    states.add(name);
+    trans.set(name, new Map());
+    if (ssArr.some(q => nfa.accepting.has(q))) accepting.add(name);
+    queue.push(ssArr);
+    return name;
+  }
+
+  const startSorted = [...epsilonClosure(nfa, [nfa.start])].sort();
+  const startName = visit(startSorted);
+
+  while (queue.length > 0) {
+    const ss = queue.shift();
+    const name = nameOf(ss);
+    for (const a of symbols) {
+      const next = [...epsilonClosure(nfa, move(nfa, ss, a))].sort();
+      const nextName = visit(next);
+      trans.get(name).set(a, nextName);
+    }
+  }
+
+  return {
+    states, alphabet: new Set(nfa.alphabet),
+    trans, start: startName, accepting,
+  };
+}
+
+function minimizeDFA(dfa) {
+  const symbols = [...dfa.alphabet].sort();
+  const accepting = new Set([...dfa.accepting]);
+  const nonAcc = new Set();
+  for (const s of dfa.states) if (!accepting.has(s)) nonAcc.add(s);
+  let partition = [];
+  if (accepting.size > 0) partition.push(accepting);
+  if (nonAcc.size > 0)    partition.push(nonAcc);
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const next = [];
+    for (const block of partition) {
+      const groups = new Map();
+      for (const s of block) {
+        const sig = symbols.map(a => {
+          const t = dfa.trans.get(s).get(a);
+          return partition.findIndex(b => b.has(t));
+        }).join(",");
+        if (!groups.has(sig)) groups.set(sig, new Set());
+        groups.get(sig).add(s);
+      }
+      if (groups.size > 1) changed = true;
+      for (const g of groups.values()) next.push(g);
+    }
+    partition = next;
+  }
+
+  const blockOf = new Map();
+  partition.forEach((block, i) => {
+    for (const s of block) blockOf.set(s, i);
+  });
+
+  const newStates = new Set();
+  const newTrans  = new Map();
+  const newAcc    = new Set();
+  partition.forEach((block, i) => {
+    const name = `q${i}`;
+    newStates.add(name);
+    newTrans.set(name, new Map());
+    const rep = block.values().next().value;
+    for (const a of symbols) {
+      const t = dfa.trans.get(rep).get(a);
+      newTrans.get(name).set(a, `q${blockOf.get(t)}`);
+    }
+    if (dfa.accepting.has(rep)) newAcc.add(name);
+  });
+
+  return {
+    states: newStates, alphabet: new Set(dfa.alphabet),
+    trans: newTrans, start: `q${blockOf.get(dfa.start)}`,
+    accepting: newAcc,
+  };
+}
+
+function dfaAccepts(dfa, word) {
+  let s = dfa.start;
+  for (const c of word) {
+    if (!dfa.alphabet.has(c)) throw new Error(`Simbolo '${c}' fuera del alfabeto`);
+    s = dfa.trans.get(s).get(c);
+  }
+  return dfa.accepting.has(s);
+}
+
+/* ==================================================================
+ * 4. Generacion de DOT
+ * ================================================================== */
+
+function dotQuote(s) {
+  return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+
+function nfaToDot(nfa) {
+  const lines = [
+    "digraph G {",
+    "  rankdir=LR;",
+    '  fontname="Helvetica";',
+    '  node [fontname="Helvetica", fontsize=11];',
+    '  edge [fontname="Helvetica", fontsize=10];',
+    '  __start__ [shape=none, label="", width=0, height=0];',
+  ];
+  const sorted = [...nfa.states].sort();
+  for (const q of sorted) {
+    const shape = nfa.accepting.has(q) ? "doublecircle" : "circle";
+    lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
+  }
+  lines.push(`  __start__ -> ${dotQuote(nfa.start)};`);
+  for (const q of sorted) {
+    const bucket = new Map();
+    for (const a of [...nfa.alphabet].sort()) {
+      const targets = nfa.trans.get(q)?.get(a);
+      if (!targets) continue;
+      for (const t of [...targets].sort()) {
+        if (!bucket.has(t)) bucket.set(t, []);
+        bucket.get(t).push(a);
+      }
+    }
+    for (const [t, syms] of bucket) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
+    }
+    for (const t of [...(nfa.eps.get(q) || [])].sort()) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label="ε", style="dashed", color="#888888", fontcolor="#666666"];`);
+    }
+  }
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function dfaToDot(dfa) {
+  const lines = [
+    "digraph G {",
+    "  rankdir=LR;",
+    '  fontname="Helvetica";',
+    '  node [fontname="Helvetica", fontsize=11];',
+    '  edge [fontname="Helvetica", fontsize=10];',
+    '  __start__ [shape=none, label="", width=0, height=0];',
+  ];
+  const sorted = [...dfa.states].sort();
+  for (const q of sorted) {
+    const shape = dfa.accepting.has(q) ? "doublecircle" : "circle";
+    lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
+  }
+  lines.push(`  __start__ -> ${dotQuote(dfa.start)};`);
+  for (const q of sorted) {
+    const bucket = new Map();
+    for (const a of [...dfa.alphabet].sort()) {
+      const t = dfa.trans.get(q).get(a);
+      if (!bucket.has(t)) bucket.set(t, []);
+      bucket.get(t).push(a);
+    }
+    for (const [t, syms] of bucket) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
+    }
+  }
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function edgeCountNFA(nfa) {
+  let n = 0;
+  for (const q of nfa.states) {
+    for (const targets of (nfa.trans.get(q) || new Map()).values()) n += targets.size;
+    n += (nfa.eps.get(q) || new Set()).size;
+  }
+  return n;
+}
+function edgeCountDFA(dfa) { return dfa.states.size * dfa.alphabet.size; }
+
+/* ==================================================================
+ * 5. Render via viz.js + UI
+ * ================================================================== */
+
+let vizPromise = null;
+function getViz() {
+  if (typeof Viz === "undefined") return null;
+  if (!vizPromise) vizPromise = Viz.instance();
+  return vizPromise;
+}
+
+async function renderDot(dot) {
+  const p = getViz();
+  if (!p) {
+    const pre = document.createElement("pre");
+    pre.className = "dot-fallback-pre";
+    pre.textContent =
+      "No se pudo cargar viz.js (sin internet?). DOT:\n\n" + dot;
+    return pre;
+  }
+  try {
+    const viz = await p;
+    return viz.renderSVGElement(dot);
+  } catch (err) {
+    const pre = document.createElement("pre");
+    pre.className = "dot-fallback-pre";
+    pre.textContent = "Error renderizando con Graphviz: " + err.message
+                    + "\n\nDOT:\n\n" + dot;
+    return pre;
+  }
+}
+
+function parseAlphabetInput(s) {
+  s = s.trim();
+  if (s === "") return null;
+  if (s.includes(",")) return new Set(s.split(",").map(t => t.trim()).filter(t => t));
+  return new Set([...s]);
+}
+
+const $ = id => document.getElementById(id);
+
+let lastReqId = 0;
+let renderTimeout = null;
+function scheduleRender() {
+  if (renderTimeout) clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(doRender, 200);
+}
+
+async function doRender() {
+  const reqId = ++lastReqId;
+  const pattern = $("pattern").value;
+  const alphaSet = parseAlphabetInput($("alphabet").value);
+  const errEl = $("error");
+  const status = $("status");
+
+  errEl.hidden = true; errEl.textContent = "";
+  status.textContent = "Procesando...";
+
+  let nfa, dfa, minimal;
+  try {
+    nfa = regexToNFA(pattern, alphaSet);
+    dfa = nfaToDFA(nfa);
+    minimal = minimizeDFA(dfa);
+  } catch (err) {
+    if (reqId !== lastReqId) return;
+    errEl.hidden = false;
+    errEl.textContent = "✗ " + err.message;
+    status.textContent = "";
+    $("nfa-svg").replaceChildren();
+    $("dfa-svg").replaceChildren();
+    $("min-svg").replaceChildren();
+    $("nfa-stat").textContent = "";
+    $("dfa-stat").textContent = "";
+    $("min-stat").textContent = "";
+    $("words-result").innerHTML = "";
+    return;
+  }
+
+  $("nfa-stat").textContent = `· ${nfa.states.size} estados, ${edgeCountNFA(nfa)} transiciones`;
+  $("dfa-stat").textContent = `· ${dfa.states.size} estados, ${edgeCountDFA(dfa)} transiciones`;
+  let redNote;
+  if (minimal.states.size < dfa.states.size) {
+    redNote = `· ${minimal.states.size} estados (reduccion ${dfa.states.size}→${minimal.states.size})`;
+  } else {
+    redNote = `· ${minimal.states.size} estados (el DFA ya era minimo)`;
+  }
+  $("min-stat").textContent = redNote;
+  status.textContent = "Alfabeto Σ = {" + [...nfa.alphabet].sort().join(", ") + "}";
+
+  const [nfaSvg, dfaSvg, minSvg] = await Promise.all([
+    renderDot(nfaToDot(nfa)),
+    renderDot(dfaToDot(dfa)),
+    renderDot(dfaToDot(minimal)),
+  ]);
+  if (reqId !== lastReqId) return;
+  $("nfa-svg").replaceChildren(nfaSvg);
+  $("dfa-svg").replaceChildren(dfaSvg);
+  $("min-svg").replaceChildren(minSvg);
+
+  renderWordsTable(minimal);
+}
+
+function renderWordsTable(dfa) {
+  const text = $("words").value;
+  const lines = text.split("\n");
+  const rows = lines.map(w => {
+    const display = w === "" ? "ε (vacia)" : w.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    let cls, msg;
+    try {
+      const ok = dfaAccepts(dfa, w);
+      cls = ok ? "r-accept" : "r-reject";
+      msg = ok ? "✓ acepta" : "✗ rechaza";
+    } catch (err) {
+      cls = "r-error";
+      msg = err.message;
+    }
+    return `<tr><td><code>${display}</code></td><td class="${cls}">${msg}</td></tr>`;
+  });
+  $("words-result").innerHTML =
+    "<thead><tr><th>palabra</th><th>resultado</th></tr></thead>" +
+    "<tbody>" + rows.join("") + "</tbody>";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("pattern").addEventListener("input", scheduleRender);
+  $("alphabet").addEventListener("input", scheduleRender);
+  $("words").addEventListener("input", () => {
+    // recalcular solo la tabla cuando cambian palabras (sin redibujar SVG)
+    if (renderTimeout) clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
+      try {
+        const pattern = $("pattern").value;
+        const alphaSet = parseAlphabetInput($("alphabet").value);
+        const nfa = regexToNFA(pattern, alphaSet);
+        const dfa = nfaToDFA(nfa);
+        const minimal = minimizeDFA(dfa);
+        renderWordsTable(minimal);
+      } catch (_) { /* sera mostrado por scheduleRender en otro ciclo */ }
+    }, 150);
+  });
+  for (const btn of document.querySelectorAll(".examples button")) {
+    btn.addEventListener("click", () => {
+      $("pattern").value = btn.dataset.pattern;
+      scheduleRender();
+    });
+  }
+  doRender();
+});
+</script>
+
+</body>
+</html>

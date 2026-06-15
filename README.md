@@ -24,6 +24,8 @@ en futuras *slices*.
 syntactic-monoid/
 ├── main.py                  # CLI interactiva + subcomandos (importa desde backend/)
 ├── visualization.py         # Graphviz + matplotlib + reportes
+├── web/                     # Visualizador interactivo (HTML+JS puro)
+│   └── regex_visualizer.html# Doble-click para abrir; sin servidor
 ├── backend/                 # Motor de cómputo
 │   ├── models/              # Modelos formales
 │   │   ├── dfa.py           # DFA + minimización, producto, equivalencia
@@ -90,7 +92,8 @@ Opciones:
 11. Compilar regex a DFA (Thompson + subset construction)
 12. Verificar DFA contra regex o muestra accept/reject
 13. Generar hoja informativa pedagógica (álgebra + autómatas)
-14. Visualizar regex en HTML (NFA + DFA + DFA mínimo, abre en navegador)
+14. Visualizar regex en HTML estático (NFA + DFA + DFA mínimo)
+15. **Abrir visualizador interactivo en el navegador** (live, sin terminal)
 
 ### Subcomandos directos
 
@@ -133,6 +136,39 @@ python main.py visualize "(0|1)*01"
 python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
 python main.py visualize "(0|1)*01" --no-open   # solo genera, no abre
 ```
+
+### Visualizador interactivo en el navegador (sin terminal)
+
+Para jugar con regexes sin escribir ningún comando, abre el archivo
+`web/regex_visualizer.html` directamente en tu navegador (doble click
+en el explorador de archivos). Es una página autocontenida con todo el
+parser, Thompson, subset construction y Hopcroft portados a JavaScript;
+los grafos se renderizan con [viz.js](https://github.com/mdaines/viz-js)
+cargado por CDN.
+
+También se puede abrir desde la línea de comandos:
+
+```bash
+python main.py interactive
+```
+
+Características de la página:
+
+- Caja de regex con re-render **en vivo** mientras escribes (debounced).
+- Caja de alfabeto opcional (con `.` o regexes sin literales hay que dárselo).
+- Botones de ejemplos pre-cargados (`(0|1)*01`, paridad, mod 3, …).
+- Hoja de sintaxis y operadores plegable.
+- Tres digrafos lado a lado: NFA Thompson (ε-transiciones discontinuas),
+  DFA por subconjuntos, DFA mínimo, con el conteo de estados y la nota
+  de reducción.
+- Cuadro de **palabras de prueba** (una por línea) que se evalúan sobre
+  el DFA mínimo en tiempo real con ✓ / ✗.
+- Fallback offline: si no hay internet, muestra el código DOT plano y
+  un enlace a Graphviz Online.
+
+> Requiere internet la primera vez para descargar viz.js (~1 MB).
+> Después funciona offline siempre que tu navegador haya cacheado el
+> script.
 
 ### Sintaxis de las expresiones regulares
 
