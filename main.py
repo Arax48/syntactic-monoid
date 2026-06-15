@@ -12,9 +12,9 @@ Funciona en dos modos:
     2. Modo CLI directo (con subcomando), pensado para reportes en
        batch:
 
-           python main.py report  examples/parity_dfa.json
-           python main.py run     examples/parity_dfa.json 1011
-           python main.py monoid  examples/parity_dfa.json
+           python main.py report  examples/parity_afd.json
+           python main.py run     examples/parity_afd.json 1011
+           python main.py monoid  examples/parity_afd.json
            python main.py examples
 
        (Si no se pasa nada se entra al menu interactivo.)
@@ -47,9 +47,9 @@ ROOT = Path(__file__).resolve().parent
 EXAMPLES_DIR = ROOT / "examples"
 OUTPUT_DIR = ROOT / "output"
 EXAMPLE_FILES = {
-    "1": EXAMPLES_DIR / "parity_dfa.json",
-    "2": EXAMPLES_DIR / "mod3_dfa.json",
-    "3": EXAMPLES_DIR / "ends_with_01_dfa.json",
+    "1": EXAMPLES_DIR / "parity_afd.json",
+    "2": EXAMPLES_DIR / "mod3_afd.json",
+    "3": EXAMPLES_DIR / "ends_with_01_afd.json",
 }
 
 

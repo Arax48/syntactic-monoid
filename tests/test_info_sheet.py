@@ -16,16 +16,16 @@ from backend.models import AFD
 # Construccion
 # ----------------------------------------------------------------------
 
-def test_build_info_sheet_acepta_dfa(parity_dfa: AFD) -> None:
-    sheet = build_info_sheet(parity_dfa)
+def test_build_info_sheet_acepta_dfa(parity_afd: AFD) -> None:
+    sheet = build_info_sheet(parity_afd)
     assert isinstance(sheet, InfoSheet)
-    assert sheet.dfa is parity_dfa
+    assert sheet.dfa is parity_afd
     assert sheet.analysis.is_group
     assert sheet.analysis.isomorphic_to == "ℤ/2ℤ"
 
 
-def test_as_text_contiene_las_seis_secciones(parity_dfa: AFD) -> None:
-    sheet = build_info_sheet(parity_dfa)
+def test_as_text_contiene_las_seis_secciones(parity_afd: AFD) -> None:
+    sheet = build_info_sheet(parity_afd)
     text = sheet.as_text()
     for header in (
         "TU AUTOMATA",
@@ -42,8 +42,8 @@ def test_as_text_contiene_las_seis_secciones(parity_dfa: AFD) -> None:
 # Texto - contenido por tipo de monoide
 # ----------------------------------------------------------------------
 
-def test_grupo_ciclico_menciona_aritmetica_modular(parity_dfa: AFD) -> None:
-    sheet = build_info_sheet(parity_dfa)
+def test_grupo_ciclico_menciona_aritmetica_modular(parity_afd: AFD) -> None:
+    sheet = build_info_sheet(parity_afd)
     text = sheet.as_text()
     # Para Z/2Z debe mencionar que es ciclico, su grupo y la conexion
     # con clases modulares.
@@ -52,8 +52,8 @@ def test_grupo_ciclico_menciona_aritmetica_modular(parity_dfa: AFD) -> None:
     assert "modul" in text.lower()  # "modulo" o "modular"
 
 
-def test_mod3_menciona_clases_modulo_3(mod3_dfa: AFD) -> None:
-    sheet = build_info_sheet(mod3_dfa)
+def test_mod3_menciona_clases_modulo_3(mod3_afd: AFD) -> None:
+    sheet = build_info_sheet(mod3_afd)
     text = sheet.as_text()
     assert "ℤ/3ℤ" in text
     # Tiene que aparecer una referencia explicita a las clases de
@@ -61,8 +61,8 @@ def test_mod3_menciona_clases_modulo_3(mod3_dfa: AFD) -> None:
     assert "modulo 3" in text.lower() or "modulo 3" in text.lower()
 
 
-def test_no_grupo_aperiodico_menciona_schutzenberger(ends_01_dfa: AFD) -> None:
-    sheet = build_info_sheet(ends_01_dfa)
+def test_no_grupo_aperiodico_menciona_schutzenberger(ends_01_afd: AFD) -> None:
+    sheet = build_info_sheet(ends_01_afd)
     text = sheet.as_text()
     assert "NO es un grupo" in text or "NO - existen" in text
     # ends_with_01 es aperiodico -> debe mencionar Schutzenberger y star-free.
@@ -102,8 +102,8 @@ def test_no_grupo_no_aperiodico_caso_por_defecto() -> None:
 # Markdown
 # ----------------------------------------------------------------------
 
-def test_markdown_usa_encabezados(mod3_dfa: AFD) -> None:
-    md = build_info_sheet(mod3_dfa).as_markdown()
+def test_markdown_usa_encabezados(mod3_afd: AFD) -> None:
+    md = build_info_sheet(mod3_afd).as_markdown()
     assert md.startswith("# Hoja informativa")
     # Las 6 secciones aparecen como ## ...
     for header in (
@@ -122,9 +122,9 @@ def test_markdown_usa_encabezados(mod3_dfa: AFD) -> None:
 # ----------------------------------------------------------------------
 
 def test_write_y_write_markdown_crean_archivos(
-    parity_dfa: AFD, tmp_path
+    parity_afd: AFD, tmp_path
 ) -> None:
-    sheet = build_info_sheet(parity_dfa)
+    sheet = build_info_sheet(parity_afd)
     txt = sheet.write(tmp_path / "hoja.txt")
     md = sheet.write_markdown(tmp_path / "hoja.md")
     assert txt.exists() and txt.read_text(encoding="utf-8").startswith("=")

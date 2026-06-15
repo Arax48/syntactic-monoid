@@ -109,8 +109,8 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 <header>
   <h1>Visualizador interactivo de expresiones regulares</h1>
   <p class="lead">
-    Escribe una regex y mira como se construyen el NFA de Thompson, el
-    DFA por subconjuntos y el DFA minimo. Todo en tu navegador, sin
+    Escribe una regex y mira como se construyen el AFN de Thompson, el
+    AFD por subconjuntos y el AFD minimo. Todo en tu navegador, sin
     instalacion ni terminal.
   </p>
 </header>
@@ -192,23 +192,23 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 <div id="error" hidden></div>
 
 <section>
-  <h2>1. NFA por construccion de Thompson <span class="stat" id="nfa-stat"></span></h2>
+  <h2>1. AFN por construccion de Thompson <span class="stat" id="nfa-stat"></span></h2>
   <div class="svg-wrap" id="nfa-svg"></div>
 </section>
 
 <section>
-  <h2>2. DFA por construccion de subconjuntos <span class="stat" id="dfa-stat"></span></h2>
+  <h2>2. AFD por construccion de subconjuntos <span class="stat" id="dfa-stat"></span></h2>
   <div class="svg-wrap" id="dfa-svg"></div>
 </section>
 
 <section>
-  <h2>3. DFA minimo (Hopcroft) <span class="stat" id="min-stat"></span></h2>
+  <h2>3. AFD minimo (Hopcroft) <span class="stat" id="min-stat"></span></h2>
   <div class="svg-wrap" id="min-svg"></div>
 </section>
 
 <section class="test-words">
   <h2>Probar palabras</h2>
-  <p>Una palabra por linea. Se evaluan sobre el DFA minimo. Linea vacia = palabra vacia ε.</p>
+  <p>Una palabra por linea. Se evaluan sobre el AFD minimo. Linea vacia = palabra vacia λ.</p>
   <textarea id="words" autocomplete="off" autocapitalize="off"
             spellcheck="false">01
 001
@@ -452,7 +452,7 @@ function regexToNFA(pattern, alphaInput) {
 }
 
 /* ==================================================================
- * 3. Simulacion del NFA, subset construction, Hopcroft
+ * 3. Simulacion del AFN, subset construction, Hopcroft
  * ================================================================== */
 
 function epsilonClosure(nfa, statesIter) {
@@ -618,7 +618,7 @@ function nfaToDot(nfa) {
       lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
     }
     for (const t of [...(nfa.eps.get(q) || [])].sort()) {
-      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label="ε", style="dashed", color="#888888", fontcolor="#666666"];`);
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label="λ", style="dashed", color="#888888", fontcolor="#666666"];`);
     }
   }
   lines.push("}");
@@ -749,7 +749,7 @@ async function doRender() {
   if (minimal.states.size < dfa.states.size) {
     redNote = `· ${minimal.states.size} estados (reduccion ${dfa.states.size}→${minimal.states.size})`;
   } else {
-    redNote = `· ${minimal.states.size} estados (el DFA ya era minimo)`;
+    redNote = `· ${minimal.states.size} estados (el AFD ya era minimo)`;
   }
   $("min-stat").textContent = redNote;
   status.textContent = "Alfabeto Σ = {" + [...nfa.alphabet].sort().join(", ") + "}";
@@ -771,7 +771,7 @@ function renderWordsTable(dfa) {
   const text = $("words").value;
   const lines = text.split("\n");
   const rows = lines.map(w => {
-    const display = w === "" ? "ε (vacia)" : w.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    const display = w === "" ? "λ (vacia)" : w.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
     let cls, msg;
     try {
       const ok = dfaAccepts(dfa, w);

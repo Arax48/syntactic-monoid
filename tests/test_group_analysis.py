@@ -12,8 +12,8 @@ from backend.models import AFD
 # Ejemplos canonicos
 # ----------------------------------------------------------------------
 
-def test_paridad_es_Z2(parity_dfa: AFD) -> None:
-    monoid = TransitionMonoid(parity_dfa)
+def test_paridad_es_Z2(parity_afd: AFD) -> None:
+    monoid = TransitionMonoid(parity_afd)
     info = analyze(monoid)
     assert info.is_group
     assert info.order == 2
@@ -23,8 +23,8 @@ def test_paridad_es_Z2(parity_dfa: AFD) -> None:
     assert info.cyclic_generator_word == "1"
 
 
-def test_mod3_es_Z3(mod3_dfa: AFD) -> None:
-    monoid = TransitionMonoid(mod3_dfa)
+def test_mod3_es_Z3(mod3_afd: AFD) -> None:
+    monoid = TransitionMonoid(mod3_afd)
     info = analyze(monoid)
     assert info.is_group
     assert info.order == 3
@@ -34,8 +34,8 @@ def test_mod3_es_Z3(mod3_dfa: AFD) -> None:
     assert info.cyclic_generator_word == "1"
 
 
-def test_termina_en_01_no_es_grupo(ends_01_dfa: AFD) -> None:
-    monoid = TransitionMonoid(ends_01_dfa)
+def test_termina_en_01_no_es_grupo(ends_01_afd: AFD) -> None:
+    monoid = TransitionMonoid(ends_01_afd)
     info = analyze(monoid)
     assert not info.is_group
     assert info.isomorphic_to is None
@@ -124,21 +124,21 @@ def test_grupo_ciclico_de_orden_4_via_alfabeto_unitario() -> None:
 # Propiedades secundarias
 # ----------------------------------------------------------------------
 
-def test_order_de_elementos_es_consistente(parity_dfa: AFD) -> None:
-    monoid = TransitionMonoid(parity_dfa)
+def test_order_de_elementos_es_consistente(parity_afd: AFD) -> None:
+    monoid = TransitionMonoid(parity_afd)
     info = analyze(monoid)
     # En Z/2: identidad tiene orden 1, swap tiene orden 2.
     valores = sorted(o for o in info.element_orders.values() if o is not None)
     assert valores == [1, 2]
 
 
-def test_centro_de_grupo_abeliano_es_todo_el_grupo(mod3_dfa: AFD) -> None:
-    info = analyze(TransitionMonoid(mod3_dfa))
+def test_centro_de_grupo_abeliano_es_todo_el_grupo(mod3_afd: AFD) -> None:
+    info = analyze(TransitionMonoid(mod3_afd))
     assert info.center_size == info.order
 
 
-def test_aperiodicidad_en_monoide_no_grupo(ends_01_dfa: AFD) -> None:
-    info = analyze(TransitionMonoid(ends_01_dfa))
+def test_aperiodicidad_en_monoide_no_grupo(ends_01_afd: AFD) -> None:
+    info = analyze(TransitionMonoid(ends_01_afd))
     # M(A) tiene 5 elementos, no es grupo, pero es aperiodico
     # (todos los subgrupos triviales).
     assert info.order == 5

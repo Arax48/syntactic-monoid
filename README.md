@@ -1,4 +1,4 @@
-# Estudio Algebraico de DFAs vía Monoides de Transición
+# Estudio Algebraico de AFDs vía Monoides de Transición
 
 Implementación matemáticamente rigurosa y completa en Python para construir
 el **monoide de transición** `M(A)` asociado a un Autómata Finito Determinista,
@@ -28,9 +28,9 @@ syntactic-monoid/
 │   └── regex_visualizer.html# Doble-click para abrir; sin servidor
 ├── backend/                 # Motor de cómputo
 │   ├── models/              # Modelos formales
-│   │   ├── dfa.py           # DFA + minimización, producto, equivalencia
+│   │   ├── dfa.py           # AFD + minimización, producto, equivalencia
 │   │   ├── transformation.py# f : Q → Q con propiedades algebraicas
-│   │   ├── nfa.py           # NFA / ε-NFA (en construcción)
+│   │   ├── nfa.py           # AFN / λ-AFN (en construcción)
 │   │   ├── pda.py           # PDA (en construcción, slice futura)
 │   │   └── turing.py        # Máquina de Turing (en construcción, slice futura)
 │   ├── algebra/             # Análisis algebraico
@@ -38,10 +38,10 @@ syntactic-monoid/
 │   │   └── homomorphism.py       # φ, núcleo, cociente, primer teorema
 │   ├── language/            # Parseo y clasificación de lenguajes (en construcción)
 │   └── verification/        # Equivalencia y verificación (en construcción)
-├── examples/                # DFAs de ejemplo en JSON
-│   ├── parity_dfa.json
-│   ├── mod3_dfa.json
-│   └── ends_with_01_dfa.json
+├── examples/                # AFDs de ejemplo en JSON
+│   ├── parity_afd.json
+│   ├── mod3_afd.json
+│   └── ends_with_01_afd.json
 ├── tests/                   # Suite pytest
 │   ├── conftest.py
 │   ├── test_dfa.py
@@ -79,8 +79,8 @@ python main.py
 ```
 
 Opciones:
-1. Cargar DFA
-2. Mostrar DFA
+1. Cargar AFD
+2. Mostrar AFD
 3. Evaluar palabra
 4. Construir monoide
 5. Mostrar transformaciones
@@ -89,23 +89,23 @@ Opciones:
 8. Mostrar clases de equivalencia
 9. Exportar reporte (texto + figuras)
 10. Ejecutar ejemplos canónicos
-11. Compilar regex a DFA (Thompson + subset construction)
-12. Verificar DFA contra regex o muestra accept/reject
+11. Compilar regex a AFD (Thompson + subset construction)
+12. Verificar AFD contra regex o muestra accept/reject
 13. Generar hoja informativa pedagógica (álgebra + autómatas)
-14. Visualizar regex en HTML estático (NFA + DFA + DFA mínimo)
+14. Visualizar regex en HTML estático (AFN + AFD + AFD mínimo)
 15. **Abrir visualizador interactivo en el navegador** (live, sin terminal)
 
 ### Subcomandos directos
 
 ```bash
 # Resumen + tabla de Cayley
-python main.py monoid  examples/parity_dfa.json
+python main.py monoid  examples/parity_afd.json
 
 # Evaluar una palabra
-python main.py run     examples/mod3_dfa.json 110011
+python main.py run     examples/mod3_afd.json 110011
 
 # Generar reporte completo
-python main.py report  examples/ends_with_01_dfa.json
+python main.py report  examples/ends_with_01_afd.json
 
 # Ejecutar los tres ejemplos canónicos
 python main.py examples
@@ -114,23 +114,23 @@ python main.py examples
 ### Subcomandos de la *slice 1* (lenguajes regulares, end-to-end)
 
 ```bash
-# Compilar una regex a DFA (Thompson + construcción de subconjuntos)
+# Compilar una regex a AFD (Thompson + construcción de subconjuntos)
 python main.py from-regex "(0|1)*01" --out output/ends_with_01.json
 
-# Verificar que un DFA reconoce el mismo lenguaje que una regex.
+# Verificar que un AFD reconoce el mismo lenguaje que una regex.
 # Si difieren, imprime el contraejemplo MÁS CORTO.
-python main.py verify examples/mod3_dfa.json --regex "0*(10*10*10*)*"
+python main.py verify examples/mod3_afd.json --regex "0*(10*10*10*)*"
 
 # Verificar contra una muestra accept/reject (también funciona para
 # autómatas no decidibles en futuras slices: PDA, TM).
-python main.py verify examples/parity_dfa.json --samples examples/parity_samples.json
+python main.py verify examples/parity_afd.json --samples examples/parity_samples.json
 
 # Hoja informativa pedagógica con la conexión algebraica de M(A):
 # ¿es grupo? ¿cuál? ¿qué dice eso del lenguaje?
-python main.py infosheet examples/mod3_dfa.json --out output/mod3_info.md --markdown
+python main.py infosheet examples/mod3_afd.json --out output/mod3_info.md --markdown
 
-# Visualizar una regex como página HTML autocontenida: muestra el NFA
-# de Thompson, el DFA por subconjuntos y el DFA mínimo (Hopcroft) en
+# Visualizar una regex como página HTML autocontenida: muestra el AFN
+# de Thompson, el AFD por subconjuntos y el AFD mínimo (Hopcroft) en
 # un solo archivo. Auto-abre el navegador.
 python main.py visualize "(0|1)*01"
 python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
@@ -158,11 +158,11 @@ Características de la página:
 - Caja de alfabeto opcional (con `.` o regexes sin literales hay que dárselo).
 - Botones de ejemplos pre-cargados (`(0|1)*01`, paridad, mod 3, …).
 - Hoja de sintaxis y operadores plegable.
-- Tres digrafos lado a lado: NFA Thompson (ε-transiciones discontinuas),
-  DFA por subconjuntos, DFA mínimo, con el conteo de estados y la nota
+- Tres digrafos lado a lado: AFN Thompson (λ-transiciones discontinuas),
+  AFD por subconjuntos, AFD mínimo, con el conteo de estados y la nota
   de reducción.
 - Cuadro de **palabras de prueba** (una por línea) que se evalúan sobre
-  el DFA mínimo en tiempo real con ✓ / ✗.
+  el AFD mínimo en tiempo real con ✓ / ✗.
 - Fallback offline: si no hay internet, muestra el código DOT plano y
   un enlace a Graphviz Online.
 
@@ -196,9 +196,9 @@ Precedencia (menor → mayor): unión `|` < concatenación < repetición `* + ?`
 pytest tests/ -v
 ```
 
-149 pruebas que cubren: validación estructural y operaciones de DFA
-(minimización, intersección, equivalencia, contraejemplos); NFA con
-ε-transiciones (ε-closure, simulación, subset construction); álgebra
+149 pruebas que cubren: validación estructural y operaciones de AFD
+(minimización, intersección, equivalencia, contraejemplos); AFN con
+λ-transiciones (λ-closure, simulación, subset construction); álgebra
 de transformaciones (asociatividad, idempotencia, órbitas, ciclos);
 construcción del monoide M(A) (cerradura, cota `|Q|^|Q|`, tabla de
 Cayley, idempotentes, unidades, aperiodicidad); propiedades de `φ`
@@ -211,10 +211,10 @@ de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa
 
 | Ejemplo | `\|Q\|` | Lenguaje | `\|M(A)\|` | ¿Grupo? | Estructura |
 |--------|---|---|---|---|---|
-| `parity_dfa.json` | 2 | nº par de 1s | 2 | sí | ≅ ℤ/2ℤ |
-| `mod3_dfa.json`   | 3 | nº de 1s ≡ 0 (mód 3) | 3 | sí | ≅ ℤ/3ℤ |
-| `ends_with_01_dfa.json` | 3 | termina en 01 | 5 | no | monoide aperiódico (star-free) |
-| `klein_v4_dfa.json` | 4 | paridad de `a` ∧ paridad de `b` | 4 | sí | ≅ V₄ = ℤ/2ℤ × ℤ/2ℤ |
+| `parity_afd.json` | 2 | nº par de 1s | 2 | sí | ≅ ℤ/2ℤ |
+| `mod3_afd.json`   | 3 | nº de 1s ≡ 0 (mód 3) | 3 | sí | ≅ ℤ/3ℤ |
+| `ends_with_01_afd.json` | 3 | termina en 01 | 5 | no | monoide aperiódico (star-free) |
+| `klein_v4_afd.json` | 4 | paridad de `a` ∧ paridad de `b` | 4 | sí | ≅ V₄ = ℤ/2ℤ × ℤ/2ℤ |
 
 Más:
 

@@ -120,8 +120,8 @@ def test_nfa_to_dot_es_un_digrafo() -> None:
     assert "doublecircle" in dot
 
 
-def test_dfa_to_dot_no_tiene_epsilon(parity_dfa: AFD) -> None:
-    dot = _dfa_to_dot(parity_dfa)
+def test_dfa_to_dot_no_tiene_epsilon(parity_afd: AFD) -> None:
+    dot = _dfa_to_dot(parity_afd)
     assert dot.startswith("digraph G {")
     # En un AFD NO hay λ-transiciones, asi que tampoco hay 'dashed'
     # como estilo de arista.

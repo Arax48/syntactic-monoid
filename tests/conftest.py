@@ -19,7 +19,7 @@ from backend.models import AFD  # noqa: E402
 
 
 @pytest.fixture
-def parity_dfa() -> AFD:
+def parity_afd() -> AFD:
     """AFD de paridad de unos (ejemplo 1)."""
     return AFD(
         states={"Par", "Impar"},
@@ -35,7 +35,7 @@ def parity_dfa() -> AFD:
 
 
 @pytest.fixture
-def mod3_dfa() -> AFD:
+def mod3_afd() -> AFD:
     """AFD que cuenta unos modulo 3 (ejemplo 2)."""
     return AFD(
         states={"r0", "r1", "r2"},
@@ -52,7 +52,7 @@ def mod3_dfa() -> AFD:
 
 
 @pytest.fixture
-def ends_01_dfa() -> AFD:
+def ends_01_afd() -> AFD:
     """AFD de cadenas que terminan en 01 (ejemplo 3)."""
     return AFD(
         states={"s0", "s1", "s2"},

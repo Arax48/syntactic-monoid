@@ -18,9 +18,9 @@ mediante Monoides de Transición e Implementación Computacional en Python.
 ## 1. Resumen
 
 Este trabajo presenta un estudio integrado, teórico y computacional, de los
-Autómatas Finitos Deterministas (DFA) desde una perspectiva algebraica.
+Autómatas Finitos Deterministas (AFD) desde una perspectiva algebraica.
 Tomando como objeto central el **monoide de transición** `M(A)` asociado a un
-DFA `A = (Q, Σ, δ, q₀, F)`, demostramos rigurosamente que la asignación
+AFD `A = (Q, Σ, δ, q₀, F)`, demostramos rigurosamente que la asignación
 
 > `φ : Σ* → M(A),   φ(w) = f_w   con   f_w(q) = δ*(q, w)`
 
@@ -34,11 +34,11 @@ la cual interpretamos como una **clasificación algebraica de las palabras
 según su comportamiento en el autómata**.
 
 Acompañando la fundamentación matemática, desarrollamos una herramienta en
-Python (≈900 líneas, 51 pruebas pytest verdes) que: (i) valida y simula DFAs,
+Python (≈900 líneas, 51 pruebas pytest verdes) que: (i) valida y simula AFDs,
 (ii) construye `M(A)` por búsqueda en anchura, (iii) genera la tabla de
 Cayley, (iv) exhibe el núcleo y los representantes mínimos de cada clase, y
 (v) produce reportes en texto plano e imágenes (Graphviz, matplotlib). Se
-estudian en detalle tres DFAs canónicos: paridad de unos, conteo módulo 3 y
+estudian en detalle tres AFDs canónicos: paridad de unos, conteo módulo 3 y
 cadenas que terminan en `01`. En los dos primeros el monoide resulta ser un
 grupo abeliano (`ℤ/2ℤ` y `ℤ/3ℤ`); en el tercero, un monoide no conmutativo
 de 5 elementos cuya tabla evidencia la asimetría del lenguaje reconocido.
@@ -57,10 +57,10 @@ ofrece una mirada complementaria: a cada lenguaje regular se le asocian
 
 El presente proyecto se enmarca en este puente entre Matemática Discreta II
 (estructuras algebraicas, relaciones de equivalencia, teoremas de
-isomorfismo) y Teoría de la Computación (DFAs, lenguajes regulares). El
+isomorfismo) y Teoría de la Computación (AFDs, lenguajes regulares). El
 objeto técnico que estudiamos es el **monoide de transición** `M(A)` —en la
 literatura: *transition monoid*— construido directamente a partir de la
-función de transición del DFA, sin necesidad de cuocientar el monoide libre
+función de transición del AFD, sin necesidad de cuocientar el monoide libre
 `Σ*` por la congruencia sintáctica del lenguaje. La diferencia con el
 **monoide sintáctico** `M(L)` se discute en la sección 4.6.
 
@@ -82,11 +82,11 @@ Objetivos:
 Un **alfabeto** `Σ` es un conjunto finito no vacío cuyos elementos llamamos
 **símbolos** o **letras**. Una **palabra** sobre `Σ` es una secuencia finita
 `w = a₁a₂…a_n` con cada `aᵢ ∈ Σ`. La longitud de `w` es `|w| = n`. La palabra
-de longitud cero es la **palabra vacía** `ε`.
+de longitud cero es la **palabra vacía** `λ`.
 
 Denotamos por `Σ*` al conjunto de todas las palabras sobre `Σ`, incluyendo
-`ε`. La **concatenación** `· : Σ* × Σ* → Σ*` es asociativa y `ε` es su
-elemento neutro. Por tanto `(Σ*, ·, ε)` es un monoide: el **monoide libre**
+`λ`. La **concatenación** `· : Σ* × Σ* → Σ*` es asociativa y `λ` es su
+elemento neutro. Por tanto `(Σ*, ·, λ)` es un monoide: el **monoide libre**
 generado por `Σ`. Es libre porque toda función `Σ → M` hacia un monoide `M`
 se extiende de manera única a un homomorfismo de monoides `Σ* → M`.
 
@@ -94,7 +94,7 @@ Un **lenguaje** sobre `Σ` es cualquier subconjunto `L ⊆ Σ*`.
 
 ### 3.2 Autómatas Finitos Deterministas
 
-Un **DFA** es una 5-tupla `A = (Q, Σ, δ, q₀, F)` con:
+Un **AFD** es una 5-tupla `A = (Q, Σ, δ, q₀, F)` con:
 - `Q`: conjunto finito de estados.
 - `Σ`: alfabeto.
 - `δ : Q × Σ → Q`: función de transición (total).
@@ -104,12 +104,12 @@ Un **DFA** es una 5-tupla `A = (Q, Σ, δ, q₀, F)` con:
 La función de transición se extiende a palabras como `δ* : Q × Σ* → Q`
 mediante:
 
-> `δ*(q, ε) = q`,
+> `δ*(q, λ) = q`,
 > `δ*(q, wa) = δ(δ*(q, w), a)`  para todo `w ∈ Σ*` y `a ∈ Σ`.
 
 El **lenguaje aceptado** por `A` es
 `L(A) = { w ∈ Σ* : δ*(q₀, w) ∈ F }`. Un lenguaje es **regular** si y sólo
-si es aceptado por algún DFA.
+si es aceptado por algún AFD.
 
 ### 3.3 Monoides y homomorfismos
 
@@ -161,7 +161,7 @@ entienden en esta convención.
 
 ## 4. Fundamentación matemática
 
-A lo largo de esta sección fijamos un DFA `A = (Q, Σ, δ, q₀, F)` y
+A lo largo de esta sección fijamos un AFD `A = (Q, Σ, δ, q₀, F)` y
 adoptamos la convención de composición fijada en §3.4: para `f, g ∈ Q^Q`,
 
 > `f · g := g ∘ f`   (lectura izquierda-a-derecha).
@@ -177,7 +177,7 @@ explícito en la definición recursiva de `δ*`.
 
 *Demostración (inducción sobre `|v|`).*
 
-- *Base `v = ε`.* `δ*(q, uε) = δ*(q, u) = δ*(δ*(q, u), ε)` por la
+- *Base `v = λ`.* `δ*(q, uλ) = δ*(q, u) = δ*(δ*(q, u), λ)` por la
   definición de `δ*` aplicada al lado derecho.
 - *Paso `v = wa` con `a ∈ Σ` y `|w| < |v|`.* Asumimos por hipótesis de
   inducción que `δ*(q, uw) = δ*(δ*(q, u), w)`. Entonces
@@ -198,7 +198,7 @@ Para cada `w ∈ Σ*` definimos la transformación
 
 > `f_w : Q → Q,   f_w(q) = δ*(q, w)`.
 
-**Caso base.** `f_ε(q) = δ*(q, ε) = q`, luego `f_ε = id_Q`.
+**Caso base.** `f_λ(q) = δ*(q, λ) = q`, luego `f_λ = id_Q`.
 
 **Identidad multiplicativa.** Para `u, v ∈ Σ*` y `q ∈ Q`, usando el
 Lema 0 y la convención `f · g = g ∘ f`:
@@ -235,11 +235,11 @@ tanto en `M(A)`).
 `((f · g) · h)(q) = h((f·g)(q)) = h(g(f(q))) = (g·h)(f(q)) = (f · (g · h))(q)`.
 ∎
 
-**Lema 3 (Identidad).** `id_Q = f_ε ∈ M(A)` y es neutra a ambos lados.
+**Lema 3 (Identidad).** `id_Q = f_λ ∈ M(A)` y es neutra a ambos lados.
 
-*Demostración.* `f_ε ∈ M(A)` por definición. Para cualquier `f_w`,
-`f_w · f_ε = f_{wε} = f_w = f_{εw} = f_ε · f_w`, donde se usó (★) y
-las identidades `wε = w = εw` en `Σ*`. ∎
+*Demostración.* `f_λ ∈ M(A)` por definición. Para cualquier `f_w`,
+`f_w · f_λ = f_{wλ} = f_w = f_{λw} = f_λ · f_w`, donde se usó (★) y
+las identidades `wλ = w = λw` en `Σ*`. ∎
 
 **Teorema 1.** `(M(A), ·, id_Q)` es un monoide finito y `|M(A)| ≤ |Q|^|Q|`.
 
@@ -252,12 +252,12 @@ neutro (Lema 3) están probadas. La cota se sigue de que `M(A) ⊆ Q^Q` y
 Definimos `φ : Σ* → M(A)` por `φ(w) = f_w`.
 
 **Teorema 2 (`φ` es homomorfismo de monoides).** La función
-`φ : (Σ*, ·, ε) → (M(A), ·, id_Q)` cumple:
+`φ : (Σ*, ·, λ) → (M(A), ·, id_Q)` cumple:
 
-> (i)  `φ(ε) = id_Q`,
+> (i)  `φ(λ) = id_Q`,
 > (ii) `φ(uv) = φ(u) · φ(v)` para todo `u, v ∈ Σ*`.
 
-*Demostración.* (i) `φ(ε) = f_ε = id_Q` por el caso base de §4.1.
+*Demostración.* (i) `φ(λ) = f_λ = id_Q` por el caso base de §4.1.
 (ii) Por (★), `φ(uv) = f_{uv} = f_u · f_v = φ(u) · φ(v)`. ∎
 
 **Observación de implementación.** La operación `·` en `M(A)` corresponde
@@ -302,7 +302,7 @@ con operación
 
 > `[u] ⋆ [v] := [uv]`,
 
-bien definida por la Proposición 2. La identidad es `[ε]`.
+bien definida por la Proposición 2. La identidad es `[λ]`.
 
 **Teorema 4 (Primer Teorema del Isomorfismo).** Existe un único isomorfismo
 de monoides
@@ -318,7 +318,7 @@ tal que `φ = φ̄ ∘ π`, donde `π : Σ* → Σ*/Ker(φ)` es la proyección c
 - **Homomorfismo.** En `Σ*/Ker(φ)` la operación es `[u]·[v] := [uv]`
   (bien definida por la Proposición 2). Por el Teorema 2,
   `φ̄([u]·[v]) = φ̄([uv]) = φ(uv) = φ(u) · φ(v) = φ̄([u]) · φ̄([v])`,
-  y `φ̄([ε]) = φ(ε) = id_Q`.
+  y `φ̄([λ]) = φ(λ) = id_Q`.
 - **Inyectividad.** Si `φ̄([u]) = φ̄([v])`, entonces `φ(u) = φ(v)`, luego
   `u ∼ v` y `[u] = [v]`.
 - **Sobreyectividad sobre `Im(φ)`.** Trivial: si `f ∈ Im(φ)`, sea
@@ -349,7 +349,7 @@ de la **congruencia sintáctica** `≡_L`:
 hecho es **la congruencia de monoide más gruesa que satura `L`** (cf. Pin,
 *Mathematical Foundations of Automata Theory*, §III.2).
 
-**Proposición 3 (relación entre las dos congruencias).** Para un DFA
+**Proposición 3 (relación entre las dos congruencias).** Para un AFD
 `A = (Q, Σ, δ, q₀, F)` que reconozca `L`, denotemos por `∼` la congruencia
 inducida por `φ_A : Σ* → M(A)` (es decir, `u ∼ v ⟺ f_u = f_v`). Entonces
 
@@ -375,7 +375,7 @@ pertenecen simultáneamente a `L`. Luego `u ≡_L v`. ∎
 *Demostración.* La inclusión `∼ ⊆ ≡_L` implica que `≡_L` es una congruencia
 en `Σ* / ∼ = M(A)`. El cociente correspondiente coincide con `M(L)`. ∎
 
-**Teorema 5 (Caso de igualdad: DFA mínimo).** Si `A_min` es el DFA mínimo
+**Teorema 5 (Caso de igualdad: AFD mínimo).** Si `A_min` es el AFD mínimo
 que reconoce `L`, entonces `M(A_min) ≅ M(L)`.
 
 *Demostración (esbozo).* Los estados de `A_min` son las clases de
@@ -391,7 +391,7 @@ fino que el monoide sintáctico `M(L(A))`; ambos coinciden exactamente
 cuando `A` es mínimo. En este proyecto trabajamos directamente con `M(A)`
 porque (i) se construye algorítmicamente sin minimización previa,
 (ii) ilustra completamente el aparato del Primer Teorema, y (iii) cuando
-los DFAs de ejemplo son ya mínimos (caso de los tres ejemplos incluidos),
+los AFDs de ejemplo son ya mínimos (caso de los tres ejemplos incluidos),
 `M(A) = M(L)` y la información obtenida es la sintáctica.
 
 ---
@@ -402,16 +402,16 @@ El proyecto sigue una metodología **constructiva y verificable**:
 1. **Modelado matemático.** Cada definición y teorema de §4 se expone con
    demostración detallada.
 2. **Diseño orientado a objetos.** Cada concepto matemático se materializa en
-   una clase Python con responsabilidades únicas (`DFA`, `Transformation`,
+   una clase Python con responsabilidades únicas (`AFD`, `Transformation`,
    `TransitionMonoid`, `Homomorphism`).
 3. **Algoritmo BFS** para construir `M(A)`: se inicia con la identidad y se
    aplica cada generador del alfabeto, deteniéndose cuando no aparecen
    transformaciones nuevas. Termina en a lo sumo `|M(A)| ≤ |Q|^|Q|` pasos.
-4. **Verificación empírica.** Para cada DFA de ejemplo se prueba
+4. **Verificación empírica.** Para cada AFD de ejemplo se prueba
    computacionalmente que `φ(uv) = φ(u) ⋆ φ(v)`, que `∼` es de equivalencia
    y que `|Σ*/Ker(φ)| = |M(A)|`.
 5. **Pruebas unitarias** (`pytest`) en todos los módulos.
-6. **Visualización** del DFA (Graphviz), tabla de Cayley (matplotlib) y
+6. **Visualización** del AFD (Graphviz), tabla de Cayley (matplotlib) y
    reporte textual.
 
 ---
@@ -438,10 +438,10 @@ El proyecto sigue una metodología **constructiva y verificable**:
 | **1** | 1 | e |
 
 **Núcleo.** `u ∼ v ⟺ |u|_1 ≡ |v|_1 (mód 2)`. Dos clases: palabras con
-número par de unos (incluye `ε`, `00`, `11`, `0110`, …) y palabras con
+número par de unos (incluye `λ`, `00`, `11`, `0110`, …) y palabras con
 número impar de unos (`1`, `10`, `01`, `111`, …).
 
-**Primer Teorema:** `Σ*/Ker(φ) = {[ε], [1]} ≅ ℤ/2ℤ ≅ M(A)`.
+**Primer Teorema:** `Σ*/Ker(φ) = {[λ], [1]} ≅ ℤ/2ℤ ≅ M(A)`.
 
 ### 6.2 Ejemplo 2: cantidad de 1s ≡ 0 (mód 3)
 
@@ -476,7 +476,7 @@ La cifra `0` no cambia el estado; la cifra `1` lo incrementa módulo 3.
 - `f_1 = (s0→s0, s1→s2, s2→s0)`.
 
 **Monoide.** Tras la BFS aparecen exactamente 5 transformaciones distintas,
-con representantes mínimos `ε, 0, 1, 01, 11`. El monoide **no** es un grupo
+con representantes mínimos `λ, 0, 1, 01, 11`. El monoide **no** es un grupo
 (la mayoría de transformaciones tienen imagen contenida estrictamente en
 `Q` y no son invertibles), tampoco es conmutativo. Su tabla de Cayley
 calculada por el programa es:
@@ -495,7 +495,7 @@ e   |  e   0   1   01  11
 
 | Clase | Palabras representativas |
 |-------|--------------------------|
-| `[ε]`  | `ε` |
+| `[λ]`  | `λ` |
 | `[0]`  | `0, 00, 10, 000, 010, 100, 110` |
 | `[1]`  | `1` |
 | `[01]` | `01, 001, 101` |
@@ -513,7 +513,7 @@ tabla confirma que el monoide es **aperiódico**: la palabra `00 ∼ 0` y
 
 | Módulo | Responsabilidad | LOC aprox. |
 |--------|-----------------|------------|
-| `dfa.py` | Clase `DFA`, validación, `δ*`, ejecución, tabla. | 200 |
+| `dfa.py` | Clase `AFD`, validación, `δ*`, ejecución, tabla. | 200 |
 | `transformation.py` | Clase `Transformation`, composición, hash. | 130 |
 | `transition_monoid.py` | Clase `TransitionMonoid`, BFS, Cayley, propiedades. | 220 |
 | `algebra.py` | Clase `Homomorphism`, `φ`, núcleo, cociente, isomorfismo. | 150 |
@@ -544,11 +544,11 @@ tabla confirma que el monoide es **aperiódico**: la palabra `00 ∼ 0` y
 ### 7.3 Algoritmo de construcción de `M(A)`
 
 ```
-Entrada: DFA A = (Q, Σ, δ, q0, F)
+Entrada: AFD A = (Q, Σ, δ, q0, F)
 Salida : conjunto M(A) ⊆ Q^Q y, para cada f ∈ M(A), una palabra rep(f).
 
 1. Para cada a ∈ Σ, calcular el generador g_a(q) = δ(q, a).
-2. Crear M ← {id_Q}, queue ← [(ε, id_Q)], rep(id_Q) ← ε.
+2. Crear M ← {id_Q}, queue ← [(λ, id_Q)], rep(id_Q) ← λ.
 3. Mientras queue no esté vacía:
    a. Desencolar (w, f).
    b. Para cada a ∈ Σ (en orden):
@@ -567,23 +567,23 @@ Como la cola sólo crece cuando aparece una transformación nueva y
 
 ## 8. Resultados experimentales
 
-Se ejecutó el programa sobre los tres DFAs incluidos. La siguiente tabla
+Se ejecutó el programa sobre los tres AFDs incluidos. La siguiente tabla
 resume las métricas observadas (todas verificadas por `pytest`):
 
-| DFA | `\|Q\|` | `\|M(A)\|` | Cota `\|Q\|^\|Q\|` | Conmutativo | Grupo | Estructura conocida |
+| AFD | `\|Q\|` | `\|M(A)\|` | Cota `\|Q\|^\|Q\|` | Conmutativo | Grupo | Estructura conocida |
 |----|--------|--------|----------|-----|------|---------------|
 | Paridad | 2 | 2 | 4 | sí | sí | `ℤ/2ℤ` |
 | Mód 3   | 3 | 3 | 27 | sí | sí | `ℤ/3ℤ` |
 | Termina en `01` | 3 | 5 | 27 | no | no | monoide aperiódico |
 
-Para cada DFA, la suite verifica además:
+Para cada AFD, la suite verifica además:
 - `φ(uv) = φ(u).then(φ(v))` para toda `(u, v)` con `|u|, |v| ≤ 4`.
 - `∼` es una relación de equivalencia (reflexividad, simetría,
   transitividad).
 - `|Σ*/Ker(φ)| = |M(A)|`, lo que valida empíricamente el Primer Teorema
   del Isomorfismo (Corolario 1).
 
-Salida típica del programa (`python main.py monoid examples/mod3_dfa.json`):
+Salida típica del programa (`python main.py monoid examples/mod3_afd.json`):
 
 ```
 Monoide de transicion M(A) de Numero de 1s congruente con 0 mod 3
@@ -605,12 +605,12 @@ e   |  e   1   11
 
 ## 9. Discusión
 
-1. **Naturaleza del monoide.** En los DFAs construidos sobre operaciones
+1. **Naturaleza del monoide.** En los AFDs construidos sobre operaciones
    "modulares" (paridad, mód 3) los monoides resultan ser grupos cíclicos.
    Esto refleja un hecho general: si todos los símbolos inducen biyecciones
    sobre `Q`, entonces `M(A)` es un grupo (es un subgrupo del grupo
    simétrico `S_Q`).
-2. **DFAs con "estados absorbentes lectorialmente".** En el ejemplo `01`,
+2. **AFDs con "estados absorbentes lectorialmente".** En el ejemplo `01`,
    los símbolos colapsan el dominio (la lectura de un `0` deja siempre el
    estado en `s1`), por lo que las transformaciones no son inyectivas y el
    monoide no puede ser un grupo. Esto es consistente con la teoría: el
@@ -630,25 +630,25 @@ e   |  e   1   11
 
 ## 10. Conclusiones
 
-- Se logró un **desarrollo riguroso** del marco algebraico que vincula DFAs
+- Se logró un **desarrollo riguroso** del marco algebraico que vincula AFDs
   y monoides, con demostraciones completas de cerradura, asociatividad,
   identidad, homomorfismo y Primer Teorema del Isomorfismo.
 - Se construyó una herramienta Python **ejecutable, modular y probada**
   (51/51 tests verdes) que materializa fielmente las definiciones
-  matemáticas y permite explorar interactivamente cualquier DFA dado en
+  matemáticas y permite explorar interactivamente cualquier AFD dado en
   JSON.
 - Los tres ejemplos canónicos ilustran tanto el caso "grupo" (paridad,
   módulo 3) como el caso "monoide aperiódico" (`01`), mostrando que la
   estructura algebraica capta información cualitativa del lenguaje.
 - La integración entre **Matemática Discreta II** (estructuras algebraicas,
-  relaciones, teoremas de isomorfismo) y **Teoría de la Computación** (DFAs,
+  relaciones, teoremas de isomorfismo) y **Teoría de la Computación** (AFDs,
   lenguajes regulares) queda explícita y operativa.
 
 ---
 
 ## 11. Trabajo futuro
 
-- Implementar el **monoide sintáctico** `M(L)` mediante minimización del DFA
+- Implementar el **monoide sintáctico** `M(L)` mediante minimización del AFD
   y verificar `M(A_min) ≅ M(L)`.
 - Detectar **aperiodicidad** del monoide y, en consecuencia, **libertad de
   estrella** del lenguaje (Schützenberger).
@@ -658,7 +658,7 @@ e   |  e   1   11
   caracterizaciones algebraicas de subclases de lenguajes regulares.
 - Generar reportes en **LaTeX/PDF** automáticamente desde `visualization.py`.
 - Implementar **representación matricial** de transformaciones para escalar
-  a DFAs con cientos de estados.
+  a AFDs con cientos de estados.
 
 ---
 

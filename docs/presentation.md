@@ -15,11 +15,11 @@ Matemática Discreta II · Teoría de la Computación
 
 ## Diapositiva 1 — Motivación
 
-- La teoría clásica de autómatas trata los DFAs como objetos **combinatorios**.
+- La teoría clásica de autómatas trata los AFDs como objetos **combinatorios**.
 - El enfoque **algebraico** (Schützenberger, Eilenberg, Pin, Straubing)
-  asocia a cada DFA un **monoide finito** cuya estructura captura el
+  asocia a cada AFD un **monoide finito** cuya estructura captura el
   comportamiento del autómata.
-- Pregunta central: **¿qué información sobre un DFA o un lenguaje regular
+- Pregunta central: **¿qué información sobre un AFD o un lenguaje regular
   puede leerse en la estructura algebraica de su monoide de transición?**
 
 ---
@@ -39,19 +39,19 @@ Matemática Discreta II · Teoría de la Computación
 ## Diapositiva 3 — Preliminares: monoide libre
 
 - Alfabeto finito `Σ`, palabra `w = a₁…a_n`, longitud `|w| = n`.
-- Concatenación asociativa con neutro `ε`:
-  > `(Σ*, ·, ε)` es el **monoide libre**.
+- Concatenación asociativa con neutro `λ`:
+  > `(Σ*, ·, λ)` es el **monoide libre**.
 - Todo morfismo `Σ → M` se extiende de manera **única** a `Σ* → M`.
 
 ---
 
-## Diapositiva 4 — DFA y transición extendida
+## Diapositiva 4 — AFD y transición extendida
 
 `A = (Q, Σ, δ, q₀, F)` con `δ : Q × Σ → Q` total.
 
 Función de transición extendida:
 
-> `δ*(q, ε) = q`,    `δ*(q, wa) = δ(δ*(q, w), a)`.
+> `δ*(q, λ) = q`,    `δ*(q, wa) = δ(δ*(q, w), a)`.
 
 Lenguaje aceptado:
 
@@ -84,7 +84,7 @@ aplica `f_u` y luego `f_v`.
 |----------|---------------|
 | Cerrado bajo `·` | `f_u · f_v = f_{uv} ∈ M(A)` |
 | Asociativa | Asociatividad de la composición de funciones |
-| Identidad | `id_Q = f_ε ∈ M(A)` |
+| Identidad | `id_Q = f_λ ∈ M(A)` |
 
 ⇒ `(M(A), ·, id_Q)` es un **monoide finito** con `|M(A)| ≤ |Q|^|Q|`.
 
@@ -92,9 +92,9 @@ aplica `f_u` y luego `f_v`.
 
 ## Diapositiva 7 — Homomorfismo natural `φ`
 
-`φ : (Σ*, ·, ε) → (M(A), ·, id_Q)`,  `φ(w) = f_w`.
+`φ : (Σ*, ·, λ) → (M(A), ·, id_Q)`,  `φ(w) = f_w`.
 
-> `φ(uv) = φ(u) · φ(v)`   y   `φ(ε) = id_Q`.
+> `φ(uv) = φ(u) · φ(v)`   y   `φ(λ) = id_Q`.
 
 ⇒ `φ` es homomorfismo **sobreyectivo** de monoides.
 
@@ -184,13 +184,13 @@ No es grupo, no es conmutativo ⇒ refleja **aperiodicidad** del lenguaje.
 
 ```
 syntactic-monoid/
-├── dfa.py                 DFA, δ*, validación
+├── dfa.py                 AFD, δ*, validación
 ├── transformation.py      f : Q → Q, composición, hash
 ├── transition_monoid.py   BFS, Cayley, identidad, |M(A)|
 ├── algebra.py             φ, Ker(φ), cociente, isomorfismo
 ├── visualization.py       Graphviz, matplotlib, reportes
 ├── main.py                CLI (10 opciones) + argparse
-├── examples/              3 DFAs en JSON
+├── examples/              3 AFDs en JSON
 └── tests/                 51 pruebas pytest
 ```
 
@@ -199,7 +199,7 @@ syntactic-monoid/
 ## Diapositiva 14 — Algoritmo BFS para `M(A)`
 
 ```
-M ← { id_Q };  queue ← [(ε, id_Q)];  rep(id_Q) ← ε
+M ← { id_Q };  queue ← [(λ, id_Q)];  rep(id_Q) ← λ
 mientras queue no vacía:
     (w, f) ← queue.popleft()
     para a ∈ Σ en orden:
@@ -216,7 +216,7 @@ Termina en `O(|Σ| · |M(A)| · |Q|)` pasos; cota `|M(A)| ≤ |Q|^|Q|`.
 
 51/51 pruebas pytest en verde:
 
-- Validación estructural del DFA.
+- Validación estructural del AFD.
 - Asociatividad / identidad de `Transformation`.
 - Cerradura, asociatividad y cota `|Q|^|Q|` del monoide.
 - `φ(uv) = φ(u).then(φ(v))` para `|u|, |v| ≤ 4`.
@@ -230,7 +230,7 @@ CLI funcional con menú de 10 opciones e impresión de tablas y figuras.
 ## Diapositiva 16 — Conclusiones y trabajo futuro
 
 **Logros**
-- Demostraciones completas del marco algebraico DFA ↔ monoide.
+- Demostraciones completas del marco algebraico AFD ↔ monoide.
 - Implementación modular, probada y ejecutable.
 - Tres ejemplos ilustran el caso "grupo" y el caso "aperiódico".
 
