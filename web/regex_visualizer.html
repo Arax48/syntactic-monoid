@@ -109,9 +109,16 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 <header>
   <h1>Visualizador interactivo de expresiones regulares</h1>
   <p class="lead">
-    Escribe una regex y mira como se construyen el AFN de Thompson, el
-    AFD por subconjuntos y el AFD minimo. Todo en tu navegador, sin
-    instalacion ni terminal.
+    Escribe una expresion regular (§2.2) y mira como se construye paso
+    a paso: AFN-λ por el Teorema de Kleene Parte I (§2.12, conocido
+    tambien como construccion de Thompson), AFD equivalente por
+    construccion de subconjuntos (Teorema 2.7.1) y AFD minimo (§2.16,
+    Hopcroft). Todo en tu navegador, sin instalacion ni terminal.
+  </p>
+  <p class="lead" style="font-size:.85rem;color:#6e7681;">
+    Convenciones del curso (De Castro): cadena vacia <code>λ</code>;
+    union <code>∪</code> (en este editor se escribe <code>|</code> por
+    comodidad de teclado); tupla de un AFD = <code>(Σ, Q, q0, F, δ)</code>.
   </p>
 </header>
 
@@ -142,67 +149,116 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 </section>
 
 <details class="syntax">
-  <summary>Como escribir tu regex (sintaxis y operadores)</summary>
+  <summary>Como escribir tu expresion regular (§2.2 De Castro)</summary>
   <table>
-    <thead><tr><th>Sintaxis</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+    <thead>
+      <tr><th>Sintaxis (ASCII)</th>
+          <th>Notacion del libro</th>
+          <th>Significado</th>
+          <th>Ejemplo</th></tr>
+    </thead>
     <tbody>
-      <tr><td><code>a</code></td><td>simbolo literal <code>a</code></td>
+      <tr><td><code>a</code></td>
+          <td><code>a</code></td>
+          <td>simbolo literal <em>a</em> ∈ Σ; <em>L</em>[a] = {a}</td>
           <td><code>0</code> reconoce <code>"0"</code></td></tr>
-      <tr><td><code>ab</code></td><td>concatenacion: a seguido de b</td>
+      <tr><td><em>(linea vacia)</em></td>
+          <td><code>λ</code></td>
+          <td>cadena vacia; <em>L</em>[λ] = {λ}</td>
+          <td>al evaluar palabras, una linea vacia representa a <code>λ</code></td></tr>
+      <tr><td><code>ab</code></td>
+          <td><code>ab</code> (yuxtaposicion)</td>
+          <td>concatenacion; <em>L</em>[RS] = <em>L</em>[R]·<em>L</em>[S]</td>
           <td><code>01</code> reconoce <code>"01"</code></td></tr>
-      <tr><td><code>a|b</code></td><td>alternativa: a o b</td>
+      <tr><td><code>a|b</code></td>
+          <td><code>a ∪ b</code></td>
+          <td>union; <em>L</em>[R ∪ S] = <em>L</em>[R] ∪ <em>L</em>[S]</td>
           <td><code>0|1</code> reconoce <code>"0"</code> o <code>"1"</code></td></tr>
-      <tr><td><code>a*</code></td><td>cero o mas a (Kleene)</td>
+      <tr><td><code>a*</code></td>
+          <td><code>a*</code></td>
+          <td>clausura de Kleene; <em>L</em>[R*] = <em>L</em>[R]*</td>
           <td><code>0*</code> reconoce <code>""</code>, <code>"0"</code>, <code>"00"</code>...</td></tr>
-      <tr><td><code>a+</code></td><td>una o mas a</td>
+      <tr><td><code>a+</code></td>
+          <td><code>a+</code></td>
+          <td>clausura positiva (<em>R</em>+ ≡ <em>R</em><em>R</em>*)</td>
           <td><code>1+</code> reconoce <code>"1"</code>, <code>"11"</code>...</td></tr>
-      <tr><td><code>a?</code></td><td>cero o una a</td>
+      <tr><td><code>a?</code></td>
+          <td><code>(λ ∪ a)</code></td>
+          <td>opcional (azucar)</td>
           <td><code>0?1</code> reconoce <code>"1"</code> o <code>"01"</code></td></tr>
-      <tr><td><code>(...)</code></td><td>agrupacion</td>
-          <td><code>(01)*</code> reconoce <code>""</code>, <code>"01"</code>, <code>"0101"</code>...</td></tr>
-      <tr><td><code>[abc]</code></td><td>clase de caracteres</td>
+      <tr><td><code>(...)</code></td>
+          <td><code>(...)</code></td>
+          <td>agrupacion</td>
+          <td><code>(01)*</code> reconoce <code>""</code>, <code>"01"</code>, ...</td></tr>
+      <tr><td><code>[abc]</code></td>
+          <td><code>(a ∪ b ∪ c)</code></td>
+          <td>clase de caracteres (azucar)</td>
           <td><code>[01]+</code> = cadena binaria no vacia</td></tr>
-      <tr><td><code>[a-z]</code></td><td>rango</td>
-          <td><code>[a-c]</code> = a, b o c</td></tr>
-      <tr><td><code>.</code></td><td>cualquier simbolo del alfabeto</td>
+      <tr><td><code>[a-z]</code></td>
+          <td>idem para todo el rango</td>
+          <td>rango de caracteres</td>
+          <td><code>[a-c]</code> = a ∪ b ∪ c</td></tr>
+      <tr><td><code>.</code></td>
+          <td>union de todo Σ</td>
+          <td>comodin</td>
           <td><code>.*01</code> = termina en <code>01</code></td></tr>
-      <tr><td><code>\x</code></td><td>literal escapado</td>
+      <tr><td><code>\x</code></td>
+          <td>literal</td>
+          <td>escape</td>
           <td><code>\*</code> = el caracter <code>*</code></td></tr>
     </tbody>
   </table>
   <p class="note">
-    <strong>Precedencia (menor → mayor):</strong>
-    union <code>|</code> &lt; concatenacion &lt; repeticion <code>* + ?</code>.
+    <strong>Precedencia (§2.2, de mayor a menor):</strong>
+    <code>*</code> &gt; concatenacion &gt; union <code>|</code> (≡ <code>∪</code>).
     Usa parentesis para forzar agrupamiento: <code>(0|1)*</code> &ne; <code>0|1*</code>.
   </p>
   <p class="note">
-    <strong>Alfabeto:</strong> si lo dejas vacio, se infiere de los
-    literales. Para usar el comodin <code>.</code> con simbolos no
-    presentes literalmente, especifica el alfabeto (por ejemplo:
-    <code>01</code> o <code>a,b,c</code>).
+    <strong>Alfabeto Σ:</strong> si lo dejas vacio, se infiere de los
+    literales que aparecen en la expresion. Para usar el comodin
+    <code>.</code> con simbolos que no aparecen literalmente, especifica
+    Σ a mano (por ejemplo: <code>01</code> o <code>a,b,c</code>).
   </p>
   <p class="note">
-    <strong>Importante:</strong> una expresion regular solo describe
-    lenguajes <strong>regulares</strong>. Lenguajes como
-    <code>a<sup>n</sup>b<sup>n</sup></code> requieren un PDA o una
-    Maquina de Turing y no pueden expresarse aqui.
+    <strong>Importante:</strong> las expresiones regulares solo
+    describen lenguajes <strong>regulares</strong> (Cap 2 del libro).
+    Lenguajes como <code>a<sup>n</sup>b<sup>n</sup></code> no son
+    regulares (§3.1) y se aceptan con autómatas con pila (Cap 4) o
+    maquinas de Turing (Cap 6).
   </p>
 </details>
 
 <div id="error" hidden></div>
 
 <section>
-  <h2>1. AFN por construccion de Thompson <span class="stat" id="nfa-stat"></span></h2>
-  <div class="svg-wrap" id="nfa-svg"></div>
+  <h2>1. AFN-λ — Teorema de Kleene Parte I (§2.12) <span class="stat" id="afn-stat"></span></h2>
+  <p class="note">
+    Las transiciones discontinuas etiquetadas <code>λ</code> son
+    transiciones-λ (§2.8): cambian el estado de la unidad de control
+    sin consumir ningun simbolo de la cinta.
+  </p>
+  <div class="svg-wrap" id="afn-svg"></div>
 </section>
 
 <section>
-  <h2>2. AFD por construccion de subconjuntos <span class="stat" id="dfa-stat"></span></h2>
-  <div class="svg-wrap" id="dfa-svg"></div>
+  <h2>2. AFD equivalente por construccion de subconjuntos (Teorema 2.7.1) <span class="stat" id="afd-stat"></span></h2>
+  <p class="note">
+    Cada estado del AFD es un subconjunto de estados del AFN-λ; el
+    estado inicial es la cerradura-λ del estado inicial del AFN, y los
+    estados de aceptacion son los subconjuntos que contienen algun
+    estado de F del AFN.
+  </p>
+  <div class="svg-wrap" id="afd-svg"></div>
 </section>
 
 <section>
-  <h2>3. AFD minimo (Hopcroft) <span class="stat" id="min-stat"></span></h2>
+  <h2>3. AFD minimo — algoritmo de Hopcroft (§2.16) <span class="stat" id="min-stat"></span></h2>
+  <p class="note">
+    Se refinan particiones de estados hasta que dos estados quedan en
+    el mismo bloque sii son <em>indistinguibles</em> (§2.16.1). Por
+    el Teorema de Myhill-Nerode (§2.15), el AFD minimo es unico salvo
+    isomorfismo.
+  </p>
   <div class="svg-wrap" id="min-svg"></div>
 </section>
 
@@ -233,7 +289,7 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
  * ================================================================== */
 
 class Empty   {}
-class Epsilon {}
+class Lambda {}
 class Sym     { constructor(c){ this.char = c; } }
 class CharCls { constructor(chars){ this.chars = chars; } }   // Set<string>
 class AnyCh   {}
@@ -245,7 +301,7 @@ class RegexParser {
   constructor(src){ this.src = src; this.pos = 0; }
   peek(){ return this.pos >= this.src.length ? null : this.src[this.pos]; }
   parse(){
-    if (this.src === "") return new Epsilon();
+    if (this.src === "") return new Lambda();
     const n = this.parseUnion();
     if (this.pos !== this.src.length) {
       throw new Error(`Caracter inesperado en posicion ${this.pos}: '${this.src[this.pos]}'`);
@@ -266,7 +322,7 @@ class RegexParser {
     while (this.pos < this.src.length && this.peek() !== ")" && this.peek() !== "|") {
       nodes.push(this.parseRepeat());
     }
-    if (nodes.length === 0) return new Epsilon();
+    if (nodes.length === 0) return new Lambda();
     let r = nodes[0];
     for (let i = 1; i < nodes.length; i++) r = new Cat(r, nodes[i]);
     return r;
@@ -277,7 +333,7 @@ class RegexParser {
       const op = this.src[this.pos]; this.pos++;
       if (op === "*") atom = new Kln(atom);
       else if (op === "+") atom = new Cat(atom, new Kln(atom));
-      else atom = new Uni(atom, new Epsilon());
+      else atom = new Uni(atom, new Lambda());
     }
     return atom;
   }
@@ -338,7 +394,7 @@ class RegexParser {
 }
 
 function collectAlphabet(node) {
-  if (node instanceof Empty || node instanceof Epsilon || node instanceof AnyCh) return new Set();
+  if (node instanceof Empty || node instanceof Lambda || node instanceof AnyCh) return new Set();
   if (node instanceof Sym) return new Set([node.char]);
   if (node instanceof CharCls) return new Set(node.chars);
   if (node instanceof Uni || node instanceof Cat) {
@@ -358,17 +414,17 @@ class NFABuilder {
   constructor(){
     this.states = new Set();
     this.trans  = new Map();   // state -> Map<sym, Set<state>>
-    this.eps    = new Map();   // state -> Set<state>
+    this.lam    = new Map();   // state -> Set<state>
     this.counter = 0;
   }
   fresh(){
     const name = `q${this.counter++}`;
     this.states.add(name);
     this.trans.set(name, new Map());
-    this.eps.set(name, new Set());
+    this.lam.set(name, new Set());
     return name;
   }
-  addEps(p, q){ this.eps.get(p).add(q); }
+  addLam(p, q){ this.lam.get(p).add(q); }
   addSym(p, a, q){
     if (!this.trans.get(p).has(a)) this.trans.get(p).set(a, new Set());
     this.trans.get(p).get(a).add(q);
@@ -380,9 +436,9 @@ function compileThompson(node, b, alpha) {
     const s = b.fresh(), a = b.fresh();
     return [s, a];
   }
-  if (node instanceof Epsilon) {
+  if (node instanceof Lambda) {
     const s = b.fresh(), a = b.fresh();
-    b.addEps(s, a);
+    b.addLam(s, a);
     return [s, a];
   }
   if (node instanceof Sym) {
@@ -409,22 +465,22 @@ function compileThompson(node, b, alpha) {
   if (node instanceof Cat) {
     const [s1, a1] = compileThompson(node.left,  b, alpha);
     const [s2, a2] = compileThompson(node.right, b, alpha);
-    b.addEps(a1, s2);
+    b.addLam(a1, s2);
     return [s1, a2];
   }
   if (node instanceof Uni) {
     const [s1, a1] = compileThompson(node.left,  b, alpha);
     const [s2, a2] = compileThompson(node.right, b, alpha);
     const s = b.fresh(), a = b.fresh();
-    b.addEps(s, s1); b.addEps(s, s2);
-    b.addEps(a1, a); b.addEps(a2, a);
+    b.addLam(s, s1); b.addLam(s, s2);
+    b.addLam(a1, a); b.addLam(a2, a);
     return [s, a];
   }
   if (node instanceof Kln) {
     const [si, ai] = compileThompson(node.child, b, alpha);
     const s = b.fresh(), a = b.fresh();
-    b.addEps(s, si); b.addEps(s, a);
-    b.addEps(ai, si); b.addEps(ai, a);
+    b.addLam(s, si); b.addLam(s, a);
+    b.addLam(ai, si); b.addLam(ai, a);
     return [s, a];
   }
   throw new Error("Nodo desconocido en Thompson");
@@ -446,7 +502,7 @@ function regexToNFA(pattern, alphaInput) {
   const [start, accept] = compileThompson(ast, b, alpha);
   return {
     states: b.states, alphabet: alpha,
-    trans: b.trans, eps: b.eps,
+    trans: b.trans, lam: b.lam,
     start, accepting: new Set([accept]),
   };
 }
@@ -455,29 +511,29 @@ function regexToNFA(pattern, alphaInput) {
  * 3. Simulacion del AFN, subset construction, Hopcroft
  * ================================================================== */
 
-function epsilonClosure(nfa, statesIter) {
+function lambdaClosure(afn, statesIter) {
   const closure = new Set(statesIter);
   const queue = [...closure];
   while (queue.length > 0) {
     const q = queue.shift();
-    for (const t of nfa.eps.get(q) || []) {
+    for (const t of afn.lam.get(q) || []) {
       if (!closure.has(t)) { closure.add(t); queue.push(t); }
     }
   }
   return closure;
 }
 
-function move(nfa, states, sym) {
+function move(afn, states, sym) {
   const out = new Set();
   for (const q of states) {
-    const tr = nfa.trans.get(q);
+    const tr = afn.trans.get(q);
     if (tr && tr.has(sym)) for (const t of tr.get(sym)) out.add(t);
   }
   return out;
 }
 
-function nfaToDFA(nfa) {
-  const symbols = [...nfa.alphabet].sort();
+function afnToAfd(afn) {
+  const symbols = [...afn.alphabet].sort();
   const nameOf = ss => ss.length === 0 ? "∅" : "{" + ss.join(",") + "}";
 
   const states = new Set();
@@ -492,35 +548,35 @@ function nfaToDFA(nfa) {
     seen.set(name, ssArr);
     states.add(name);
     trans.set(name, new Map());
-    if (ssArr.some(q => nfa.accepting.has(q))) accepting.add(name);
+    if (ssArr.some(q => afn.accepting.has(q))) accepting.add(name);
     queue.push(ssArr);
     return name;
   }
 
-  const startSorted = [...epsilonClosure(nfa, [nfa.start])].sort();
+  const startSorted = [...lambdaClosure(afn, [afn.start])].sort();
   const startName = visit(startSorted);
 
   while (queue.length > 0) {
     const ss = queue.shift();
     const name = nameOf(ss);
     for (const a of symbols) {
-      const next = [...epsilonClosure(nfa, move(nfa, ss, a))].sort();
+      const next = [...lambdaClosure(afn, move(afn, ss, a))].sort();
       const nextName = visit(next);
       trans.get(name).set(a, nextName);
     }
   }
 
   return {
-    states, alphabet: new Set(nfa.alphabet),
+    states, alphabet: new Set(afn.alphabet),
     trans, start: startName, accepting,
   };
 }
 
-function minimizeDFA(dfa) {
-  const symbols = [...dfa.alphabet].sort();
-  const accepting = new Set([...dfa.accepting]);
+function minimizeAfd(afd) {
+  const symbols = [...afd.alphabet].sort();
+  const accepting = new Set([...afd.accepting]);
   const nonAcc = new Set();
-  for (const s of dfa.states) if (!accepting.has(s)) nonAcc.add(s);
+  for (const s of afd.states) if (!accepting.has(s)) nonAcc.add(s);
   let partition = [];
   if (accepting.size > 0) partition.push(accepting);
   if (nonAcc.size > 0)    partition.push(nonAcc);
@@ -533,7 +589,7 @@ function minimizeDFA(dfa) {
       const groups = new Map();
       for (const s of block) {
         const sig = symbols.map(a => {
-          const t = dfa.trans.get(s).get(a);
+          const t = afd.trans.get(s).get(a);
           return partition.findIndex(b => b.has(t));
         }).join(",");
         if (!groups.has(sig)) groups.set(sig, new Set());
@@ -559,26 +615,26 @@ function minimizeDFA(dfa) {
     newTrans.set(name, new Map());
     const rep = block.values().next().value;
     for (const a of symbols) {
-      const t = dfa.trans.get(rep).get(a);
+      const t = afd.trans.get(rep).get(a);
       newTrans.get(name).set(a, `q${blockOf.get(t)}`);
     }
-    if (dfa.accepting.has(rep)) newAcc.add(name);
+    if (afd.accepting.has(rep)) newAcc.add(name);
   });
 
   return {
-    states: newStates, alphabet: new Set(dfa.alphabet),
-    trans: newTrans, start: `q${blockOf.get(dfa.start)}`,
+    states: newStates, alphabet: new Set(afd.alphabet),
+    trans: newTrans, start: `q${blockOf.get(afd.start)}`,
     accepting: newAcc,
   };
 }
 
-function dfaAccepts(dfa, word) {
-  let s = dfa.start;
+function afdAccepts(afd, word) {
+  let s = afd.start;
   for (const c of word) {
-    if (!dfa.alphabet.has(c)) throw new Error(`Simbolo '${c}' fuera del alfabeto`);
-    s = dfa.trans.get(s).get(c);
+    if (!afd.alphabet.has(c)) throw new Error(`Simbolo '${c}' fuera del alfabeto`);
+    s = afd.trans.get(s).get(c);
   }
-  return dfa.accepting.has(s);
+  return afd.accepting.has(s);
 }
 
 /* ==================================================================
@@ -589,7 +645,7 @@ function dotQuote(s) {
   return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
 }
 
-function nfaToDot(nfa) {
+function afnToDot(afn) {
   const lines = [
     "digraph G {",
     "  rankdir=LR;",
@@ -598,16 +654,16 @@ function nfaToDot(nfa) {
     '  edge [fontname="Helvetica", fontsize=10];',
     '  __start__ [shape=none, label="", width=0, height=0];',
   ];
-  const sorted = [...nfa.states].sort();
+  const sorted = [...afn.states].sort();
   for (const q of sorted) {
-    const shape = nfa.accepting.has(q) ? "doublecircle" : "circle";
+    const shape = afn.accepting.has(q) ? "doublecircle" : "circle";
     lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
   }
-  lines.push(`  __start__ -> ${dotQuote(nfa.start)};`);
+  lines.push(`  __start__ -> ${dotQuote(afn.start)};`);
   for (const q of sorted) {
     const bucket = new Map();
-    for (const a of [...nfa.alphabet].sort()) {
-      const targets = nfa.trans.get(q)?.get(a);
+    for (const a of [...afn.alphabet].sort()) {
+      const targets = afn.trans.get(q)?.get(a);
       if (!targets) continue;
       for (const t of [...targets].sort()) {
         if (!bucket.has(t)) bucket.set(t, []);
@@ -617,7 +673,7 @@ function nfaToDot(nfa) {
     for (const [t, syms] of bucket) {
       lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
     }
-    for (const t of [...(nfa.eps.get(q) || [])].sort()) {
+    for (const t of [...(afn.lam.get(q) || [])].sort()) {
       lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label="λ", style="dashed", color="#888888", fontcolor="#666666"];`);
     }
   }
@@ -625,7 +681,7 @@ function nfaToDot(nfa) {
   return lines.join("\n");
 }
 
-function dfaToDot(dfa) {
+function afdToDot(afd) {
   const lines = [
     "digraph G {",
     "  rankdir=LR;",
@@ -634,16 +690,16 @@ function dfaToDot(dfa) {
     '  edge [fontname="Helvetica", fontsize=10];',
     '  __start__ [shape=none, label="", width=0, height=0];',
   ];
-  const sorted = [...dfa.states].sort();
+  const sorted = [...afd.states].sort();
   for (const q of sorted) {
-    const shape = dfa.accepting.has(q) ? "doublecircle" : "circle";
+    const shape = afd.accepting.has(q) ? "doublecircle" : "circle";
     lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
   }
-  lines.push(`  __start__ -> ${dotQuote(dfa.start)};`);
+  lines.push(`  __start__ -> ${dotQuote(afd.start)};`);
   for (const q of sorted) {
     const bucket = new Map();
-    for (const a of [...dfa.alphabet].sort()) {
-      const t = dfa.trans.get(q).get(a);
+    for (const a of [...afd.alphabet].sort()) {
+      const t = afd.trans.get(q).get(a);
       if (!bucket.has(t)) bucket.set(t, []);
       bucket.get(t).push(a);
     }
@@ -655,15 +711,15 @@ function dfaToDot(dfa) {
   return lines.join("\n");
 }
 
-function edgeCountNFA(nfa) {
+function edgeCountAfn(afn) {
   let n = 0;
-  for (const q of nfa.states) {
-    for (const targets of (nfa.trans.get(q) || new Map()).values()) n += targets.size;
-    n += (nfa.eps.get(q) || new Set()).size;
+  for (const q of afn.states) {
+    for (const targets of (afn.trans.get(q) || new Map()).values()) n += targets.size;
+    n += (afn.lam.get(q) || new Set()).size;
   }
   return n;
 }
-function edgeCountDFA(dfa) { return dfa.states.size * dfa.alphabet.size; }
+function edgeCountAfd(afd) { return afd.states.size * afd.alphabet.size; }
 
 /* ==================================================================
  * 5. Render via viz.js + UI
@@ -723,58 +779,58 @@ async function doRender() {
   errEl.hidden = true; errEl.textContent = "";
   status.textContent = "Procesando...";
 
-  let nfa, dfa, minimal;
+  let afn, afd, minimal;
   try {
-    nfa = regexToNFA(pattern, alphaSet);
-    dfa = nfaToDFA(nfa);
-    minimal = minimizeDFA(dfa);
+    afn = regexToNFA(pattern, alphaSet);
+    afd = afnToAfd(afn);
+    minimal = minimizeAfd(afd);
   } catch (err) {
     if (reqId !== lastReqId) return;
     errEl.hidden = false;
     errEl.textContent = "✗ " + err.message;
     status.textContent = "";
-    $("nfa-svg").replaceChildren();
-    $("dfa-svg").replaceChildren();
+    $("afn-svg").replaceChildren();
+    $("afd-svg").replaceChildren();
     $("min-svg").replaceChildren();
-    $("nfa-stat").textContent = "";
-    $("dfa-stat").textContent = "";
+    $("afn-stat").textContent = "";
+    $("afd-stat").textContent = "";
     $("min-stat").textContent = "";
     $("words-result").innerHTML = "";
     return;
   }
 
-  $("nfa-stat").textContent = `· ${nfa.states.size} estados, ${edgeCountNFA(nfa)} transiciones`;
-  $("dfa-stat").textContent = `· ${dfa.states.size} estados, ${edgeCountDFA(dfa)} transiciones`;
+  $("afn-stat").textContent = `· ${afn.states.size} estados, ${edgeCountAfn(afn)} transiciones`;
+  $("afd-stat").textContent = `· ${afd.states.size} estados, ${edgeCountAfd(afd)} transiciones`;
   let redNote;
-  if (minimal.states.size < dfa.states.size) {
-    redNote = `· ${minimal.states.size} estados (reduccion ${dfa.states.size}→${minimal.states.size})`;
+  if (minimal.states.size < afd.states.size) {
+    redNote = `· ${minimal.states.size} estados (reduccion ${afd.states.size}→${minimal.states.size})`;
   } else {
     redNote = `· ${minimal.states.size} estados (el AFD ya era minimo)`;
   }
   $("min-stat").textContent = redNote;
-  status.textContent = "Alfabeto Σ = {" + [...nfa.alphabet].sort().join(", ") + "}";
+  status.textContent = "Alfabeto Σ = {" + [...afn.alphabet].sort().join(", ") + "}";
 
   const [nfaSvg, dfaSvg, minSvg] = await Promise.all([
-    renderDot(nfaToDot(nfa)),
-    renderDot(dfaToDot(dfa)),
-    renderDot(dfaToDot(minimal)),
+    renderDot(afnToDot(afn)),
+    renderDot(afdToDot(afd)),
+    renderDot(afdToDot(minimal)),
   ]);
   if (reqId !== lastReqId) return;
-  $("nfa-svg").replaceChildren(nfaSvg);
-  $("dfa-svg").replaceChildren(dfaSvg);
+  $("afn-svg").replaceChildren(nfaSvg);
+  $("afd-svg").replaceChildren(dfaSvg);
   $("min-svg").replaceChildren(minSvg);
 
   renderWordsTable(minimal);
 }
 
-function renderWordsTable(dfa) {
+function renderWordsTable(afd) {
   const text = $("words").value;
   const lines = text.split("\n");
   const rows = lines.map(w => {
     const display = w === "" ? "λ (vacia)" : w.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
     let cls, msg;
     try {
-      const ok = dfaAccepts(dfa, w);
+      const ok = afdAccepts(afd, w);
       cls = ok ? "r-accept" : "r-reject";
       msg = ok ? "✓ acepta" : "✗ rechaza";
     } catch (err) {
@@ -798,9 +854,9 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const pattern = $("pattern").value;
         const alphaSet = parseAlphabetInput($("alphabet").value);
-        const nfa = regexToNFA(pattern, alphaSet);
-        const dfa = nfaToDFA(nfa);
-        const minimal = minimizeDFA(dfa);
+        const afn = regexToNFA(pattern, alphaSet);
+        const afd = afnToAfd(afn);
+        const minimal = minimizeAfd(afd);
         renderWordsTable(minimal);
       } catch (_) { /* sera mostrado por scheduleRender en otro ciclo */ }
     }, 150);
