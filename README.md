@@ -24,8 +24,9 @@ en futuras *slices*.
 syntactic-monoid/
 ├── main.py                  # CLI interactiva + subcomandos (importa desde backend/)
 ├── visualization.py         # Graphviz + matplotlib + reportes
-├── web/                     # Visualizador interactivo (HTML+JS puro)
-│   └── regex_visualizer.html# Doble-click para abrir; sin servidor
+├── web/                     # Visualizadores interactivos (HTML+JS puro)
+│   ├── regex_visualizer.html# Regex → AFN-λ → AFD → AFD mínimo
+│   └── mt_visualizer.html   # Máquinas de Turing (§6.1) con cinta animada
 ├── backend/                 # Motor de cómputo
 │   ├── models/              # Modelos formales
 │   │   ├── dfa.py           # AFD + minimización, producto, equivalencia
@@ -169,6 +170,30 @@ Características de la página:
 > Requiere internet la primera vez para descargar viz.js (~1 MB).
 > Después funciona offline siempre que tu navegador haya cacheado el
 > script.
+
+### Visualizador interactivo de Máquinas de Turing
+
+Para experimentar con MT del modelo estándar de De Castro (§6.1), abre
+`web/mt_visualizer.html` directamente en tu navegador. Es una página
+autocontenida con todo el modelo (tupla `(Q, q0, F, Σ, Γ, δ)`, cinta
+bidireccional, símbolo blanco `□` externo, desplazamientos `←/→/−`)
+portado a JavaScript, y los grafos renderizados con viz.js.
+
+Características de la página:
+
+- Editor en formulario para Σ, Γ, Q, q0, F y transiciones.
+- Sintaxis simple de transiciones, una por línea:
+  `q, s -> q', s', D` (con `→/←/−` o `R/L/S` y `_` ≡ `□`).
+- Ejemplos pre-cargados, incluidos dos del §6.2 del libro:
+  *empieza con 'a'*, *decide a\**, *#a = #b*, *a^n b^n c^n*.
+- Diagrama de estados con el estado actual resaltado, etiquetas
+  de arcos en el formato del libro `s | s' D`.
+- Cinta bidireccional con cabezal visual; panel de estado con la
+  configuración instantánea *u q v* (§6.1).
+- Controles **▶ Un paso**, **▶▶ Ejecutar** (animado), **⏸ Pausar**
+  y **⏮ Reiniciar**. Tope de pasos configurable para evitar bucles.
+- Validación estructural en tiempo de construcción según §6.1
+  (F ≠ ∅, Σ ⊆ Γ, `□ ∉ Γ`, no transiciones desde F, δ deterministica).
 
 ### Sintaxis de las expresiones regulares
 
