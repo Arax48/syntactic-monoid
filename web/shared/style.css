@@ -83,6 +83,10 @@ a:hover { color: #0860c4; }
   padding: 2rem 1.8rem;
   margin-bottom: 2rem;
   border: 1px solid #d1d9e0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.5rem;
+  align-items: center;
 }
 .hero h1 { margin-top: 0; }
 .hero .lead { margin-bottom: .6rem; }
@@ -91,6 +95,12 @@ a:hover { color: #0860c4; }
   display: flex; gap: 1.2rem; flex-wrap: wrap;
 }
 .hero .meta b { color: #424a53; }
+.hero-diagram { width: 100%; height: auto; max-width: 540px;
+                justify-self: end; }
+@media (max-width: 800px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-diagram { justify-self: center; max-width: 100%; }
+}
 
 /* ----- Tarjetas de seccion ----- */
 
@@ -101,6 +111,7 @@ a:hover { color: #0860c4; }
   padding: 1.2rem; text-decoration: none; color: inherit;
   display: flex; flex-direction: column; gap: .3rem;
   transition: transform .15s, box-shadow .15s, border-color .15s;
+  position: relative;
 }
 .card:hover {
   transform: translateY(-2px);
@@ -118,6 +129,17 @@ a:hover { color: #0860c4; }
   color: #6e7681; font-size: .78rem; margin-top: .6rem;
   font-family: ui-monospace, Menlo, monospace;
 }
+.card .badge-algebra {
+  position: absolute; top: .8rem; right: .8rem;
+  display: inline-flex; align-items: center;
+  padding: .2rem .55rem; border-radius: 20px;
+  font-size: .73rem; font-weight: 700;
+  font-family: ui-monospace, Menlo, monospace;
+  letter-spacing: .02em;
+}
+.card .badge-algebra.cyclic    { background: #dafbe1; color: #1a7f37; }
+.card .badge-algebra.abelian   { background: #ddf4ff; color: #0969da; }
+.card .badge-algebra.aperiodic { background: #fff8c5; color: #9a6700; }
 
 /* ----- Tablas ----- */
 
