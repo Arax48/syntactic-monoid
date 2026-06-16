@@ -4,28 +4,48 @@ backend.algebra.transition_monoid
 
 Construccion explicita del MONOIDE DE TRANSICION M(A) asociado a un AFD.
 
+Aclaracion bibliografica
+------------------------
+El libro de De Castro (referencia base del proyecto) NO define
+explicitamente el monoide sintactico de un lenguaje regular. El
+concepto mas cercano dentro del libro es el Teorema de Myhill-Nerode
+(§2.15), que caracteriza los lenguajes regulares mediante el numero
+finito de clases de una relacion de equivalencia ≡_L sobre Σ*, y la
+construccion del AFD minimo (§2.16) como cociente. Este modulo extiende
+ese marco con el aparato algebraico clasico (Eilenberg, Pin) y conecta
+ambas caracterizaciones (vease las notas en docs/report.md).
+
 Definicion
 ----------
-Sea A = (Q, Sigma, delta, q0, F) un AFD. Para cada w in Sigma* definimos
+Sea M = (Σ, Q, q0, F, δ) un AFD segun §2.3. Para cada w ∈ Σ* definimos
 la transformacion inducida
 
-    f_w : Q -> Q,    f_w(q) = delta*(q, w).
+    f_w : Q → Q,    f_w(q) = δ̂(q, w)
 
-El conjunto
+donde δ̂ es la funcion de transicion extendida (§2.7.2). El conjunto
 
-    M(A) = { f_w : w in Sigma* }
+    M(M) := { f_w : w ∈ Σ* }
 
-es cerrado bajo la composicion de funciones (puesto que f_{uv} = f_v o f_u),
-contiene a la identidad f_epsilon = id_Q y la composicion de funciones es
-asociativa. Por lo tanto (M(A), o, id_Q) es un monoide finito (los unicos
-elementos posibles son funciones Q -> Q y hay solo |Q|^|Q| de estas).
+es cerrado bajo composicion de funciones (pues f_{uv} = f_v ∘ f_u),
+contiene la identidad f_λ = id_Q (caso w = λ de δ̂), y la composicion
+es asociativa. Luego (M(M), ∘, id_Q) es un MONOIDE FINITO; sus
+elementos son funciones Q → Q, asi que |M(M)| ≤ |Q|^|Q|.
 
-Extended in the new backend with:
-    - idempotents()          : list of idempotent elements e² = e
-    - invertible_elements()  : the group of units U(M)
-    - is_aperiodic()         : True if M(A) has no non-trivial subgroups
-    - center()               : the center Z(M) = {x : xm = mx for all m}
-    - right_cayley_graph()   : adjacency list for the Cayley graph
+Conexion con la minimizacion (§2.15-§2.16)
+------------------------------------------
+Dos palabras u, v ∈ Σ* inducen la misma transformacion f_u = f_v si y
+solo si llegan al mismo "comportamiento" desde todo estado. Esto
+refleja a nivel de la unidad de control la equivalencia que el libro
+maneja a nivel de palabras (relacion ≡_M de Myhill-Nerode, §2.15).
+
+Funcionalidad implementada
+--------------------------
+    idempotents()          elementos e con e ∘ e = e
+    invertible_elements()  unidades U(M) (grupo de las unidades)
+    is_aperiodic()         True si M(M) no contiene subgrupos no triviales
+                           (caracteriza los lenguajes libres-de-estrella)
+    center()               centro Z(M) = { x : xm = mx para todo m ∈ M }
+    right_cayley_graph()   lista de adyacencia del grafo de Cayley
 """
 
 from __future__ import annotations

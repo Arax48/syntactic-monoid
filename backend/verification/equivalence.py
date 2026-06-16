@@ -2,25 +2,39 @@
 backend.verification.equivalence
 ================================
 
-Verificacion de equivalencia entre automatas y especificaciones.
+Verificacion de equivalencia entre automatas y especificaciones, usando
+el producto cartesiano descrito en §2.11 del libro de De Castro.
 
-La pregunta "¿este automata reconoce el lenguaje que dije?" es
-*decidible* para automatas finitos (regulares), y este modulo la
-responde con un contraejemplo concreto y MAS CORTO cuando no:
+La pregunta "¿este automata reconoce el lenguaje que dije?" es decidible
+para automatas finitos (Teorema 2.14.2: la diferencia simetrica de
+lenguajes regulares es regular y el problema del vacio para AFDs es
+decidible). Este modulo la responde de manera constructiva: cuando los
+lenguajes difieren, devuelve la cadena MAS CORTA sobre la que ambos
+automatas discrepan.
 
-    L(A) = L(B)  ⟺  L(A) △ L(B) = ∅
+Fundamento (§2.11 + §2.14)
+--------------------------
+Dados dos AFDs M1, M2 sobre el mismo alfabeto Σ, el producto cartesiano
 
-La construccion de producto + BFS de AFD.find_counterexample garantiza
-que la palabra devuelta es la mas corta sobre la que ambos automatas
-discrepan. Pedagogicamente esto es oro: el estudiante recibe la palabra
-mas pequena que rompe su automata y el veredicto de cada uno sobre ella.
+    M1 × M2 = (Σ, Q1 × Q2, (q1, q2), F_△, δ_×)
+
+con F_△ = (F1 × (Q2−F2)) ∪ ((Q1−F1) × F2) reconoce L(M1) △ L(M2)
+(diferencia simetrica). Entonces
+
+    L(M1) = L(M2)  ⟺  L(M1 × M2) con F_△ es vacio.
+
+Un BFS desde (q1, q2) hasta el primer estado de F_△ produce el
+contraejemplo de MENOR longitud. Pedagogicamente: el estudiante recibe
+la cadena mas pequena que rompe su automata y el veredicto de cada
+automata sobre ella.
 
 API publica
 -----------
-    EquivalenceResult       : resultado estructurado con palabra y veredictos.
-    check_equivalence       : AFD vs AFD.
-    check_against_regex     : AFD vs regex (compila la regex a AFD).
-    check_against_nfa       : AFD vs AFN (convierte el AFN con subset construction).
+    EquivalenceResult     resultado estructurado con cadena y veredictos.
+    check_equivalence     AFD vs AFD.
+    check_against_regex   AFD vs expresion regular (compila la regex a
+                          AFD via Teorema de Kleene Parte I + §2.7.1).
+    check_against_afn     AFD vs AFN (determiniza el AFN, §2.7.1).
 """
 
 from __future__ import annotations
@@ -125,7 +139,7 @@ def check_against_regex(
     return check_equivalence(dfa, spec)
 
 
-def check_against_nfa(dfa: AFD, afn: AFN) -> EquivalenceResult:
+def check_against_afn(dfa: AFD, afn: AFN) -> EquivalenceResult:
     """Compara un AFD contra un AFN, determinizando el AFN primero."""
     return check_equivalence(dfa, afn.to_afd())
 
@@ -134,5 +148,5 @@ __all__ = [
     "EquivalenceResult",
     "check_equivalence",
     "check_against_regex",
-    "check_against_nfa",
+    "check_against_afn",
 ]

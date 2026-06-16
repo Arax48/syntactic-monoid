@@ -2,31 +2,53 @@
 backend.algebra.homomorphism
 =============================
 
-Modulo de algebra: homomorfismo natural, nucleo y clases de equivalencia.
+Homomorfismo natural φ, nucleo y clases de equivalencia entre Σ* y el
+monoide de transicion M(M) (vease backend.algebra.transition_monoid).
 
-Sea A = (Q, Sigma, delta, q0, F) un AFD y sea M(A) el monoide de transicion
-construido en transition_monoid.py. Se define el homomorfismo natural
+Aclaracion bibliografica
+------------------------
+El libro de De Castro no construye este homomorfismo explicitamente.
+La conexion con el libro pasa por el Teorema de Myhill-Nerode (§2.15)
+y el algoritmo de minimizacion (§2.16): las clases del nucleo de φ
+refinan las clases ≡_L del libro y, en el caso del AFD minimo
+(quotient automaton), coinciden con la equivalencia de Myhill-Nerode.
 
-    phi : Sigma* -> M(A),    phi(w) = f_w,
+Construccion
+------------
+Sea M = (Σ, Q, q0, F, δ) un AFD (§2.3) y sea M(M) el monoide de
+transicion. Se define el homomorfismo natural
 
-que satisface phi(uv) = phi(u) o phi(v) (cuidado con el orden: la
-composicion "o" aqui es "primero f_u y luego f_v" porque la palabra se
-lee de izquierda a derecha).
+    φ : Σ* → M(M),     φ(w) = f_w,
 
-El nucleo de phi es la relacion de congruencia sobre Sigma* dada por
+donde f_w(q) = δ̂(q, w). El producto en M(M) es la composicion de
+funciones; con la convencion de lectura izquierda-a-derecha,
 
-    u ~ v   sii   phi(u) = phi(v)   sii   f_u = f_v.
+    f_{uv} = f_v ∘ f_u,     o equivalentemente,   φ(uv) = φ(v) ∘ φ(u).
 
-Esta es una congruencia de monoide (compatible con la concatenacion),
-y el cociente Sigma*/~ es isomorfo a Im(phi) por el Primer Teorema del
+(Si se prefiere la convencion opuesta basta invertir el orden; este
+modulo usa la convencion compatible con δ̂ del libro.)
+
+Nucleo de φ
+-----------
+El nucleo de φ es la relacion de congruencia sobre Σ* dada por
+
+    u ∼ v   sii   φ(u) = φ(v)   sii   f_u = f_v.
+
+Es una congruencia de monoide (compatible con la concatenacion), y
+el cociente Σ*/∼ es isomorfo a Im(φ) por el Primer Teorema del
 Isomorfismo para monoides:
 
-    Sigma* / Ker(phi)  ~=  Im(phi)  subset  M(A).
+    Σ* / Ker(φ)   ≅   Im(φ)   ⊆   M(M).
 
-Como phi es sobreyectivo por construccion (todo elemento de M(A) es
-algun f_w), se tiene de hecho Sigma*/Ker(phi) ~= M(A).
+Por construccion, φ es sobreyectivo: todo elemento de M(M) es algun
+f_w. En consecuencia,
 
-Este modulo expone la clase Homomorphism con metodos para evaluar phi,
+    Σ* / Ker(φ)   ≅   M(M).
+
+Esta congruencia ∼ es siempre un refinamiento de la equivalencia de
+Myhill-Nerode ≡_L (§2.15); si el AFD es minimo, ambas coinciden.
+
+Este modulo expone la clase Homomorphism con metodos para evaluar φ,
 obtener clases de equivalencia, enumerar el cociente y verificar el
 isomorfismo numericamente.
 """

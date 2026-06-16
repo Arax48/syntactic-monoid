@@ -2,36 +2,57 @@
 backend.language.regex
 ======================
 
-Expresiones regulares y construccion de Thompson.
+Expresiones regulares y construccion regex → AFN-λ, segun §2.2 y §2.12
+(Teorema de Kleene Parte I) del libro de De Castro.
 
-Una expresion regular sobre un alfabeto Sigma se define inductivamente:
+Definicion recursiva de las expresiones regulares sobre un alfabeto Σ
+(§2.2):
 
-    R  ::=  empty           (denota el lenguaje vacio ∅)
-         |  λ          (denota {λ})
-         |  a in Sigma       (denota {a})
-         |  R | R            (union)
-         |  R R              (concatenacion)
-         |  R*               (clausura de Kleene)
+    (1) Expresiones regulares basicas:
+        ∅ es una expresion regular y L[∅] = ∅.
+        λ es una expresion regular y L[λ] = {λ}.
+        a es una expresion regular y L[a] = {a}, para cada a ∈ Σ.
 
-Este modulo provee:
+    (2) Si R y S son expresiones regulares, entonces:
+        (R ∪ S) es una expresion regular y L[(R ∪ S)] = L[R] ∪ L[S].
+        (RS)    es una expresion regular y L[(RS)]    = L[R] · L[S].
+        (R)*    es una expresion regular y L[(R)*]    = L[R]*.
 
-    * Un AST inmutable (Empty, Lambda, Symbol, CharClass, AnyChar,
-      Union, Concat, Star) con `__str__` que recompone la expresion.
-    * Un parser recursivo descendente con sintaxis concreta clasica:
-        - operadores: '|', concatenacion implicita, '*', '+', '?'
-        - parentesis: '(', ')'
-        - clases de caracteres: '[abc]' y rangos '[a-z]'
-        - comodin: '.' (= union de todos los simbolos del alfabeto)
-        - escapes: '\\(' '\\*' '\\\\' ...
-    * Construccion de Thompson R -> AFN con transiciones λ, que
-      es la traduccion clasica regex -> automata vista en clase.
-    * Funciones de conveniencia regex_to_afn y regex_to_afd.
+Donde L[R] denota el lenguaje representado por la expresion regular R.
+Por la propiedad A+ = A* · A = A · A*, la clausura positiva + tambien
+se permite (§2.2). Las potencias R^n (azucar de R...R, n veces) y la
+asociatividad/distributividad usual tambien se admiten.
 
-La cota teorica clasica: para una expresion regular de tamano n, el
-AFN de Thompson tiene a lo sumo 2n estados y 4n transiciones; el AFD
-resultante de la construccion de subconjuntos puede tener hasta 2^(2n)
-estados en el peor caso (aunque para regexes pedagogicos suele ser
-mucho mas pequeno).
+Precedencia (de mayor a menor, §2.2): *, ·, ∪.
+
+Nota sobre la sintaxis concreta de entrada (ASCII): para facilitar la
+escritura desde teclado, este modulo acepta '|' como sinonimo de '∪'.
+La notacion del libro usa '∪'; las salidas usan ese simbolo en lo
+posible.
+
+AST inmutable: Empty, Lambda, Symbol, CharClass, AnyChar, Union,
+Concat, Star. Cada nodo tiene `__str__` que recompone la expresion.
+
+Parser recursivo descendente con sintaxis concreta:
+    operadores:               '|', concatenacion implicita, '*', '+', '?'
+    parentesis:               '(', ')'
+    clases de caracteres:     '[abc]', rangos '[a-z]'
+    comodin:                  '.' (union de todo Σ)
+    escapes:                  '\\(' '\\*' '\\\\' ...
+
+Conversion regex → AFN-λ (Teorema 2.12.1, Teorema de Kleene Parte I):
+implementada por la "construccion de Thompson" (nombre clasico de
+algoritmo). Cada constructor del AST se traduce a un fragmento de
+AFN-λ con dos estados distinguidos (inicial y final). La conexion
+recursiva preserva la equivalencia L(AFN) = L[R].
+
+Conversion regex → AFD: composicion de regex → AFN-λ (§2.12) seguida
+de la construccion de subconjuntos (§2.7.1).
+
+Cota: para una expresion regular de tamano n, el AFN-λ resultante
+tiene a lo sumo 2n estados y 4n transiciones; el AFD por subconjuntos
+puede crecer hasta 2^(2n) estados en el peor caso (aunque para
+regexes pedagogicas suele ser mucho mas pequeno).
 """
 
 from __future__ import annotations

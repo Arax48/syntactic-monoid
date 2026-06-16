@@ -10,7 +10,7 @@ from backend.verification.equivalence import (
     EquivalenceResult,
     check_equivalence,
     check_against_regex,
-    check_against_nfa,
+    check_against_afn,
 )
 from backend.verification.sample_set import (
     SampleVerdict,
@@ -22,7 +22,7 @@ __all__ = [
     "EquivalenceResult",
     "check_equivalence",
     "check_against_regex",
-    "check_against_nfa",
+    "check_against_afn",
     "SampleVerdict",
     "SampleSetResult",
     "verify_samples",

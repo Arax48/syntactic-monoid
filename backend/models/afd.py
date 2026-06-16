@@ -2,40 +2,46 @@
 backend.models.afd
 ==================
 
-Modulo de Automata Finito Determinista (AFD).
+Modulo de Automata Finito Determinista (AFD), segun §2.3 del libro de
+Rodrigo De Castro ("Introduccion a la Teoria de la Computacion").
 
-Un AFD se define formalmente como una 5-tupla:
+Un AFD se define formalmente como una 5-tupla (§2.3):
 
-    A = (Q, Sigma, delta, q0, F)
+    M = (Σ, Q, q0, F, δ)
 
 donde:
-    Q       : conjunto finito de estados.
-    Sigma   : alfabeto finito.
-    delta   : Q x Sigma -> Q, funcion de transicion.
-    q0      : estado inicial, q0 in Q.
-    F       : conjunto de estados de aceptacion, F subset Q.
+    Σ   : alfabeto de entrada (tambien llamado alfabeto de cinta).
+          Todas las cadenas que lee M pertenecen a Σ*.
+    Q   : conjunto finito de estados internos de la unidad de control,
+          Q = {q0, q1, ..., qn}.
+    q0  : estado inicial, q0 ∈ Q.
+    F   : conjunto de estados finales o de aceptacion, F ⊆ Q, F ≠ ∅.
+    δ   : funcion de transicion δ : Q × Σ → Q.
 
-La funcion de transicion extendida delta* : Q x Sigma* -> Q se define
-recursivamente como:
+Una instruccion δ(q, s) = q' significa: estando en el estado q, en
+presencia del simbolo s, la unidad de control pasa al estado q' y se
+desplaza una casilla a la derecha (§2.3).
 
-    delta*(q, λ) = q
-    delta*(q, wa)      = delta(delta*(q, w), a)
+La funcion de transicion extendida δ̂ : Q × Σ* → Q se define
+recursivamente (§2.7.2) como:
 
-para todo q in Q, w in Sigma* y a in Sigma.
+    δ̂(q, λ) = q,                         q ∈ Q,
+    δ̂(q, wa) = δ(δ̂(q, w), a),            w ∈ Σ*, a ∈ Σ.
 
-El lenguaje aceptado por A es:
+El lenguaje aceptado o reconocido por M es:
 
-    L(A) = { w in Sigma* : delta*(q0, w) in F }.
+    L(M) = { w ∈ Σ* : δ̂(q0, w) ∈ F }.
 
-Extended in the new backend with:
-    - minimize()       : Hopcroft's algorithm for AFD minimization
-    - complement()     : AFD that accepts the complement language
-    - intersection()   : product construction for intersection
-    - union()          : product construction for union
-    - is_equivalent()  : check language equivalence via product construction
-    - find_counterexample() : find a word accepted by one but not the other
-    - reachable_states()    : states reachable from q0
-    - is_minimal()     : True if the AFD is already minimal
+Funcionalidades implementadas en este modulo, todas alineadas con
+los capitulos 2 y 2.16 del libro:
+
+    minimize()              algoritmo de minimizacion de AFDs (§2.16)
+    complement()            AFD que reconoce Σ* − L(M) (§2.10)
+    intersection() / union() construccion del producto cartesiano (§2.11)
+    is_equivalent()         equivalencia de lenguajes via producto (§2.11)
+    find_counterexample()   contraejemplo mas corto cuando difieren
+    reachable_states()      estados accesibles desde q0 (§2.7.3)
+    is_minimal()            True si el AFD ya es minimo (§2.16)
 """
 
 from __future__ import annotations
@@ -56,17 +62,30 @@ class AFDValidationError(ValueError):
 
 @dataclass
 class AFD:
-    """Automata Finito Determinista.
+    """Automata Finito Determinista (§2.3 De Castro).
+
+    La 5-tupla M = (Σ, Q, q0, F, δ) se representa por:
+
+        alphabet     ~  Σ   (alfabeto de entrada)
+        states       ~  Q   (estados internos de la unidad de control)
+        start        ~  q0  (estado inicial)
+        accepting    ~  F   (estados de aceptacion, F ≠ ∅, F ⊆ Q)
+        transitions  ~  δ   (transitions[q][a] = δ(q, a))
+
+    El AFD lee la cadena de entrada de izquierda a derecha, partiendo
+    del estado inicial q0; segun §2.3, la accion δ(q, s) = q' es el
+    paso computacional basico: cambiar al estado q' y desplazar la
+    cabeza una casilla a la derecha.
 
     Atributos
     ---------
     states : set[str]
         Conjunto finito de estados Q.
     alphabet : set[str]
-        Alfabeto finito Sigma.
+        Alfabeto finito Σ de entrada.
     transitions : dict[str, dict[str, str]]
-        Funcion de transicion delta representada como un diccionario
-        anidado: transitions[q][a] = delta(q, a).
+        Funcion de transicion δ representada como diccionario anidado:
+        transitions[q][a] = δ(q, a).
     start : str
         Estado inicial q0.
     accepting : set[str]

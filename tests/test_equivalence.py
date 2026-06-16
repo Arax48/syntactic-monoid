@@ -7,7 +7,7 @@ import pytest
 from backend.models import AFD, AFN
 from backend.verification import (
     EquivalenceResult,
-    check_against_nfa,
+    check_against_afn,
     check_against_regex,
     check_equivalence,
 )
@@ -133,5 +133,5 @@ def test_check_against_nfa_equivalente(ends_01_afd: AFD) -> None:
         accepting={"q2"},
         name="termina_en_01_nfa",
     )
-    result = check_against_nfa(ends_01_afd, afn)
+    result = check_against_afn(ends_01_afd, afn)
     assert result.equivalent, result.summary()

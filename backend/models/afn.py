@@ -2,35 +2,54 @@
 backend.models.afn
 ==================
 
-Automata Finito No Determinista (AFN) con transiciones λ.
+Automata Finito No Determinista (AFN), modelo §2.6 del libro de
+Rodrigo De Castro, extendido con transiciones λ segun §2.8 (AFN-λ).
 
-Un AFN se define formalmente como una 5-tupla:
+Un AFN se define formalmente como una 5-tupla (§2.6):
 
-    N = (Q, Sigma, delta, q0, F)
+    M = (Σ, Q, q0, F, ∆)
 
 donde:
-    Q       : conjunto finito de estados.
-    Sigma   : alfabeto finito.
-    delta   : Q x (Sigma ∪ {λ}) -> P(Q), funcion de transicion.
-    q0      : estado inicial, q0 ∈ Q.
-    F       : conjunto de estados de aceptacion, F ⊆ Q.
+    Σ   : alfabeto de entrada.
+    Q   : conjunto finito de estados internos, Q = {q0, q1, ..., qn}.
+    q0  : estado inicial, q0 ∈ Q.
+    F   : conjunto de estados finales o de aceptacion, F ⊆ Q, F ≠ ∅.
+    ∆   : funcion de transicion ∆ : Q × Σ → ℘(Q), donde ℘(Q) es el
+          conjunto potencia de Q.
 
-La diferencia fundamental con un AFD es que delta puede devolver
-multiples estados (o ninguno) y admite transiciones λ (sin
-consumir simbolo).
+La diferencia esencial con el AFD es que ∆(q, s) puede ser un conjunto
+de estados (en lugar de un unico estado) o el conjunto vacio ∅ — en
+ese ultimo caso el procesamiento se aborta. La cabeza puede pasar
+"aleatoriamente" a cualquiera de los estados en ∆(q, s) (§2.6).
 
-El lenguaje aceptado por N es:
+Para el modelo AFN-λ (§2.8) se permite ademas que ∆ tome como segundo
+argumento la cadena vacia λ:
 
-    L(N) = { w ∈ Sigma* : delta*(q0, w) ∩ F ≠ ∅ }
+    ∆ : Q × (Σ ∪ {λ}) → ℘(Q).
 
-donde delta* se extiende a conjuntos de estados y a la cerradura λ.
+Una transicion ∆(q, λ) significa que la unidad de control puede pasar
+de q a cualquier estado de ∆(q, λ) sin consumir ningun simbolo.
 
-Funcionalidad clave:
-    - lambda_closure(states) : cerradura λ de un conjunto de estados
-    - move(states, symbol)    : estados alcanzables por un simbolo
-    - accepts(word)           : simulacion no determinista
-    - to_afd()                : construccion de subconjuntos (subset construction)
-    - run_trace()             : traza paso a paso para animacion
+Aceptacion (§2.6): una cadena w ∈ Σ* es aceptada por M si existe POR
+LO MENOS UN procesamiento completo de w desde q0 que termina en un
+estado de F. Formalmente,
+
+    L(M) = { w ∈ Σ* : ∆̂(q0, w) ∩ F ≠ ∅ }
+
+donde ∆̂ se extiende a conjuntos de estados, aplicando la cerradura λ
+cuando es necesario.
+
+Funcionalidad implementada (alineada con el libro):
+    lambda_closure(S) : cerradura-λ de S ⊆ Q. Conjunto de todos los
+                        estados alcanzables desde algun q ∈ S
+                        siguiendo solo transiciones λ (§2.8).
+    move(S, a)        : estados alcanzables por el simbolo a desde S.
+    accepts(w)        : simulacion no determinista de w.
+    to_afd()          : Teorema 2.7.1 — convierte el AFN en un AFD
+                        equivalente via construccion de subconjuntos.
+                        Para AFN-λ, primero se aplica cerradura-λ
+                        (Teorema 2.9.1).
+    run_trace()       : traza paso a paso para animacion en la web.
 """
 
 from __future__ import annotations
@@ -51,20 +70,33 @@ class AFNValidationError(ValueError):
 
 @dataclass
 class AFN:
-    """Automata Finito No Determinista con transiciones λ.
+    """Automata Finito No Determinista, con transiciones λ (§2.6-§2.8).
+
+    La 5-tupla M = (Σ, Q, q0, F, ∆) se representa por:
+
+        alphabet            ~  Σ   (alfabeto de entrada, NO incluye λ)
+        states              ~  Q
+        start               ~  q0
+        accepting           ~  F   (F ⊆ Q, F ≠ ∅)
+        transitions         ~  ∆   sobre simbolos de Σ
+                              transitions[q][a] ⊆ Q
+        lambda_transitions  ~  ∆   sobre λ (componente AFN-λ, §2.8)
+                              lambda_transitions[q] ⊆ Q
+
+    Una cadena w ∈ Σ* es aceptada si existe POR LO MENOS UN
+    procesamiento completo de w desde q0 que termina en F (§2.6).
 
     Atributos
     ---------
     states : set[str]
         Conjunto finito de estados Q.
     alphabet : set[str]
-        Alfabeto finito Sigma (NO incluye λ).
+        Alfabeto de entrada Σ (NO incluye λ).
     transitions : dict[str, dict[str, set[str]]]
-        Funcion de transicion delta. transitions[q][a] = conjunto de estados
-        alcanzables desde q con el simbolo a.
+        Funcion de transicion ∆ restringida a simbolos de Σ:
+        transitions[q][a] = ∆(q, a) ⊆ Q.
     lambda_transitions : dict[str, set[str]]
-        Transiciones λ. lambda_transitions[q] = conjunto de estados
-        alcanzables desde q sin consumir simbolo.
+        Componente λ de ∆ (§2.8): lambda_transitions[q] = ∆(q, λ) ⊆ Q.
     start : str
         Estado inicial q0.
     accepting : set[str]
