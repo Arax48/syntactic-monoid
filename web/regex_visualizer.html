@@ -153,18 +153,10 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 <main class="page-content">
 
 <header>
-  <h1>Visualizador interactivo de expresiones regulares</h1>
+  <h1>Expresiones regulares</h1>
   <p class="lead">
-    Escribe una expresion regular (§2.2) y mira como se construye paso
-    a paso: AFN-λ por el Teorema de Kleene Parte I (§2.12, conocido
-    tambien como construccion de Thompson), AFD equivalente por
-    construccion de subconjuntos (Teorema 2.7.1) y AFD minimo (§2.16,
-    Hopcroft). Todo en tu navegador, sin instalacion ni terminal.
-  </p>
-  <p class="lead" style="font-size:.85rem;color:#6e7681;">
-    Convenciones del curso (De Castro): cadena vacia <code>λ</code>;
-    union <code>∪</code> (en este editor se escribe <code>|</code> por
-    comodidad de teclado); tupla de un AFD = <code>(Σ, Q, q0, F, δ)</code>.
+    Escribe una expresión regular y observa el AFD que reconoce su
+    lenguaje. Todo en tu navegador.
   </p>
 </header>
 
@@ -276,41 +268,21 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 
 <div id="error" hidden></div>
 
-<section>
-  <h2>1. AFN-λ — Teorema de Kleene Parte I (§2.12) <span class="stat" id="afn-stat"></span></h2>
-  <p class="note">
-    Las transiciones discontinuas etiquetadas <code>λ</code> son
-    transiciones-λ (§2.8): cambian el estado de la unidad de control
-    sin consumir ningun simbolo de la cinta.
-  </p>
-  <div class="svg-wrap" id="afn-svg"></div>
-</section>
+<!-- Elementos auxiliares: el motor calcula el AFN-λ y un AFD intermedio
+     para llegar al AFD mínimo, pero los mantenemos ocultos. -->
+<div style="display:none">
+  <span id="afn-stat"></span><div id="afn-svg"></div>
+  <span id="afd-stat"></span><div id="afd-svg"></div>
+</div>
 
 <section>
-  <h2>2. AFD equivalente por construccion de subconjuntos (Teorema 2.7.1) <span class="stat" id="afd-stat"></span></h2>
-  <p class="note">
-    Cada estado del AFD es un subconjunto de estados del AFN-λ; el
-    estado inicial es la cerradura-λ del estado inicial del AFN, y los
-    estados de aceptacion son los subconjuntos que contienen algun
-    estado de F del AFN.
-  </p>
-  <div class="svg-wrap" id="afd-svg"></div>
-</section>
-
-<section>
-  <h2>3. AFD minimo — algoritmo de Hopcroft (§2.16) <span class="stat" id="min-stat"></span></h2>
-  <p class="note">
-    Se refinan particiones de estados hasta que dos estados quedan en
-    el mismo bloque sii son <em>indistinguibles</em> (§2.16.1). Por
-    el Teorema de Myhill-Nerode (§2.15), el AFD minimo es unico salvo
-    isomorfismo.
-  </p>
+  <h2>AFD <span class="stat" id="min-stat"></span></h2>
   <div class="svg-wrap" id="min-svg"></div>
 </section>
 
 <section class="test-words">
   <h2>Probar palabras</h2>
-  <p>Una palabra por linea. Se evaluan sobre el AFD minimo. Linea vacia = palabra vacia λ.</p>
+  <p>Una palabra por línea. Línea vacía = palabra vacía λ.</p>
   <textarea id="words" autocomplete="off" autocapitalize="off"
             spellcheck="false">01
 001
