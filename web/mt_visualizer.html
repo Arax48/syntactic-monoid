@@ -143,6 +143,7 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
          border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.10.0/lib/viz-standalone.js"></script>
+<script src="shared/regex_afd.js"></script>
 </head>
 <body>
 
@@ -209,7 +210,53 @@ q2, □ -> q_acc, □, S</code></pre>
   </div>
 </details>
 
+<section class="controls" style="background:#ddf4ff; border-color:#0969da;">
+  <h2 style="margin-top:0; font-size:1.1rem; color:#0969da;">
+    Construir una MT desde una expresion regular
+  </h2>
+  <p class="lead" style="font-size:.88rem; margin:.2rem 0 .7rem;">
+    Todo lenguaje regular es Turing-decidible (Teorema 6.1.1): a partir
+    del AFD que lo reconoce, se construye una MT estandar agregando un
+    nuevo estado de aceptacion al que se transita cuando se detecta el
+    primer simbolo blanco. Escribe una expresion regular y pulsa
+    <b>"Generar MT"</b>; la maquina aparecera abajo en el editor y en
+    el grafo, lista para simular.
+  </p>
+  <div class="row" style="grid-template-columns: 2.2fr 1fr auto;">
+    <div>
+      <label for="regex-input">Expresion regular</label>
+      <input id="regex-input" type="text" value="(0|1)*01"
+             placeholder="ej: (0|1)*01"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div>
+      <label for="regex-alpha">Alfabeto (opcional)</label>
+      <input id="regex-alpha" type="text" placeholder="auto"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div style="align-self:end;">
+      <button id="btn-regex" class="primary"
+              style="background:#0969da; border-color:#0969da; color:#fff;">
+        Generar MT
+      </button>
+    </div>
+  </div>
+  <div class="examples-row" style="margin-top:.6rem;">
+    <span style="align-self:center; font-size:.82rem; color:#57606a;">
+      Prueba:
+    </span>
+    <button data-regex="(0|1)*01"        data-alpha="">termina en 01</button>
+    <button data-regex="(0*10*1)*0*"     data-alpha="">paridad de 1s</button>
+    <button data-regex="0*(10*10*10*)*"  data-alpha="">#1s ≡ 0 (mod 3)</button>
+    <button data-regex="(ab)+"           data-alpha="ab">(ab)+</button>
+    <button data-regex="a*b*"            data-alpha="ab">a*b*</button>
+  </div>
+</section>
+
 <section class="controls">
+  <h2 style="margin-top:0; font-size:1.1rem;">
+    O edita la MT a mano
+  </h2>
   <div class="examples-row">
     <strong style="align-self:center;">Ejemplos:</strong>
     <button data-example="empieza-con-a">empieza con 'a'</button>
@@ -848,11 +895,104 @@ function pausar() {
 }
 
 /* ==================================================================
- * 7. Event wiring
+ * 7. Conversion regex → AFD → MT (Teorema 6.1.1 de De Castro)
+ *
+ * Sea M = (Σ, Q, q0, F, δ) un AFD. Se construye una MT estandar
+ *   M' = (Q', q0, F', Σ, Γ, δ')  con
+ *     Q' = Q ∪ {q_acc} (q_acc es nuevo),
+ *     F' = {q_acc},
+ *     Γ  = Σ,
+ *     δ'(q, s) = (δ(q, s), s, →)   para q ∈ Q, s ∈ Σ,
+ *     δ'(q, □) = (q_acc, □, −)     para q ∈ F.
+ * M' lee la entrada de izquierda a derecha igual que M y, al detectar
+ * el primer blanco, transita al unico estado de aceptacion sii la
+ * unidad de control estaba en F (esto es: u ∈ L(M)).
+ * ================================================================== */
+
+function nombreSeguro(s) {
+  // Para los estados del AFD minimo que ya vienen como q0, q1, ... esta
+  // es la identidad. Si llegaran con caracteres raros, se sanitiza.
+  return String(s).replace(/[^A-Za-z0-9_]/g, "_");
+}
+
+function afdToFormulario(afd) {
+  // Convierte el AFD minimo a una MT segun §6.1.1 y rellena el editor.
+  const Q = [...afd.states].map(nombreSeguro);
+  const sigma = [...afd.alphabet].sort();
+
+  // Elegir un nombre nuevo para q_acc que no choque con Q
+  let qAcc = "q_acc";
+  let i = 0;
+  while (Q.includes(qAcc)) { qAcc = `q_acc${++i}`; }
+
+  // Construir las transiciones en el formato del editor (q, s -> q', s', D)
+  const lineas = [
+    "# MT generada automaticamente desde el AFD minimo (Teorema 6.1.1)",
+    "# Cada paso: lee, reescribe el mismo simbolo y desplaza a la derecha",
+  ];
+  for (const q of [...afd.states].sort()) {
+    for (const s of sigma) {
+      const dest = afd.trans.get(q).get(s);
+      lineas.push(`${nombreSeguro(q)}, ${s} -> ${nombreSeguro(dest)}, ${s}, R`);
+    }
+  }
+  lineas.push("# Al encontrar el blanco, aceptar sii estamos en F");
+  for (const q of [...afd.accepting].sort()) {
+    lineas.push(`${nombreSeguro(q)}, _ -> ${qAcc}, _, S`);
+  }
+
+  document.getElementById("sigma").value = sigma.join(",");
+  document.getElementById("gamma").value = sigma.join(",");
+  document.getElementById("estados").value = [...Q, qAcc].join(",");
+  document.getElementById("q0").value = nombreSeguro(afd.start);
+  document.getElementById("f").value = qAcc;
+  document.getElementById("nombre").value =
+    `MT desde regex (Teor. 6.1.1)`;
+  document.getElementById("transiciones").value = lineas.join("\n");
+  // Sugerencia de entrada: la primera palabra que se nos ocurra
+  if (!document.getElementById("entrada").value)
+    document.getElementById("entrada").value = "";
+}
+
+function generarMTdesdeRegex() {
+  mostrarError(null);
+  const pattern = document.getElementById("regex-input").value;
+  const alphaStr = document.getElementById("regex-alpha").value.trim();
+  let alphaInput = null;
+  if (alphaStr) {
+    // Aceptar "01", "0,1", "0 1", etc.
+    const tokens = alphaStr.includes(",")
+      ? alphaStr.split(",").map(t => t.trim()).filter(Boolean)
+      : alphaStr.split("").filter(c => c !== " ");
+    alphaInput = new Set(tokens);
+  }
+  let afd;
+  try {
+    afd = regexToAfdMin(pattern, alphaInput);
+  } catch (e) {
+    mostrarError("No pude compilar la expresion regular: " + e.message);
+    return;
+  }
+  afdToFormulario(afd);
+  construirYReiniciar();
+}
+
+/* ==================================================================
+ * 8. Event wiring
  * ================================================================== */
 
 document.querySelectorAll("[data-example]").forEach(b =>
   b.addEventListener("click", () => cargarEjemplo(b.dataset.example)));
+document.querySelectorAll("[data-regex]").forEach(b =>
+  b.addEventListener("click", () => {
+    document.getElementById("regex-input").value = b.dataset.regex;
+    document.getElementById("regex-alpha").value = b.dataset.alpha || "";
+    generarMTdesdeRegex();
+  }));
+document.getElementById("btn-regex").addEventListener("click", generarMTdesdeRegex);
+document.getElementById("regex-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") generarMTdesdeRegex();
+});
 document.getElementById("btn-build").addEventListener("click", construirYReiniciar);
 document.getElementById("btn-step").addEventListener("click", unPaso);
 document.getElementById("btn-play").addEventListener("click", ejecutar);
