@@ -153,6 +153,12 @@ def _render_text(sheet: InfoSheet) -> List[str]:
     # --- 6. ¿Y ahora que? --------------------------------------------
     out += ["6. ¿Y AHORA QUE?", _SUB]
     out += _recommendations(sheet)
+    out.append("")
+
+    # --- 7. Referencias al libro --------------------------------------
+    out += ["7. EN EL LIBRO DE DE CASTRO", _SUB]
+    out += _book_references(sheet)
+
     out += ["", _BAR]
     return out
 
@@ -214,6 +220,11 @@ def _render_markdown(sheet: InfoSheet) -> List[str]:
     out.append("## 6. ¿Y ahora qué?")
     out.append("")
     for line in _recommendations(sheet):
+        out.append(line.lstrip() if line.startswith("   ") else line)
+    out.append("")
+    out.append("## 7. En el libro de De Castro")
+    out.append("")
+    for line in _book_references(sheet):
         out.append(line.lstrip() if line.startswith("   ") else line)
     return out
 
@@ -395,6 +406,50 @@ def _recommendations(sheet: InfoSheet) -> List[str]:
         "y la opcion 9 para exportar un reporte completo con figuras."
     )
     return recs
+
+
+def _book_references(sheet: InfoSheet) -> List[str]:
+    """Mapea cada concepto de la hoja a su seccion del libro de De Castro
+    ("Introduccion a la Teoria de la Computacion"), reconociendo que el
+    libro no define monoide sintactico explicitamente pero llega al
+    mismo lugar via Myhill-Nerode y minimizacion.
+    """
+    info = sheet.analysis
+    out: List[str] = [
+        "   El monoide sintactico M(A) NO aparece como tal en el libro",
+        "   de De Castro: el aparato algebraico (Eilenberg, Pin) excede",
+        "   el alcance del curso de ITC. Aun asi, lo que su AFD le dice",
+        "   sobre el LENGUAJE coincide con lo que el libro estudia en:",
+        "",
+        "   §2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se",
+        "          construyo este monoide.",
+        "   §2.7.2 Funcion de transicion extendida δ̂ — es exactamente",
+        "          la formula que define cada transformacion f_w de M(A)",
+        "          (f_w(q) = δ̂(q, w)).",
+        "   §2.15  Teorema de Myhill-Nerode. Dos palabras son",
+        "          ≡_L-equivalentes sii ningun sufijo las distingue.",
+        f"          En este AFD, el nucleo de φ (de tamano {info.order}) es un",
+        "          REFINAMIENTO de ≡_L; ambas coinciden si el AFD es minimo.",
+        "   §2.16  Algoritmo de minimizacion (Hopcroft). El AFD minimo",
+        "          es unico (Teorema 2.15.4) y sus estados son exactamente",
+        "          las clases de ≡_L.",
+    ]
+    if info.is_group and info.is_cyclic:
+        out += [
+            "",
+            "   La cuenta modulo n que aparece en la seccion 4 es el caso",
+            "   particular en que tanto Myhill-Nerode (§2.15) como el",
+            "   nucleo de φ coinciden con la aritmetica de ℤ/{0}ℤ.".format(info.order),
+        ]
+    if not info.is_group and info.is_aperiodic:
+        out += [
+            "",
+            "   La propiedad 'star-free' que se discute en la seccion 4",
+            "   NO es trabajada por De Castro; pertenece al estudio",
+            "   algebraico de Schutzenberger/Eilenberg. Es un buen punto",
+            "   para conectar con cursos avanzados de teoria de monoides.",
+        ]
+    return out
 
 
 __all__ = ["InfoSheet", "build_info_sheet"]

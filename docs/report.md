@@ -664,6 +664,41 @@ e   |  e   1   11
 
 ## 12. Referencias
 
+### Texto base del curso
+
+0. **De Castro K., R.** *Introducción a la Teoría de la Computación.*
+   Departamento de Matemáticas, Universidad Nacional de Colombia,
+   II Semestre 2024. 219 pp.
+   *(Referencia primaria de este proyecto: TODA la notación y las*
+   *convenciones del código siguen este texto. Mapeo principal de*
+   *secciones que sustentan el proyecto:*
+   - *§1.1 – §1.13: alfabetos, cadenas, lenguajes.*
+   - *§2.2: expresiones regulares.*
+   - *§2.3 – §2.5: autómatas finitos deterministas (AFD).*
+   - *§2.6: autómatas finitos no deterministas (AFN).*
+   - *§2.7.1, §2.7.2: equivalencia AFD↔AFN, función δ̂.*
+   - *§2.8 – §2.9: AFN-λ y equivalencia con AFN.*
+   - *§2.10 – §2.11: complemento y producto cartesiano.*
+   - *§2.12: Teorema de Kleene Parte I (regex → AFN-λ, "Thompson").*
+   - *§2.13: Teorema de Kleene Parte II (autómata → regex via GEG).*
+   - *§2.14: propiedades de clausura de los lenguajes regulares.*
+   - *§2.15: Teorema de Myhill-Nerode (clases ≡_L → AFD mínimo).*
+   - *§2.16: algoritmo de minimización de AFDs.*
+   - *§3.1 – §3.2: criterio de no regularidad, lema de bombeo.*
+   - *§6.1: Modelo estándar de Máquina de Turing.*
+   - *§6.2: Ejemplos canónicos de MT (a^n b^n c^n, etc.).*
+   - *§6.3 – §6.5: variaciones del modelo, MT no deterministas.*
+   - *§6.7 – §6.8: Tesis de Turing, codificación de MTs.*
+   - *§6.11: Máquina de Turing universal.)*
+
+### Extensión algebraica (no cubierta por De Castro)
+
+El aparato del monoide sintáctico M(A), el homomorfismo natural φ y el
+Primer Teorema del Isomorfismo para monoides son el aporte específico
+de este proyecto; el libro de De Castro llega hasta Myhill-Nerode
+(§2.15) y minimización (§2.16) pero no construye M(A) explícitamente.
+Las siguientes referencias soportan ese aparato:
+
 1. Eilenberg, S. *Automata, Languages and Machines, Vol. A & B.* Academic
    Press, 1974–1976.
 2. Pin, J.-É. *Mathematical Foundations of Automata Theory.* Disponible en
