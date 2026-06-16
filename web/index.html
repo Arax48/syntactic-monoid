@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>syntactic-monoid &middot; ITC + Discrete Math II</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand">syntactic-monoid <small>ITC · Discrete Math II</small></a>
+  <a href="index.html" class="active">Inicio</a>
+  <a href="regex_visualizer.html">Regex → AFD</a>
+  <a href="mt_visualizer.html">Máquinas de Turing</a>
+  <a href="ejemplos/parity_afd.html">Monoide</a>
+  <a href="convenciones.html">Convenciones</a>
+  <span class="spacer"></span>
+  <span class="ref">basado en De Castro (2024)</span>
+</nav>
+
+<main>
+
+<section class="hero">
+  <h1>Autómatas, expresiones regulares y monoides sintácticos</h1>
+  <p class="lead">
+    Visualizadores interactivos y análisis algebraico para los cursos de
+    Teoría de la Computación y Matemática Discreta II. Toda la teoría
+    sigue las convenciones del libro
+    <em>Introducción a la Teoría de la Computación</em> de Rodrigo De Castro K.
+    (Universidad Nacional de Colombia, 2024).
+  </p>
+  <p>
+    Construye y verifica un AFD, compila una expresión regular a AFN-λ
+    (Teorema de Kleene Parte I) y al AFD mínimo (Hopcroft), simula una
+    Máquina de Turing del modelo estándar (§6.1) sobre una cinta
+    bidireccional, y conecta todo con el monoide sintáctico
+    <em>M</em>(<em>A</em>) y el Primer Teorema del Isomorfismo.
+  </p>
+  <div class="meta">
+    <span><b>Convenciones:</b> AFD/AFN/AFN-λ, λ, ∪, □</span>
+    <span><b>Modelo MT:</b> 6-upla (Q, q<sub>0</sub>, F, Σ, Γ, δ)</span>
+    <span><b>Sin servidor:</b> HTML + JS</span>
+  </div>
+</section>
+
+<h2>Visualizadores interactivos</h2>
+
+<div class="cards">
+
+  <a class="card" href="regex_visualizer.html">
+    <div class="icon">∪*</div>
+    <div class="label">§2.2 – §2.16</div>
+    <div class="title">Expresiones regulares → AFD</div>
+    <div class="desc">
+      Escribe una regex y mira la construcción de Thompson
+      (Teorema 2.12.1), el AFD por subconjuntos (Teorema 2.7.1) y el
+      AFD mínimo de Hopcroft, lado a lado. Evalúa palabras de prueba
+      contra el AFD mínimo en vivo.
+    </div>
+    <div class="footer-row">regex_visualizer.html</div>
+  </a>
+
+  <a class="card" href="mt_visualizer.html">
+    <div class="icon">⌶</div>
+    <div class="label">§6.1 – §6.2</div>
+    <div class="title">Máquina de Turing</div>
+    <div class="desc">
+      Edita una MT del modelo estándar, simula paso a paso sobre una
+      cinta bidireccional, observa el cabezal y la configuración
+      instantánea <em>uqv</em>. Incluye los ejemplos canónicos del
+      libro (<em>a<sup>n</sup>b<sup>n</sup>c<sup>n</sup></em>,
+      #a = #b).
+    </div>
+    <div class="footer-row">mt_visualizer.html</div>
+  </a>
+
+  <a class="card" href="ejemplos/parity_afd.html">
+    <div class="icon">M(A)</div>
+    <div class="label">aporte propio</div>
+    <div class="title">Monoide sintáctico</div>
+    <div class="desc">
+      Análisis algebraico de cuatro AFDs canónicos: monoide
+      <em>M</em>(<em>A</em>), tabla de Cayley, idempotentes, unidades,
+      estructura de grupo cuando aplica (ℤ/2ℤ, ℤ/3ℤ, V<sub>4</sub>,
+      monoides aperiódicos).
+    </div>
+    <div class="footer-row">ejemplos/ (4 hojas informativas)</div>
+  </a>
+
+  <a class="card" href="convenciones.html">
+    <div class="icon">Σ → δ</div>
+    <div class="label">tabla rápida</div>
+    <div class="title">Convenciones De Castro</div>
+    <div class="desc">
+      Cuadro de equivalencia: notación clásica (DFA, NFA, ε,
+      Thompson) frente a la que usa el libro y este proyecto
+      (AFD, AFN, λ, "Teorema de Kleene Parte I"). Útil al leer
+      otros textos.
+    </div>
+    <div class="footer-row">convenciones.html</div>
+  </a>
+
+</div>
+
+<h2>¿Qué hace este proyecto?</h2>
+
+<p>
+  Tres preguntas, una respuesta integrada:
+</p>
+
+<ol>
+  <li>
+    <b>Construcción.</b> Dada una expresión regular, compilarla a un
+    AFN-λ y luego a un AFD mínimo, mostrando cada paso visualmente.
+  </li>
+  <li>
+    <b>Simulación.</b> Editar y ejecutar una Máquina de Turing del modelo
+    estándar de De Castro (§6.1) sobre una cadena de entrada, con la
+    cinta bidireccional y la unidad de control animadas paso a paso.
+  </li>
+  <li>
+    <b>Análisis algebraico.</b> Para un AFD dado, construir
+    explícitamente su monoide de transición <em>M</em>(<em>A</em>),
+    el homomorfismo natural φ : Σ* → <em>M</em>(<em>A</em>), y
+    determinar si es un grupo, qué grupo, si es aperiódico, etc. Esto
+    conecta directamente con Matemática Discreta II (clases de
+    equivalencia, ℤ/nℤ, primer teorema del isomorfismo) y con el
+    Teorema de Myhill-Nerode (§2.15) del libro.
+  </li>
+</ol>
+
+<h2>Hojas informativas precalculadas</h2>
+
+<p>
+  Cada ejemplo canónico viene con un análisis algebraico completo
+  generado por la CLI del proyecto, listo para navegar:
+</p>
+
+<div class="cards">
+
+  <a class="card" href="ejemplos/parity_afd.html">
+    <div class="label">|Q| = 2</div>
+    <div class="title">Paridad de 1s</div>
+    <div class="desc">
+      Lenguaje: cadenas binarias con número par de 1s.
+      <em>M</em>(<em>A</em>) ≅ ℤ/2ℤ.
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/mod3_afd.html">
+    <div class="label">|Q| = 3</div>
+    <div class="title">#1s ≡ 0 (mod 3)</div>
+    <div class="desc">
+      Cadenas binarias con número de 1s múltiplo de 3.
+      <em>M</em>(<em>A</em>) ≅ ℤ/3ℤ.
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/ends_with_01_afd.html">
+    <div class="label">|Q| = 3</div>
+    <div class="title">Termina en 01</div>
+    <div class="desc">
+      Cadenas binarias que terminan en "01". <em>M</em>(<em>A</em>)
+      <b>no</b> es grupo, pero es aperiódico (star-free).
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/klein_v4_afd.html">
+    <div class="label">|Q| = 4</div>
+    <div class="title">Klein V<sub>4</sub></div>
+    <div class="desc">
+      Paridad de <em>a</em> ∧ paridad de <em>b</em>.
+      <em>M</em>(<em>A</em>) ≅ V<sub>4</sub> = ℤ/2ℤ × ℤ/2ℤ.
+    </div>
+  </a>
+
+</div>
+
+<h2>Analizar tu propio AFD</h2>
+
+<p>
+  El análisis algebraico (cálculo del monoide, idempotentes, tabla de
+  Cayley, identificación del grupo) corre en Python y requiere
+  instalación local. El flujo recomendado es:
+</p>
+
+<pre><code># 1) Clonar e instalar (Python 3.10+)
+git clone &lt;url-del-repo&gt;
+cd syntactic-monoid
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2) Definir tu AFD en JSON (ver examples/parity_afd.json)
+# 3) Generar la hoja informativa en Markdown
+python main.py infosheet mi_afd.json --out mi_afd.md --markdown
+
+# 4) Reporte completo con figuras Graphviz
+python main.py report mi_afd.json --out output/mi_afd/</code></pre>
+
+<p>
+  O bien, sin instalar nada, usa los visualizadores HTML de esta
+  página para todo lo que no requiera el aparato algebraico (compilar
+  regex, simular MT). Las hojas informativas precalculadas de los
+  cuatro ejemplos canónicos ya están listas aquí, sin Python.
+</p>
+
+<h2>Referencia bibliográfica</h2>
+
+<p>
+  Toda la notación y las definiciones de este sitio siguen el libro
+  base del curso:
+</p>
+
+<div class="callout">
+  <strong>De Castro K., R.</strong> <em>Introducción a la Teoría de la
+  Computación.</em> Departamento de Matemáticas, Universidad Nacional
+  de Colombia, II Semestre 2024. 219 pp.
+  <p style="margin-top:.5rem;">
+    Mapeo seccional principal: §2.2 (expresiones regulares), §2.3 (AFD),
+    §2.6 (AFN), §2.8 (AFN-λ), §2.12 (Teorema de Kleene I), §2.13
+    (Teorema de Kleene II), §2.15 (Myhill-Nerode), §2.16 (minimización),
+    §3.1 (no regularidad), §6.1 (modelo estándar MT), §6.2 (ejemplos
+    canónicos de MT).
+  </p>
+</div>
+
+<p>
+  El aparato algebraico del monoide sintáctico no es parte del libro de
+  De Castro; se basa en Eilenberg (1974) y Pin (2020). Detalles
+  completos en
+  <a href="../docs/report.md"><code>docs/report.md</code></a>,
+  sección 12.
+</p>
+
+<footer>
+  syntactic-monoid · proyecto integrador ITC + Discrete Math II ·
+  todo el código y la teoría están alineados con el libro de De Castro
+  (2024)
+</footer>
+
+</main>
+
+</body>
+</html>

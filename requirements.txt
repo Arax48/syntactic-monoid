@@ -5,3 +5,4 @@ matplotlib>=3.7     # Tablas de Cayley y diagramas de clases.
 # Pruebas y calidad
 pytest>=8.0
 pytest-cov>=4.1
+markdown

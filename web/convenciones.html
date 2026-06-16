@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convenciones De Castro &middot; syntactic-monoid</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand">syntactic-monoid <small>ITC · Discrete Math II</small></a>
+  <a href="index.html">Inicio</a>
+  <a href="regex_visualizer.html">Regex → AFD</a>
+  <a href="mt_visualizer.html">Máquinas de Turing</a>
+  <a href="ejemplos/parity_afd.html">Monoide</a>
+  <a href="convenciones.html" class="active">Convenciones</a>
+  <span class="spacer"></span>
+  <span class="ref">basado en De Castro (2024)</span>
+</nav>
+
+<main>
+
+<h1>Convenciones del proyecto</h1>
+
+<p class="lead">
+  Este sitio sigue exclusivamente la notación del libro
+  <em>Introducción a la Teoría de la Computación</em> de Rodrigo De
+  Castro K. (2024). Aquí está la equivalencia entre lo que
+  posiblemente has visto en otros textos (Sipser, Hopcroft-Ullman) y
+  lo que usa este proyecto.
+</p>
+
+<h2>Acrónimos de modelos</h2>
+
+<table>
+  <thead>
+    <tr><th>Notación clásica</th>
+        <th>De Castro / este sitio</th>
+        <th>Significado</th>
+        <th>Sección</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>DFA</code></td>
+        <td><code>AFD</code></td>
+        <td>Autómata Finito Determinista</td>
+        <td><span class="tag section">§2.3</span></td></tr>
+    <tr><td><code>NFA</code></td>
+        <td><code>AFN</code></td>
+        <td>Autómata Finito No Determinista</td>
+        <td><span class="tag section">§2.6</span></td></tr>
+    <tr><td><code>ε-NFA</code>, <code>NFA-ε</code></td>
+        <td><code>AFN-λ</code></td>
+        <td>AFN con transiciones de cadena vacía</td>
+        <td><span class="tag section">§2.8</span></td></tr>
+    <tr><td><code>PDA</code></td>
+        <td><code>AFP</code> (AFPD, AFPN)</td>
+        <td>Autómata de Pila (Determinista / No Determinista)</td>
+        <td><span class="tag section">§4.1</span></td></tr>
+    <tr><td><code>TM</code></td>
+        <td><code>MT</code></td>
+        <td>Máquina de Turing</td>
+        <td><span class="tag section">§6.1</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Símbolos</h2>
+
+<table>
+  <thead>
+    <tr><th>Clásica</th><th>De Castro</th><th>Significado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>ε</code></td><td><code>λ</code></td>
+        <td>Cadena vacía (también: transición sin consumir símbolo)</td></tr>
+    <tr><td><code>|</code> (en regex)</td><td><code>∪</code></td>
+        <td>Unión de lenguajes / alternativa en regex</td></tr>
+    <tr><td><code>·</code> (concatenación)</td><td>yuxtaposición</td>
+        <td><em>RS</em> en lugar de <em>R · S</em></td></tr>
+    <tr><td><code>B</code>, <code>_</code>, <code>blank</code></td>
+        <td><code>□</code></td>
+        <td>Símbolo blanco de la cinta de la MT. Es <b>externo</b>
+            a Γ.</td></tr>
+    <tr><td><code>L</code>, <code>R</code>, <code>S</code> (en MT)</td>
+        <td><code>←</code>, <code>→</code>, <code>−</code></td>
+        <td>Desplazamientos del cabezal (izquierda, derecha,
+            estacionaria)</td></tr>
+    <tr><td><code>δ̂</code>, <code>δ*</code></td>
+        <td><code>δ̂</code></td>
+        <td>Función de transición extendida a Σ*
+            <span class="tag section">§2.7.2</span></td></tr>
+    <tr><td><code>℘(Q)</code>, <code>P(Q)</code>, <code>2<sup>Q</sup></code></td>
+        <td><code>℘(Q)</code></td>
+        <td>Conjunto potencia de Q (codominio del ∆ en AFN)</td></tr>
+  </tbody>
+</table>
+
+<h2>Tuplas de la definición formal</h2>
+
+<table>
+  <thead>
+    <tr><th>Modelo</th><th>Tupla (De Castro)</th><th>Sección</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>AFD</b></td>
+        <td><code>M = (Σ, Q, q<sub>0</sub>, F, δ)</code><br>
+            δ : Q × Σ → Q</td>
+        <td><span class="tag section">§2.3</span></td></tr>
+    <tr><td><b>AFN</b></td>
+        <td><code>M = (Σ, Q, q<sub>0</sub>, F, ∆)</code><br>
+            ∆ : Q × Σ → ℘(Q)
+            <span class="callout" style="display:inline-block;margin:0;padding:.1rem .5rem;font-size:.8rem;">
+            ¡Δ <em>mayúscula!</em>
+            </span>
+        </td>
+        <td><span class="tag section">§2.6</span></td></tr>
+    <tr><td><b>AFN-λ</b></td>
+        <td><code>M = (Σ, Q, q<sub>0</sub>, F, ∆)</code><br>
+            ∆ : Q × (Σ ∪ {λ}) → ℘(Q)</td>
+        <td><span class="tag section">§2.8</span></td></tr>
+    <tr><td><b>MT</b></td>
+        <td><code>M = (Q, q<sub>0</sub>, F, Σ, Γ, δ)</code>
+            <span class="tag theorem">orden diferente</span><br>
+            δ : Q × Γ<sub>□</sub> → Q × Γ<sub>□</sub> × {←, →, −}<br>
+            δ es <b>función parcial</b></td>
+        <td><span class="tag section">§6.1</span></td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>Atención al orden de la MT:</strong> el libro define
+  <em>M</em> = (<em>Q</em>, <em>q</em><sub>0</sub>, <em>F</em>, Σ, Γ, δ),
+  con <em>Q</em> primero y los estados delante de los alfabetos.
+  Si vienes de Sipser u otros textos donde la tupla MT empieza con Σ,
+  conviene tenerlo presente al transcribir definiciones.
+</div>
+
+<h2>Algoritmos clave: nombres</h2>
+
+<table>
+  <thead>
+    <tr><th>Nombre clásico</th><th>De Castro</th><th>Sección</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Construcción de Thompson<br>
+            (regex → ε-NFA)</td>
+        <td>Construcción del Teorema de Kleene Parte I<br>
+            (regex → AFN-λ)</td>
+        <td><span class="tag theorem">Teor. 2.12.1</span></td></tr>
+    <tr><td>Construcción de subconjuntos<br>
+            (NFA → DFA)</td>
+        <td>Equivalencia computacional AFN ↔ AFD</td>
+        <td><span class="tag theorem">Teor. 2.7.1</span></td></tr>
+    <tr><td>State elimination (DFA → regex)</td>
+        <td>GEG (grafo etiquetado generalizado),<br>
+            Teorema de Kleene Parte II</td>
+        <td><span class="tag section">§2.13</span></td></tr>
+    <tr><td>Hopcroft / Moore (minimización)</td>
+        <td>Algoritmo de minimización de AFDs</td>
+        <td><span class="tag section">§2.16</span></td></tr>
+    <tr><td>Producto cartesiano de autómatas</td>
+        <td>Producto cartesiano de autómatas</td>
+        <td><span class="tag section">§2.11</span></td></tr>
+    <tr><td>Teorema de Myhill-Nerode</td>
+        <td>Teorema de Myhill-Nerode</td>
+        <td><span class="tag section">§2.15</span></td></tr>
+    <tr><td>Lema de bombeo (pumping lemma)</td>
+        <td>Lema de bombeo (opcional)</td>
+        <td><span class="tag section">§3.2</span></td></tr>
+    <tr><td>Universal Turing Machine</td>
+        <td>Máquina de Turing universal</td>
+        <td><span class="tag section">§6.11</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Clases de lenguajes</h2>
+
+<table>
+  <thead>
+    <tr><th>Concepto</th><th>De Castro</th><th>Significado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Recursively enumerable, r.e.</td>
+        <td>Turing-aceptable</td>
+        <td>Existe una MT M con L(M) = L (M puede no detenerse fuera
+            de L)</td></tr>
+    <tr><td>Recursive, decidible</td>
+        <td>Turing-decidible</td>
+        <td>Existe una MT M con L(M) = L que se detiene con
+            <em>toda</em> entrada</td></tr>
+    <tr><td>Context-free language</td>
+        <td>Lenguaje Independiente del Contexto (LIC)</td>
+        <td>Reconocido por un AFP no determinista</td></tr>
+    <tr><td>Regular language</td>
+        <td>Lenguaje regular</td>
+        <td>Reconocido por un AFD (≡ AFN ≡ AFN-λ ≡ regex)</td></tr>
+  </tbody>
+</table>
+
+<h2>Sintaxis de regex (lo que escribes en el editor)</h2>
+
+<p>
+  Para facilitar la escritura desde el teclado, los visualizadores
+  aceptan la sintaxis ASCII tradicional pero la mapean directamente a
+  la notación del libro:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Editor (ASCII)</th><th>Libro</th><th>Lenguaje denotado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><em>(línea vacía)</em></td><td><code>λ</code></td>
+        <td><em>L</em>[λ] = {λ}</td></tr>
+    <tr><td><code>a</code></td><td><code>a</code></td>
+        <td><em>L</em>[a] = {a}</td></tr>
+    <tr><td><code>ab</code></td><td><code>ab</code></td>
+        <td><em>L</em>[RS] = <em>L</em>[R] · <em>L</em>[S]</td></tr>
+    <tr><td><code>a|b</code></td><td><code>a ∪ b</code></td>
+        <td><em>L</em>[R ∪ S] = <em>L</em>[R] ∪ <em>L</em>[S]</td></tr>
+    <tr><td><code>a*</code></td><td><code>a*</code></td>
+        <td><em>L</em>[R*] = <em>L</em>[R]*</td></tr>
+    <tr><td><code>a+</code></td><td><code>a+</code></td>
+        <td>≡ <code>aa*</code></td></tr>
+    <tr><td><code>a?</code></td><td><code>(λ ∪ a)</code></td>
+        <td>opcional</td></tr>
+    <tr><td><code>[abc]</code></td><td><code>(a ∪ b ∪ c)</code></td>
+        <td>azúcar de unión</td></tr>
+  </tbody>
+</table>
+
+<p>
+  <b>Precedencia (§2.2, de mayor a menor):</b>
+  <code>*</code> &gt; concatenación &gt; unión <code>|</code> (≡ <code>∪</code>).
+</p>
+
+<h2>Lo que no aparece en el libro</h2>
+
+<p>
+  El proyecto extiende lo que vimos en el curso con un aparato
+  algebraico que no es parte del libro de De Castro:
+</p>
+
+<ul>
+  <li><b>Monoide sintáctico M(A)</b> de un AFD, como conjunto de
+      transformaciones <em>f<sub>w</sub></em> : <em>Q</em> → <em>Q</em>.
+      El libro llega al mismo terreno via §2.15 (Myhill-Nerode) y
+      §2.16 (minimización) pero no construye el monoide explícitamente.</li>
+  <li><b>Homomorfismo natural</b> φ : Σ* → <em>M</em>(<em>A</em>) y el
+      <b>Primer Teorema del Isomorfismo</b> para monoides
+      (Σ*/ker(φ) ≅ <em>M</em>(<em>A</em>)).</li>
+  <li><b>Teorema de Schützenberger</b> (lenguajes star-free ↔ monoides
+      aperiódicos).</li>
+</ul>
+
+<p>
+  La fundamentación bibliográfica de esa extensión está en
+  Eilenberg (1974) y Pin (2020); ver <code>docs/report.md</code> §12.
+</p>
+
+<footer>
+  syntactic-monoid · convenciones según De Castro (2024)
+</footer>
+
+</main>
+
+</body>
+</html>

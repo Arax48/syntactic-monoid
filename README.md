@@ -24,9 +24,17 @@ en futuras *slices*.
 syntactic-monoid/
 ├── main.py                  # CLI interactiva + subcomandos (importa desde backend/)
 ├── visualization.py         # Graphviz + matplotlib + reportes
-├── web/                     # Visualizadores interactivos (HTML+JS puro)
+├── web/                     # Sitio estático (HTML+CSS+JS, sin servidor)
+│   ├── index.html           # Portada/hub con navegación a todo el sitio
 │   ├── regex_visualizer.html# Regex → AFN-λ → AFD → AFD mínimo
-│   └── mt_visualizer.html   # Máquinas de Turing (§6.1) con cinta animada
+│   ├── mt_visualizer.html   # Máquinas de Turing (§6.1) con cinta animada
+│   ├── convenciones.html    # Tabla De Castro vs notación clásica
+│   ├── ejemplos/            # Hojas informativas precalculadas (4 AFDs)
+│   │   ├── parity_afd.html, mod3_afd.html
+│   │   ├── ends_with_01_afd.html, klein_v4_afd.html
+│   └── shared/style.css     # Estilos compartidos del sitio
+├── scripts/
+│   └── build_web_examples.py# Regenera web/ejemplos/ desde examples/
 ├── backend/                 # Motor de cómputo
 │   ├── models/              # Modelos formales
 │   │   ├── dfa.py           # AFD + minimización, producto, equivalencia
@@ -138,7 +146,25 @@ python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
 python main.py visualize "(0|1)*01" --no-open   # solo genera, no abre
 ```
 
-### Visualizador interactivo en el navegador (sin terminal)
+### Sitio estático completo (sin terminal)
+
+Para acceder al proyecto sin escribir ningún comando, abre
+`web/index.html` directamente en tu navegador (doble-clic en el
+explorador de archivos). Es la **portada** con navegación a:
+
+- **Regex → AFD** (visualizador interactivo).
+- **Máquinas de Turing** (editor + simulador con cinta animada).
+- **Monoide sintáctico** (4 hojas informativas precalculadas
+  para los AFDs canónicos: paridad, mod 3, termina en 01,
+  Klein V₄).
+- **Convenciones** (tabla De Castro ↔ notación clásica).
+
+Todas las páginas comparten la barra de navegación superior y los
+estilos en `web/shared/style.css`. Las hojas informativas en
+`web/ejemplos/` se generan con
+`python scripts/build_web_examples.py` (requiere `markdown`).
+
+### Visualizador de expresiones regulares
 
 Para jugar con regexes sin escribir ningún comando, abre el archivo
 `web/regex_visualizer.html` directamente en tu navegador (doble click
