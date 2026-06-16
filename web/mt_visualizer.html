@@ -340,12 +340,17 @@ class MT {
  * ==================================================================== */
 
 function dotQ(s) { return '"' + String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"') + '"'; }
+function htmlEsc(s) {
+  return String(s).replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;");
+}
 
 function mtToDot(mt) {
   const n = mt.estados.size;
-  // Espaciado adaptativo: grafos pequeños tienen aire; grandes se compactan.
-  const nodesep = n <= 4 ? 0.6 : n <= 7 ? 0.45 : 0.35;
-  const ranksep = n <= 4 ? 1.0 : n <= 7 ? 0.8 : 0.6;
+  // Espaciado más generoso: las etiquetas necesitan aire propio.
+  const nodesep = n <= 4 ? 0.75 : n <= 7 ? 0.6  : 0.5;
+  const ranksep = n <= 4 ? 1.2  : n <= 7 ? 1.0  : 0.85;
 
   const lines = [
     "digraph MT {",
@@ -353,8 +358,10 @@ function mtToDot(mt) {
     "  bgcolor=transparent;",
     `  nodesep="${nodesep}";`,
     `  ranksep="${ranksep}";`,
-    "  pad=\"0.3\";",
+    "  pad=\"0.4\";",
     "  splines=true;",
+    "  overlap=false;",
+    "  forcelabels=true;",
     // Nodo por defecto: círculo blanco, borde gris oscuro.
     "  node [shape=circle, " +
          "fontname=\"Inter,Helvetica,Arial,sans-serif\", " +
@@ -402,15 +409,21 @@ function mtToDot(mt) {
     if (!arcs.has(k)) arcs.set(k, { from: t.q, to: t.qp, labels: [] });
     arcs.get(k).labels.push(lbl);
   }
+  /* ETIQUETAS HTML CON FONDO BLANCO:
+     cada transición ocupa una celda con fondo blanco; al apilarlas
+     verticalmente con pequeño espaciado, ninguna queda "tapada" por
+     una arista que pase por debajo ni por otra etiqueta cercana. */
   for (const { from, to, labels } of arcs.values()) {
     const isLoop = from === to;
-    const lbl = labels.join("\\n");
-    const extras = [];
-    // Self-loops con muchas etiquetas: fuente algo mas chica para que quepa.
-    if (isLoop && labels.length >= 3) extras.push("fontsize=10");
+    const fontSize = (isLoop && labels.length >= 3) ? 10 : 11;
+    const rows = labels.map(l =>
+      `<TR><TD CELLPADDING="3" BGCOLOR="white" ` +
+      `ALIGN="CENTER">${htmlEsc(l)}</TD></TR>`
+    ).join("");
+    const htmlLbl =
+      `<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">${rows}</TABLE>>`;
     lines.push(`  ${dotQ(from)} -> ${dotQ(to)} ` +
-               `[label=${dotQ(lbl)}` +
-               (extras.length ? `, ${extras.join(", ")}` : "") + "];");
+               `[label=${htmlLbl}, fontsize=${fontSize}];`);
   }
   lines.push("}");
   return lines.join("\n");
