@@ -1,5 +1,13 @@
 # Estudio Algebraico de AFDs vía Monoides de Transición
 
+> 🌐 **Sitio en vivo:** <https://arax48.github.io/syntactic-monoid/web/>
+>
+> Hub del proyecto en el navegador, sin instalación: visualizador de
+> regex → AFD, generador de Máquinas de Turing desde una descripción de
+> lenguaje, hojas informativas algebraicas precalculadas y tabla de
+> convenciones del libro de De Castro. Funciona en cualquier navegador
+> moderno.
+
 Implementación matemáticamente rigurosa y completa en Python para construir
 el **monoide de transición** `M(A)` asociado a un Autómata Finito Determinista,
 verificar el **homomorfismo natural** `φ : Σ* → M(A)`, calcular su **núcleo**
