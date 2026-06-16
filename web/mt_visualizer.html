@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Visualizador interactivo de Maquinas de Turing</title>
+<title>Máquinas de Turing</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 * { box-sizing: border-box; }
@@ -11,9 +11,17 @@ body {
   margin: 0; color: #24292f; line-height: 1.55;
 }
 main.page-content {
-  max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem;
+  max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem;
 }
-/* --- Barra de navegacion compartida --- */
+h1 { font-size: 1.6rem; margin: .2rem 0 .4rem; }
+h2 { font-size: 1.15rem; margin: 1.8rem 0 .6rem;
+     border-bottom: 1px solid #eaecef; padding-bottom: .3rem; }
+.lead { color: #57606a; margin: 0 0 1rem; font-size: .95rem; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .92em;
+       background: #f6f8fa; padding: .1em .35em; border-radius: 4px;
+       border: 1px solid #eaecef; }
+
+/* Barra de navegacion compartida */
 .site-nav {
   position: sticky; top: 0; z-index: 100;
   background: rgba(255, 255, 255, .96);
@@ -43,101 +51,60 @@ main.page-content {
   .site-nav .ref { display: none; }
   main.page-content { padding: 1rem .9rem 2rem; }
 }
-h1 { font-size: 1.6rem; margin: .2rem 0 .4rem; }
-h2 { font-size: 1.15rem; margin: 1.6rem 0 .6rem;
-     border-bottom: 1px solid #eaecef; padding-bottom: .3rem; }
-.lead { color: #57606a; margin: .2rem 0 1rem; font-size: .95rem; }
-code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-              font-size: .9em; }
 
-.controls { background: #f6f8fa; border: 1px solid #d1d9e0;
-            border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-       gap: .8rem; margin-bottom: .8rem; }
-label { display: block; font-size: .85rem; font-weight: 600;
-        margin-bottom: .25rem; color: #424a53; }
-input[type="text"], textarea {
-  width: 100%; padding: .45rem .6rem; border: 1px solid #d1d9e0;
-  border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .9rem; background: #fff;
+/* Caja de entrada */
+.input-row { display: flex; gap: .6rem; align-items: stretch;
+             margin: 1rem 0 .8rem; }
+#lang {
+  flex: 1; padding: .65rem .9rem;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1rem;
+  border: 1px solid #d1d9e0; border-radius: 6px; background: #fff;
 }
-textarea { resize: vertical; min-height: 7rem; }
-button { padding: .45rem .9rem; border: 1px solid #d1d9e0;
-         background: #fff; border-radius: 6px; cursor: pointer;
-         font-size: .9rem; }
-button:hover { background: #f3f4f6; }
-button.primary { background: #0969da; color: #fff; border-color: #0969da; }
-button.primary:hover { background: #0860c4; }
-button.danger { background: #cf222e; color: #fff; border-color: #cf222e; }
-button:disabled { opacity: .5; cursor: not-allowed; }
+#lang:focus { outline: 2px solid #0969da; outline-offset: 1px; border-color: #0969da; }
+#go {
+  padding: .65rem 1.2rem; background: #0969da; color: #fff;
+  border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
+  font-weight: 600; font-size: .95rem;
+}
+#go:hover { background: #0860c4; }
 
-.examples-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
-.examples-row button { font-size: .82rem; }
+/* Sintaxis (details) */
+details.syntax { background: #f6f8fa; border: 1px solid #d1d9e0;
+                 border-radius: 6px; padding: .55rem .95rem;
+                 margin-bottom: 1.2rem; }
+details.syntax > summary { cursor: pointer; font-weight: 600;
+                           color: #424a53; font-size: .92rem; }
+details.syntax > div { margin-top: .8rem; }
+details.syntax table { border-collapse: collapse; width: 100%;
+                       font-size: .87rem; }
+details.syntax th, details.syntax td {
+  text-align: left; padding: .4rem .6rem;
+  border-bottom: 1px solid #eaecef; vertical-align: top;
+}
+details.syntax th { background: #fff; font-weight: 600;
+                    color: #57606a; font-size: .8rem;
+                    text-transform: uppercase; letter-spacing: .03em; }
+details.syntax button.try {
+  border: 1px solid #d1d9e0; background: #fff; border-radius: 4px;
+  padding: .1rem .5rem; font-size: .82rem; cursor: pointer;
+  font-family: ui-monospace, Menlo, monospace;
+  color: #0969da;
+}
+details.syntax button.try:hover { background: #ddf4ff; }
+details.syntax .note { color: #6e7681; font-size: .85rem;
+                       margin: .6rem 0 0; font-style: italic; }
 
-.simulator { display: grid; grid-template-columns: 2fr 1fr;
-             gap: 1rem; margin-top: 1rem; }
-@media (max-width: 900px) { .simulator { grid-template-columns: 1fr; } }
-
-.svg-wrap { background: #fff; border: 1px solid #eaecef; border-radius: 6px;
-            padding: .8rem; overflow: auto; min-height: 220px; }
-.svg-wrap svg { max-width: 100%; height: auto; }
-
-.status-card { background: #fff; border: 1px solid #eaecef; border-radius: 6px;
-               padding: .9rem; font-size: .9rem; }
-.status-card dt { font-weight: 600; color: #57606a; font-size: .78rem;
-                  text-transform: uppercase; letter-spacing: .03em;
-                  margin-top: .6rem; }
-.status-card dt:first-child { margin-top: 0; }
-.status-card dd { margin: .2rem 0 0; font-family: ui-monospace, Menlo, monospace; }
-.badge { display: inline-block; padding: .15rem .5rem; border-radius: 4px;
-         font-size: .8rem; font-weight: 600; }
-.badge.aceptacion { background: #dafbe1; color: #1a7f37; }
-.badge.abortado   { background: #ffe5e5; color: #cf222e; }
-.badge.bucle      { background: #fff4d6; color: #9a6700; }
-.badge.ejecutando { background: #ddf4ff; color: #0969da; }
-
-/* Cinta */
-.tape-wrapper { background: #fff; border: 1px solid #eaecef;
-                border-radius: 6px; padding: 1rem; margin-top: 1rem;
-                overflow-x: auto; }
-.tape-container { display: flex; flex-direction: column; align-items: center;
-                  min-width: max-content; }
-.tape-cells { display: flex; gap: 0; }
-.tape-cell { width: 2.6rem; height: 2.6rem; border: 1px solid #d1d9e0;
-             display: flex; align-items: center; justify-content: center;
-             font-family: ui-monospace, Menlo, monospace; font-size: 1.05rem;
-             background: #fff; margin: 0 -1px;
-             transition: background-color .25s; }
-.tape-cell.head { background: #ddf4ff; border-color: #0969da; border-width: 2px;
-                  z-index: 1; }
-.tape-cell.blank { color: #afb8c1; }
-.tape-head-marker { display: flex; gap: 0; margin-top: .25rem; }
-.tape-head-marker .slot { width: 2.6rem; text-align: center;
-                          font-size: .8rem; color: #0969da; font-weight: 600;
-                          margin: 0 -1px; }
-
-/* Control de pasos */
-.step-bar { display: flex; align-items: center; gap: .5rem;
-            margin-top: .8rem; flex-wrap: wrap; }
-.step-bar .progress { color: #57606a; font-size: .85rem; }
-
-/* Errores y mensajes */
+/* Resultado */
 #error { background: #ffe5e5; color: #cf222e; padding: .7rem .9rem;
-         border-radius: 6px; margin: .6rem 0; font-size: .9rem; }
-
-/* Detalles desplegables */
-details.help { margin: .8rem 0; background: #f6f8fa;
-               border: 1px solid #d1d9e0; border-radius: 6px;
-               padding: .6rem .9rem; }
-details.help summary { cursor: pointer; font-weight: 600; color: #424a53;
-                       font-size: .9rem; }
-details.help > div { margin-top: .8rem; font-size: .88rem; }
-details.help table { border-collapse: collapse; margin: .4rem 0; }
-details.help td, details.help th { padding: .25rem .6rem;
-                                    border-bottom: 1px solid #eaecef;
-                                    text-align: left; font-size: .85rem; }
-details.help code { background: #fff; padding: .1rem .35rem;
-                    border: 1px solid #eaecef; border-radius: 3px; }
+         border-radius: 6px; margin: .8rem 0; font-size: .9rem; }
+.svg-wrap { background: #fff; border: 1px solid #eaecef;
+            border-radius: 6px; padding: 1rem; overflow: auto;
+            min-height: 260px; text-align: center; }
+.svg-wrap svg { max-width: 100%; height: auto; }
+.svg-wrap .placeholder { color: #afb8c1; padding: 4rem 0;
+                          font-size: .92rem; }
+.mt-meta { font-size: .85rem; color: #6e7681; margin: .4rem 0 .8rem;
+           font-family: ui-monospace, Menlo, monospace; }
 
 footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
          border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
@@ -161,849 +128,559 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
 <main class="page-content">
 
 <header>
-  <h1>Visualizador interactivo de Maquinas de Turing</h1>
+  <h1>Máquinas de Turing</h1>
   <p class="lead">
-    Edita una MT al estilo del modelo estandar (§6.1 de De Castro),
-    mira el grafo de estados y simula su procesamiento sobre una cadena
-    de entrada paso a paso, con la cinta bidireccional y la unidad de
-    control. Todo corre en tu navegador.
-  </p>
-  <p class="lead" style="font-size:.83rem;">
-    Tupla M = (Q, q0, F, Σ, Γ, δ). Cinta infinita en ambas direcciones.
-    Simbolo blanco <code>□</code> externo: no pertenece a Γ. Una
-    transicion δ(q, s) = (q', s', D) cambia el estado, sobre-escribe
-    s por s' y desplaza la unidad de control con
-    D ∈ {→, ←, −}. La MT se detiene al ingresar a F.
+    Describe un lenguaje y observa el grafo de la MT estándar (§6.1)
+    que lo reconoce.
   </p>
 </header>
 
-<details class="help">
-  <summary>Como editar tu MT (sintaxis de transiciones)</summary>
+<div class="input-row">
+  <input id="lang" type="text" value="a^n b^n c^n"
+         autocomplete="off" autocapitalize="off" spellcheck="false"
+         placeholder="ej: a^n b^n c^n">
+  <button id="go">Generar MT</button>
+</div>
+
+<details class="syntax" open>
+  <summary>¿Cómo describir tu lenguaje? (clic en un ejemplo para probarlo)</summary>
   <div>
-    <p>
-      Cada linea del area de transiciones representa una unica regla
-      δ(q, s) = (q', s', D). Sintaxis aceptada:
-    </p>
-    <pre><code>q, s -> q', s', D
-q0, a -> q1, X, R
-q1, b -> q2, Y, →
-q2, □ -> q_acc, □, S</code></pre>
     <table>
-      <tr><th>Desplazamiento</th><th>Aliases aceptados</th></tr>
-      <tr><td>Derecha (→)</td><td><code>→</code>, <code>R</code>, <code>r</code></td></tr>
-      <tr><td>Izquierda (←)</td><td><code>←</code>, <code>L</code>, <code>l</code></td></tr>
-      <tr><td>Estacionaria (−)</td><td><code>−</code>, <code>-</code>, <code>S</code>, <code>s</code></td></tr>
+      <thead>
+        <tr><th>Escribe</th><th>Lenguaje reconocido</th><th>Sección</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><button class="try" data-lang="regex (0|1)*01">regex (0|1)*01</button></td>
+          <td>cualquier lenguaje regular descrito por la regex
+              (lo no regular se rechaza)</td>
+          <td>§2.2 + Teor. 6.1.1</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^n">a^n b^n</button></td>
+          <td>{a<sup>n</sup>b<sup>n</sup> : n ≥ 0} (no regular, §3.1)</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^n c^n">a^n b^n c^n</button></td>
+          <td>{a<sup>n</sup>b<sup>n</sup>c<sup>n</sup> : n ≥ 0}
+              (ni siquiera LIC)</td>
+          <td>§6.2</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^n c^n d^n">a^n b^n c^n d^n</button></td>
+          <td>extensión a cuatro símbolos</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="#a = #b">#a = #b</button></td>
+          <td>cadenas en {a,b}* con igual número de a y de b</td>
+          <td>§6.2</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="#a = #b = #c">#a = #b = #c</button></td>
+          <td>extensión a tres símbolos {a,b,c}*</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="palindromo par">palindromo par</button></td>
+          <td>{w·w<sup>R</sup> : w ∈ {a,b}*} (palíndromos de longitud par)</td>
+          <td>§6.2</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="ww">ww</button></td>
+          <td>{w·w : w ∈ {a,b}*}</td>
+          <td>—</td>
+        </tr>
+      </tbody>
     </table>
-    <p>
-      Simbolos: usa <code>□</code> (o el alias <code>_</code>) para
-      referirte al simbolo blanco. Los espacios alrededor de las comas
-      y la flecha son opcionales. Lineas vacias y lineas que empiezan
-      con <code>#</code> se ignoran.
-    </p>
-    <p>
-      <strong>Restricciones de validacion (§6.1):</strong> F debe ser
-      no vacio; Σ ⊆ Γ; <code>□</code> NO debe aparecer en Γ ni en Σ;
-      no se permiten transiciones desde estados de F (la MT se detiene
-      al ingresar a ellos); δ es deterministica (cada par (q, s)
-      aparece a lo sumo una vez).
+    <p class="note">
+      Las potencias y la palabra vacía λ se admiten implícitamente
+      (n ≥ 0). Las construcciones siguen los algoritmos del §6.2 del
+      libro; los lenguajes regulares pasan por el Teorema 6.1.1
+      (AFD → MT) usando la pipeline regex → AFN-λ → AFD mínimo.
     </p>
   </div>
 </details>
 
-<section class="controls" style="background:#ddf4ff; border-color:#0969da;">
-  <h2 style="margin-top:0; font-size:1.1rem; color:#0969da;">
-    Construir una MT desde una expresion regular
-  </h2>
-  <p class="lead" style="font-size:.88rem; margin:.2rem 0 .7rem;">
-    Todo lenguaje regular es Turing-decidible (Teorema 6.1.1): a partir
-    del AFD que lo reconoce, se construye una MT estandar agregando un
-    nuevo estado de aceptacion al que se transita cuando se detecta el
-    primer simbolo blanco. Escribe una expresion regular y pulsa
-    <b>"Generar MT"</b>; la maquina aparecera abajo en el editor y en
-    el grafo, lista para simular.
-  </p>
-  <div class="row" style="grid-template-columns: 2.2fr 1fr auto;">
-    <div>
-      <label for="regex-input">Expresion regular</label>
-      <input id="regex-input" type="text" value="(0|1)*01"
-             placeholder="ej: (0|1)*01"
-             autocomplete="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <div>
-      <label for="regex-alpha">Alfabeto (opcional)</label>
-      <input id="regex-alpha" type="text" placeholder="auto"
-             autocomplete="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <div style="align-self:end;">
-      <button id="btn-regex" class="primary"
-              style="background:#0969da; border-color:#0969da; color:#fff;">
-        Generar MT
-      </button>
-    </div>
-  </div>
-  <div class="examples-row" style="margin-top:.6rem;">
-    <span style="align-self:center; font-size:.82rem; color:#57606a;">
-      Prueba:
-    </span>
-    <button data-regex="(0|1)*01"        data-alpha="">termina en 01</button>
-    <button data-regex="(0*10*1)*0*"     data-alpha="">paridad de 1s</button>
-    <button data-regex="0*(10*10*10*)*"  data-alpha="">#1s ≡ 0 (mod 3)</button>
-    <button data-regex="(ab)+"           data-alpha="ab">(ab)+</button>
-    <button data-regex="a*b*"            data-alpha="ab">a*b*</button>
-  </div>
-</section>
-
-<section class="controls">
-  <h2 style="margin-top:0; font-size:1.1rem;">
-    O edita la MT a mano
-  </h2>
-  <div class="examples-row">
-    <strong style="align-self:center;">Ejemplos:</strong>
-    <button data-example="empieza-con-a">empieza con 'a'</button>
-    <button data-example="a-estrella">a* (decide)</button>
-    <button data-example="igual-aes-bes">igual #a que #b (§6.2)</button>
-    <button data-example="anbncn">a^n b^n c^n (§6.2)</button>
-  </div>
-
-  <div class="row" style="margin-top:1rem;">
-    <div>
-      <label for="sigma">Alfabeto de entrada Σ</label>
-      <input id="sigma" type="text" placeholder="ej: a,b">
-    </div>
-    <div>
-      <label for="gamma">Alfabeto de cinta Γ (no incluye □)</label>
-      <input id="gamma" type="text" placeholder="ej: a,b,X,Y">
-    </div>
-    <div>
-      <label for="estados">Estados Q</label>
-      <input id="estados" type="text" placeholder="ej: q0,q1,q_acc">
-    </div>
-    <div>
-      <label for="q0">Estado inicial q0</label>
-      <input id="q0" type="text" placeholder="ej: q0">
-    </div>
-    <div>
-      <label for="f">Estados de aceptacion F</label>
-      <input id="f" type="text" placeholder="ej: q_acc">
-    </div>
-    <div>
-      <label for="nombre">Nombre (opcional)</label>
-      <input id="nombre" type="text" placeholder="mi MT">
-    </div>
-  </div>
-
-  <label for="transiciones">Transiciones δ (una por linea)</label>
-  <textarea id="transiciones" rows="6" placeholder="q0, a -> q_acc, a, S"></textarea>
-
-  <div class="row" style="margin-top:.8rem;">
-    <div>
-      <label for="entrada">Cadena de entrada (sobre Σ*)</label>
-      <input id="entrada" type="text" placeholder="ej: aabb">
-    </div>
-    <div>
-      <label for="max-pasos">Tope de pasos (anti bucle infinito)</label>
-      <input id="max-pasos" type="text" value="1000">
-    </div>
-  </div>
-
-  <div class="step-bar">
-    <button id="btn-build" class="primary">Construir MT</button>
-    <button id="btn-step">▶ Un paso</button>
-    <button id="btn-play">▶▶ Ejecutar</button>
-    <button id="btn-pause" disabled>⏸ Pausar</button>
-    <button id="btn-reset" class="danger">⏮ Reiniciar</button>
-    <span class="progress" id="progress"></span>
-  </div>
-</section>
-
 <div id="error" hidden></div>
 
-<section class="simulator">
-  <div>
-    <h2>Grafo de la MT</h2>
-    <p class="lead" style="font-size:.85rem;">
-      Cada arco va etiquetado <code>s | s' D</code> donde s es el
-      simbolo leido, s' el escrito y D el desplazamiento (§6.1). El
-      estado activo aparece resaltado.
-    </p>
-    <div class="svg-wrap" id="grafo"></div>
-  </div>
-
-  <div>
-    <h2>Estado actual</h2>
-    <dl class="status-card" id="status-card">
-      <dt>Estado</dt><dd id="st-estado">—</dd>
-      <dt>Lectura</dt><dd id="st-leido">—</dd>
-      <dt>Resultado</dt><dd id="st-resultado">—</dd>
-      <dt>Pasos</dt><dd id="st-pasos">0</dd>
-      <dt>Configuracion (§6.1)</dt><dd id="st-config">—</dd>
-    </dl>
-  </div>
-</section>
-
-<section>
-  <h2>Cinta y unidad de control</h2>
-  <p class="lead" style="font-size:.85rem;">
-    Cinta bidireccional. Las celdas con <code>□</code> en gris son
-    casillas en blanco (infinitas en ambos extremos). El cuadro azul
-    indica la posicion del cabezal.
-  </p>
-  <div class="tape-wrapper">
-    <div class="tape-container">
-      <div class="tape-cells" id="tape-cells"></div>
-      <div class="tape-head-marker" id="tape-head-marker"></div>
-    </div>
-  </div>
-</section>
+<h2 id="mt-title">Grafo de la MT</h2>
+<div class="mt-meta" id="mt-meta"></div>
+<div class="svg-wrap" id="grafo">
+  <div class="placeholder">Escribe un lenguaje arriba y pulsa “Generar MT”.</div>
+</div>
 
 <footer>
-  syntactic-monoid &middot; modelo MT segun §6.1 de De Castro &middot;
+  syntactic-monoid · modelo MT según §6.1 de De Castro ·
   renderizado con <a href="https://github.com/mdaines/viz-js" target="_blank" rel="noopener">viz.js</a>
-  &middot; sin servidor: todo corre en tu navegador
 </footer>
+
+</main>
 
 <script>
 "use strict";
 
-/* ==================================================================
- * 1. Modelo MT (portado de backend/models/mt.py, §6.1 De Castro)
- * ================================================================== */
+/* ====================================================================
+ * Modelo MT minimo (Q, q0, F, Σ, Γ, δ) segun §6.1 de De Castro.
+ * Solo lo que se necesita para construir y dibujar — no hay simulador.
+ * ==================================================================== */
 
 const BLANCO = "□";
 
-const Desplazamiento = Object.freeze({
-  DERECHA: "→", IZQUIERDA: "←", ESTACIONARIA: "−"
-});
-
-const ALIAS_DESPLAZAMIENTO = {
-  "→": Desplazamiento.DERECHA, "R": Desplazamiento.DERECHA, "r": Desplazamiento.DERECHA,
-  "←": Desplazamiento.IZQUIERDA, "L": Desplazamiento.IZQUIERDA, "l": Desplazamiento.IZQUIERDA,
-  "−": Desplazamiento.ESTACIONARIA, "-": Desplazamiento.ESTACIONARIA,
-  "S": Desplazamiento.ESTACIONARIA, "s": Desplazamiento.ESTACIONARIA
-};
-
-class CintaBidireccional {
-  constructor(entrada) {
-    this.blanco = BLANCO;
-    this.celdas = new Map();
-    for (let i = 0; i < entrada.length; i++) {
-      this.celdas.set(i, entrada[i]);
-    }
-    this.cabezal = 0;
-  }
-  leer() {
-    return this.celdas.has(this.cabezal) ? this.celdas.get(this.cabezal) : this.blanco;
-  }
-  escribir(simbolo) {
-    if (simbolo === this.blanco) this.celdas.delete(this.cabezal);
-    else this.celdas.set(this.cabezal, simbolo);
-  }
-  desplazar(d) {
-    if (d === Desplazamiento.DERECHA)  this.cabezal += 1;
-    else if (d === Desplazamiento.IZQUIERDA) this.cabezal -= 1;
-  }
-  configuracionInstantanea(estado) {
-    if (this.celdas.size === 0) return estado + this.blanco;
-    let izq = this.cabezal, der = this.cabezal;
-    for (const i of this.celdas.keys()) {
-      if (i < izq) izq = i;
-      if (i > der) der = i;
-    }
-    const partes = [];
-    for (let i = izq; i < this.cabezal; i++)
-      partes.push(this.celdas.has(i) ? this.celdas.get(i) : this.blanco);
-    partes.push(estado);
-    for (let i = this.cabezal; i <= der; i++)
-      partes.push(this.celdas.has(i) ? this.celdas.get(i) : this.blanco);
-    return partes.join("");
-  }
-  snapshot() {
-    if (this.celdas.size === 0) return { celdas: [this.blanco], izq: 0, cabezalRel: 0 };
-    let izq = this.cabezal, der = this.cabezal;
-    for (const i of this.celdas.keys()) {
-      if (i < izq) izq = i;
-      if (i > der) der = i;
-    }
-    // Padding visual: una casilla en blanco a cada extremo
-    izq -= 1; der += 1;
-    const celdas = [];
-    for (let i = izq; i <= der; i++)
-      celdas.push(this.celdas.has(i) ? this.celdas.get(i) : this.blanco);
-    return { celdas, izq, cabezalRel: this.cabezal - izq };
-  }
-  clone() {
-    const c = new CintaBidireccional("");
-    c.celdas = new Map(this.celdas);
-    c.cabezal = this.cabezal;
-    return c;
-  }
-}
-
-class MTValidationError extends Error {}
-
 class MT {
-  constructor({ estados, estado_inicial, estados_aceptacion,
-                alfabeto_entrada, alfabeto_cinta, transiciones, nombre }) {
+  constructor({ estados, q0, F, sigma, gamma, delta, nombre }) {
     this.estados = new Set(estados);
-    this.estado_inicial = estado_inicial;
-    this.estados_aceptacion = new Set(estados_aceptacion);
-    this.alfabeto_entrada = new Set(alfabeto_entrada);
-    this.alfabeto_cinta = new Set(alfabeto_cinta);
-    this.transiciones = transiciones.slice();
+    this.q0 = q0;
+    this.F = new Set(F);
+    this.sigma = new Set(sigma);
+    this.gamma = new Set(gamma);
+    this.delta = delta.slice();  // [{q, s, qp, sp, D}]
     this.nombre = nombre || "MT";
-
-    this._delta = new Map();   // key: `${q}|${s}` -> transicion
-    for (const t of this.transiciones) {
-      const k = `${t.desde}|${t.lee}`;
-      if (this._delta.has(k))
-        throw new MTValidationError(
-          `Transicion duplicada para δ(${t.desde}, ${t.lee}); δ debe ser deterministica.`);
-      this._delta.set(k, t);
-    }
-    this.validate();
+    this._validate();
   }
-
-  validate() {
+  _validate() {
     if (this.estados.size === 0)
-      throw new MTValidationError("Q (estados) no puede ser vacio.");
-    if (!this.estados.has(this.estado_inicial))
-      throw new MTValidationError(
-        `El estado inicial '${this.estado_inicial}' no pertenece a Q.`);
-    if (this.estados_aceptacion.size === 0)
-      throw new MTValidationError("F (estados de aceptacion) no puede ser vacio.");
-    for (const q of this.estados_aceptacion)
-      if (!this.estados.has(q))
-        throw new MTValidationError(`F debe estar contenido en Q; sobra: '${q}'.`);
-    if (this.alfabeto_cinta.has(BLANCO))
-      throw new MTValidationError(
-        `El simbolo blanco '${BLANCO}' es externo y NO debe pertenecer a Γ.`);
-    if (this.alfabeto_entrada.has(BLANCO))
-      throw new MTValidationError(
-        `El simbolo blanco '${BLANCO}' no debe pertenecer a Σ.`);
-    for (const a of this.alfabeto_entrada)
-      if (!this.alfabeto_cinta.has(a))
-        throw new MTValidationError(
-          `Σ debe estar contenido en Γ; falta '${a}' en Γ.`);
-    const gammaCaja = new Set([...this.alfabeto_cinta, BLANCO]);
-    for (const t of this.transiciones) {
-      if (!this.estados.has(t.desde))
-        throw new MTValidationError(`Estado de origen '${t.desde}' no pertenece a Q.`);
-      if (this.estados_aceptacion.has(t.desde))
-        throw new MTValidationError(
-          `No se permiten transiciones desde estados de aceptacion (§6.1): '${t.desde}'.`);
-      if (!this.estados.has(t.a))
-        throw new MTValidationError(`Estado destino '${t.a}' no pertenece a Q.`);
-      if (!gammaCaja.has(t.lee))
-        throw new MTValidationError(`Simbolo leido '${t.lee}' no pertenece a Γ□.`);
-      if (!gammaCaja.has(t.escribe))
-        throw new MTValidationError(`Simbolo escrito '${t.escribe}' no pertenece a Γ□.`);
+      throw new Error("Q no puede ser vacio.");
+    if (!this.estados.has(this.q0))
+      throw new Error(`q0='${this.q0}' no pertenece a Q.`);
+    if (this.F.size === 0)
+      throw new Error("F no puede ser vacio.");
+    for (const q of this.F)
+      if (!this.estados.has(q)) throw new Error(`F ⊆ Q falla: '${q}'`);
+    if (this.gamma.has(BLANCO))
+      throw new Error(`'${BLANCO}' es externo y no debe pertenecer a Γ.`);
+    if (this.sigma.has(BLANCO))
+      throw new Error(`'${BLANCO}' no debe pertenecer a Σ.`);
+    for (const a of this.sigma)
+      if (!this.gamma.has(a)) throw new Error(`Σ ⊆ Γ falla: '${a}'`);
+    const seen = new Set();
+    for (const t of this.delta) {
+      const key = `${t.q}|${t.s}`;
+      if (seen.has(key))
+        throw new Error(`δ duplicada: δ(${t.q}, ${t.s}).`);
+      seen.add(key);
+      if (this.F.has(t.q))
+        throw new Error(`No se permiten transiciones desde F: '${t.q}'.`);
     }
   }
-
-  buscarTransicion(estado, simbolo) {
-    return this._delta.get(`${estado}|${simbolo}`) || null;
-  }
 }
 
-/* ==================================================================
- * 2. Parseo del editor
- * ================================================================== */
+/* ====================================================================
+ * Generacion de DOT y render con viz.js
+ * ==================================================================== */
 
-function parseCommaList(s) {
-  return s.split(",").map(x => x.trim()).filter(x => x.length > 0);
-}
-
-function parseTransicion(linea, numLinea) {
-  // Formato:  q , s  ->  q' , s' , D
-  // alias de "->": "→"
-  let l = linea.trim();
-  if (l === "" || l.startsWith("#")) return null;
-  l = l.replace(/→/g, "->");
-  const partes = l.split("->");
-  if (partes.length !== 2)
-    throw new Error(`Linea ${numLinea}: falta '->' (o tiene mas de uno).`);
-  const izq = parseCommaList(partes[0]);
-  const der = parseCommaList(partes[1]);
-  if (izq.length !== 2)
-    throw new Error(`Linea ${numLinea}: lado izquierdo debe ser "q, s" (recibido: '${partes[0].trim()}').`);
-  if (der.length !== 3)
-    throw new Error(`Linea ${numLinea}: lado derecho debe ser "q', s', D" (recibido: '${partes[1].trim()}').`);
-  const [desde, lee] = izq;
-  const [a, escribe, dRaw] = der;
-  const d = ALIAS_DESPLAZAMIENTO[dRaw];
-  if (d === undefined)
-    throw new Error(`Linea ${numLinea}: desplazamiento '${dRaw}' desconocido. Usa →/←/− o R/L/S.`);
-  return { desde, lee: lee === "_" ? BLANCO : lee, a, escribe: escribe === "_" ? BLANCO : escribe, desplazamiento: d };
-}
-
-function construirMTDesdeFormulario() {
-  const sigma  = parseCommaList(document.getElementById("sigma").value);
-  const gamma  = parseCommaList(document.getElementById("gamma").value);
-  const Q      = parseCommaList(document.getElementById("estados").value);
-  const q0     = document.getElementById("q0").value.trim();
-  const F      = parseCommaList(document.getElementById("f").value);
-  const nombre = document.getElementById("nombre").value.trim() || "MT";
-  const texto  = document.getElementById("transiciones").value;
-  const transiciones = [];
-  texto.split("\n").forEach((linea, i) => {
-    const t = parseTransicion(linea, i + 1);
-    if (t !== null) transiciones.push(t);
-  });
-  return new MT({
-    estados: Q,
-    estado_inicial: q0,
-    estados_aceptacion: F,
-    alfabeto_entrada: sigma,
-    alfabeto_cinta: gamma,
-    transiciones,
-    nombre
-  });
-}
-
-/* ==================================================================
- * 3. Simulacion paso a paso
- * ================================================================== */
-
-const ResultadoMT = Object.freeze({
-  EJECUTANDO: "ejecutando", ACEPTACION: "aceptacion",
-  ABORTADO: "abortado", BUCLE: "bucle"
-});
-
-class Simulacion {
-  constructor(mt, entrada) {
-    for (const c of entrada)
-      if (!mt.alfabeto_entrada.has(c))
-        throw new Error(`Simbolo '${c}' no pertenece a Σ.`);
-    this.mt = mt;
-    this.cinta = new CintaBidireccional(entrada);
-    this.estado = mt.estado_inicial;
-    this.pasos = 0;
-    this.resultado = mt.estados_aceptacion.has(this.estado)
-      ? ResultadoMT.ACEPTACION : ResultadoMT.EJECUTANDO;
-    this.ultimaTransicion = null;
-  }
-  paso() {
-    if (this.resultado !== ResultadoMT.EJECUTANDO) return false;
-    const leido = this.cinta.leer();
-    const t = this.mt.buscarTransicion(this.estado, leido);
-    if (t === null) {
-      this.resultado = ResultadoMT.ABORTADO;
-      this.ultimaTransicion = null;
-      return false;
-    }
-    this.ultimaTransicion = t;
-    this.cinta.escribir(t.escribe);
-    this.cinta.desplazar(t.desplazamiento);
-    this.estado = t.a;
-    this.pasos += 1;
-    if (this.mt.estados_aceptacion.has(this.estado))
-      this.resultado = ResultadoMT.ACEPTACION;
-    return true;
-  }
-}
-
-/* ==================================================================
- * 4. Renderizado: grafo (Graphviz) y cinta
- * ================================================================== */
-
-function dotEscape(s) {
-  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-function mtToDot(mt, estadoActivo) {
-  const lines = ["digraph MT {", "  rankdir=LR;", "  bgcolor=transparent;",
-    `  node [fontname="Inter,Arial,sans-serif" fontsize=11];`,
-    `  edge [fontname="ui-monospace,Menlo,monospace" fontsize=10];`,
-    `  __start__ [shape=plaintext label=""];`];
+function dotQ(s) { return '"' + String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"') + '"'; }
+function mtToDot(mt) {
+  const lines = ["digraph MT {", "  rankdir=LR; bgcolor=transparent;",
+    "  node [fontname=\"Inter,Arial,sans-serif\" fontsize=11];",
+    "  edge [fontname=\"ui-monospace,Menlo,monospace\" fontsize=10];",
+    "  __start__ [shape=plaintext label=\"\"];"];
   const sorted = [...mt.estados].sort();
   for (const q of sorted) {
-    const shape = mt.estados_aceptacion.has(q) ? "doublecircle" : "circle";
-    const fill  = q === estadoActivo ? `, style=filled, fillcolor="#ffe5d4", color="#cf222e"` : "";
-    lines.push(`  "${dotEscape(q)}" [shape=${shape}${fill}];`);
+    const shape = mt.F.has(q) ? "doublecircle" : "circle";
+    lines.push(`  ${dotQ(q)} [shape=${shape}];`);
   }
-  lines.push(`  __start__ -> "${dotEscape(mt.estado_inicial)}";`);
-  // Agregar etiquetas multiples como una sola arista
-  const arcos = new Map();
-  for (const t of mt.transiciones) {
-    const key = `${t.desde}${t.a}`;
-    const label = `${t.lee} | ${t.escribe} ${t.desplazamiento}`;
-    if (!arcos.has(key)) arcos.set(key, { from: t.desde, to: t.a, labels: [] });
-    arcos.get(key).labels.push(label);
+  lines.push(`  __start__ -> ${dotQ(mt.q0)};`);
+  const arcs = new Map();
+  for (const t of mt.delta) {
+    const k = `${t.q}|${t.qp}`;
+    const lbl = `${t.s} | ${t.sp} ${t.D}`;
+    if (!arcs.has(k)) arcs.set(k, { from: t.q, to: t.qp, labels: [] });
+    arcs.get(k).labels.push(lbl);
   }
-  for (const { from, to, labels } of arcos.values()) {
-    const lbl = labels.join("\\n");
-    lines.push(`  "${dotEscape(from)}" -> "${dotEscape(to)}" [label="${dotEscape(lbl)}"];`);
+  for (const { from, to, labels } of arcs.values()) {
+    lines.push(`  ${dotQ(from)} -> ${dotQ(to)} [label=${dotQ(labels.join("\\n"))}];`);
   }
   lines.push("}");
   return lines.join("\n");
 }
 
-let vizInstance = null;
+let vizP = null;
 async function getViz() {
-  if (vizInstance) return vizInstance;
-  vizInstance = await window.Viz.instance();
-  return vizInstance;
+  if (!vizP) vizP = window.Viz.instance();
+  return vizP;
 }
 
-async function dibujarGrafo(mt, estadoActivo) {
-  const dot = mtToDot(mt, estadoActivo);
+async function dibujar(mt) {
+  document.getElementById("mt-title").textContent =
+    `Grafo de la MT — ${mt.nombre}`;
+  document.getElementById("mt-meta").textContent =
+    `Q = {${[...mt.estados].sort().join(", ")}}` +
+    `   |   q0 = ${mt.q0}   |   F = {${[...mt.F].sort().join(", ")}}` +
+    `   |   Σ = {${[...mt.sigma].sort().join(", ")}}` +
+    `   |   Γ = {${[...mt.gamma].sort().join(", ")}}`;
   const cont = document.getElementById("grafo");
   try {
     const viz = await getViz();
     cont.innerHTML = "";
-    cont.appendChild(viz.renderSVGElement(dot));
+    cont.appendChild(viz.renderSVGElement(mtToDot(mt)));
   } catch (e) {
-    cont.textContent = "[viz.js no cargado; cadena DOT:]\n" + dot;
+    cont.innerHTML = `<pre style="text-align:left">${mtToDot(mt)}</pre>`;
   }
 }
 
-function dibujarCinta(cinta) {
-  const { celdas, izq, cabezalRel } = cinta.snapshot();
-  const cont   = document.getElementById("tape-cells");
-  const marker = document.getElementById("tape-head-marker");
-  cont.innerHTML = "";
-  marker.innerHTML = "";
-  celdas.forEach((c, i) => {
-    const cell = document.createElement("div");
-    cell.className = "tape-cell" + (i === cabezalRel ? " head" : "") +
-                     (c === BLANCO ? " blank" : "");
-    cell.textContent = c;
-    cont.appendChild(cell);
-
-    const slot = document.createElement("div");
-    slot.className = "slot";
-    slot.textContent = (i === cabezalRel) ? "▲" : "";
-    marker.appendChild(slot);
-  });
-}
-
-function actualizarStatus(sim) {
-  document.getElementById("st-estado").textContent = sim.estado;
-  document.getElementById("st-leido").textContent  = sim.cinta.leer();
-  const badgeText = {
-    [ResultadoMT.EJECUTANDO]: "ejecutando",
-    [ResultadoMT.ACEPTACION]: "aceptacion",
-    [ResultadoMT.ABORTADO]:   "procesamiento abortado",
-    [ResultadoMT.BUCLE]:      "limite de pasos excedido"
-  }[sim.resultado];
-  const cls = {
-    [ResultadoMT.EJECUTANDO]: "badge ejecutando",
-    [ResultadoMT.ACEPTACION]: "badge aceptacion",
-    [ResultadoMT.ABORTADO]:   "badge abortado",
-    [ResultadoMT.BUCLE]:      "badge bucle"
-  }[sim.resultado];
-  const span = document.createElement("span");
-  span.className = cls; span.textContent = badgeText;
-  const dd = document.getElementById("st-resultado");
-  dd.innerHTML = ""; dd.appendChild(span);
-  document.getElementById("st-pasos").textContent = sim.pasos;
-  document.getElementById("st-config").textContent = sim.cinta.configuracionInstantanea(sim.estado);
-}
-
-function mostrarError(msg) {
+function err(msg) {
   const e = document.getElementById("error");
   if (msg === null) { e.hidden = true; e.textContent = ""; return; }
   e.hidden = false; e.textContent = msg;
 }
 
-/* ==================================================================
- * 5. Ejemplos pre-cargados (del libro §6.2 y otros sencillos)
- * ================================================================== */
+/* ====================================================================
+ * Constructores de MT (uno por patron del DSL)
+ * ==================================================================== */
 
-const EJEMPLOS = {
-  "empieza-con-a": {
-    nombre: "Empieza con a",
-    sigma: "a,b",
-    gamma: "a,b",
-    estados: "q0,q_acc",
-    q0: "q0",
-    f: "q_acc",
-    transiciones: "q0, a -> q_acc, a, S",
-    entrada: "ab"
-  },
-  "a-estrella": {
-    nombre: "Decide a* (n>=0)",
-    sigma: "a",
-    gamma: "a",
-    estados: "q0,q_acc",
-    q0: "q0",
-    f: "q_acc",
-    transiciones: "q0, a -> q0, a, R\nq0, _ -> q_acc, _, S",
-    entrada: "aaa"
-  },
-  "igual-aes-bes": {
-    // §6.2: MT que acepta {u : #a(u) = #b(u)}.
-    // Algoritmo: marca una a con A y busca una b para emparejar con B, y viceversa.
-    nombre: "Igual #a que #b (§6.2)",
-    sigma: "a,b",
-    gamma: "a,b,A,B",
-    estados: "q0,q1,q2,q3,q4,q5",
-    q0: "q0",
-    f: "q5",
-    transiciones: [
-      "# Rama: primera a -> A, buscar b a la derecha",
-      "q0, a -> q1, A, R",
-      "q1, a -> q1, a, R",
-      "q1, B -> q1, B, R",
-      "q1, b -> q2, B, L",
-      "q2, a -> q2, a, L",
-      "q2, B -> q2, B, L",
-      "q2, A -> q0, A, R",
-      "# Rama: primera b -> B, buscar a a la derecha",
-      "q0, b -> q3, B, R",
-      "q3, b -> q3, b, R",
-      "q3, A -> q3, A, R",
-      "q3, a -> q4, A, L",
-      "q4, b -> q4, b, L",
-      "q4, A -> q4, A, L",
-      "q4, B -> q0, B, R",
-      "# Fin: solo mayusculas; ir a aceptacion",
-      "q0, A -> q0, A, R",
-      "q0, B -> q0, B, R",
-      "q0, _ -> q5, _, S"
-    ].join("\n"),
-    entrada: "abab"
-  },
-  "anbncn": {
-    // §6.2: MT que decide {a^n b^n c^n : n >= 0}.
-    nombre: "a^n b^n c^n (§6.2)",
-    sigma: "a,b,c",
-    gamma: "a,b,c,X,Y,Z",
-    estados: "q0,q1,q2,q3,q4,q5",
-    q0: "q0",
-    f: "q5",
-    transiciones: [
-      "# Sustituye a por X, busca primera b -> Y, busca primera c -> Z",
-      "q0, a -> q1, X, R",
-      "q1, a -> q1, a, R",
-      "q1, Y -> q1, Y, R",
-      "q1, b -> q2, Y, R",
-      "q2, b -> q2, b, R",
-      "q2, Z -> q2, Z, R",
-      "q2, c -> q3, Z, L",
-      "# Regresa a la primera X y avanza",
-      "q3, b -> q3, b, L",
-      "q3, a -> q3, a, L",
-      "q3, Y -> q3, Y, L",
-      "q3, Z -> q3, Z, L",
-      "q3, X -> q0, X, R",
-      "# Final: verifica que solo quedan Y y Z, y luego □",
-      "q0, Y -> q4, Y, R",
-      "q4, Y -> q4, Y, R",
-      "q4, Z -> q4, Z, R",
-      "q4, _ -> q5, _, S",
-      "# Caso n=0 (entrada vacia): aceptar inmediatamente",
-      "q0, _ -> q5, _, S"
-    ].join("\n"),
-    entrada: "aabbcc"
-  }
-};
+const D_R = "→", D_L = "←", D_S = "−";
 
-function cargarEjemplo(nombre) {
-  const e = EJEMPLOS[nombre];
-  if (!e) return;
-  document.getElementById("sigma").value = e.sigma;
-  document.getElementById("gamma").value = e.gamma;
-  document.getElementById("estados").value = e.estados;
-  document.getElementById("q0").value = e.q0;
-  document.getElementById("f").value = e.f;
-  document.getElementById("nombre").value = e.nombre;
-  document.getElementById("transiciones").value = e.transiciones;
-  document.getElementById("entrada").value = e.entrada;
-  construirYReiniciar();
-}
-
-/* ==================================================================
- * 6. Estado global + controles
- * ================================================================== */
-
-let mtActual = null;
-let simulacion = null;
-let timerId = null;
-
-function construirYReiniciar() {
-  mostrarError(null);
-  try {
-    mtActual = construirMTDesdeFormulario();
-  } catch (e) {
-    mostrarError(e.message);
-    document.getElementById("grafo").innerHTML = "";
-    return;
-  }
-  reiniciarSimulacion();
-}
-
-function reiniciarSimulacion() {
-  if (!mtActual) return;
-  if (timerId !== null) { clearInterval(timerId); timerId = null; }
-  document.getElementById("btn-play").disabled = false;
-  document.getElementById("btn-pause").disabled = true;
-
-  const entrada = document.getElementById("entrada").value;
-  try {
-    simulacion = new Simulacion(mtActual, entrada);
-  } catch (e) {
-    mostrarError(e.message);
-    return;
-  }
-  actualizarUI();
-}
-
-async function actualizarUI() {
-  if (!simulacion) return;
-  await dibujarGrafo(mtActual, simulacion.estado);
-  dibujarCinta(simulacion.cinta);
-  actualizarStatus(simulacion);
-  const max = parseInt(document.getElementById("max-pasos").value, 10) || 1000;
-  document.getElementById("progress").textContent =
-    `Resultado: ${simulacion.resultado} · pasos ${simulacion.pasos}/${max}`;
-}
-
-function unPaso() {
-  if (!simulacion) return;
-  if (simulacion.resultado !== ResultadoMT.EJECUTANDO) { actualizarUI(); return; }
-  simulacion.paso();
-  const max = parseInt(document.getElementById("max-pasos").value, 10) || 1000;
-  if (simulacion.pasos >= max && simulacion.resultado === ResultadoMT.EJECUTANDO)
-    simulacion.resultado = ResultadoMT.BUCLE;
-  actualizarUI();
-}
-
-function ejecutar() {
-  if (!simulacion) return;
-  const max = parseInt(document.getElementById("max-pasos").value, 10) || 1000;
-  document.getElementById("btn-play").disabled = true;
-  document.getElementById("btn-pause").disabled = false;
-  if (timerId !== null) clearInterval(timerId);
-  timerId = setInterval(() => {
-    if (simulacion.resultado !== ResultadoMT.EJECUTANDO || simulacion.pasos >= max) {
-      if (simulacion.resultado === ResultadoMT.EJECUTANDO) simulacion.resultado = ResultadoMT.BUCLE;
-      clearInterval(timerId); timerId = null;
-      document.getElementById("btn-play").disabled = false;
-      document.getElementById("btn-pause").disabled = true;
-      actualizarUI();
-      return;
-    }
-    simulacion.paso();
-    actualizarUI();
-  }, 200);
-}
-
-function pausar() {
-  if (timerId !== null) { clearInterval(timerId); timerId = null; }
-  document.getElementById("btn-play").disabled = false;
-  document.getElementById("btn-pause").disabled = true;
-}
-
-/* ==================================================================
- * 7. Conversion regex → AFD → MT (Teorema 6.1.1 de De Castro)
- *
- * Sea M = (Σ, Q, q0, F, δ) un AFD. Se construye una MT estandar
- *   M' = (Q', q0, F', Σ, Γ, δ')  con
- *     Q' = Q ∪ {q_acc} (q_acc es nuevo),
- *     F' = {q_acc},
- *     Γ  = Σ,
- *     δ'(q, s) = (δ(q, s), s, →)   para q ∈ Q, s ∈ Σ,
- *     δ'(q, □) = (q_acc, □, −)     para q ∈ F.
- * M' lee la entrada de izquierda a derecha igual que M y, al detectar
- * el primer blanco, transita al unico estado de aceptacion sii la
- * unidad de control estaba en F (esto es: u ∈ L(M)).
- * ================================================================== */
-
-function nombreSeguro(s) {
-  // Para los estados del AFD minimo que ya vienen como q0, q1, ... esta
-  // es la identidad. Si llegaran con caracteres raros, se sanitiza.
-  return String(s).replace(/[^A-Za-z0-9_]/g, "_");
-}
-
-function afdToFormulario(afd) {
-  // Convierte el AFD minimo a una MT segun §6.1.1 y rellena el editor.
-  const Q = [...afd.states].map(nombreSeguro);
+function mtRegex(pattern) {
+  /* Teorema 6.1.1 — todo lenguaje regular es Turing-decidible:
+     se construye el AFD minimo, luego se le anade un estado q_acc
+     al que se transita desde los q ∈ F al detectar el blanco. */
+  const afd = regexToAfdMin(pattern, null);
   const sigma = [...afd.alphabet].sort();
-
-  // Elegir un nombre nuevo para q_acc que no choque con Q
-  let qAcc = "q_acc";
-  let i = 0;
-  while (Q.includes(qAcc)) { qAcc = `q_acc${++i}`; }
-
-  // Construir las transiciones en el formato del editor (q, s -> q', s', D)
-  const lineas = [
-    "# MT generada automaticamente desde el AFD minimo (Teorema 6.1.1)",
-    "# Cada paso: lee, reescribe el mismo simbolo y desplaza a la derecha",
-  ];
-  for (const q of [...afd.states].sort()) {
-    for (const s of sigma) {
-      const dest = afd.trans.get(q).get(s);
-      lineas.push(`${nombreSeguro(q)}, ${s} -> ${nombreSeguro(dest)}, ${s}, R`);
-    }
+  const Q = [...afd.states];
+  let qAcc = "q_acc", i = 0;
+  while (Q.includes(qAcc)) qAcc = `q_acc${++i}`;
+  const delta = [];
+  for (const q of Q) for (const s of sigma) {
+    delta.push({ q, s, qp: afd.trans.get(q).get(s), sp: s, D: D_R });
   }
-  lineas.push("# Al encontrar el blanco, aceptar sii estamos en F");
-  for (const q of [...afd.accepting].sort()) {
-    lineas.push(`${nombreSeguro(q)}, _ -> ${qAcc}, _, S`);
-  }
-
-  document.getElementById("sigma").value = sigma.join(",");
-  document.getElementById("gamma").value = sigma.join(",");
-  document.getElementById("estados").value = [...Q, qAcc].join(",");
-  document.getElementById("q0").value = nombreSeguro(afd.start);
-  document.getElementById("f").value = qAcc;
-  document.getElementById("nombre").value =
-    `MT desde regex (Teor. 6.1.1)`;
-  document.getElementById("transiciones").value = lineas.join("\n");
-  // Sugerencia de entrada: la primera palabra que se nos ocurra
-  if (!document.getElementById("entrada").value)
-    document.getElementById("entrada").value = "";
+  for (const q of afd.accepting)
+    delta.push({ q, s: BLANCO, qp: qAcc, sp: BLANCO, D: D_S });
+  return new MT({
+    estados: [...Q, qAcc], q0: afd.start, F: [qAcc],
+    sigma, gamma: sigma, delta,
+    nombre: `regex ${pattern}  (Teor. 6.1.1)`,
+  });
 }
 
-function generarMTdesdeRegex() {
-  mostrarError(null);
-  const pattern = document.getElementById("regex-input").value;
-  const alphaStr = document.getElementById("regex-alpha").value.trim();
-  let alphaInput = null;
-  if (alphaStr) {
-    // Aceptar "01", "0,1", "0 1", etc.
-    const tokens = alphaStr.includes(",")
-      ? alphaStr.split(",").map(t => t.trim()).filter(Boolean)
-      : alphaStr.split("").filter(c => c !== " ");
-    alphaInput = new Set(tokens);
+function mtAnBn() {
+  /* {a^n b^n : n ≥ 0}. Algoritmo: marcar 'a' como X, buscar primera 'b'
+     y marcarla Y; regresar y repetir. Al agotarse las 'a', verificar
+     que solo queden Y y luego □. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4"], q0: "q0", F: ["q4"],
+    sigma: ["a","b"], gamma: ["a","b","X","Y"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q0", s:BLANCO, qp:"q4", sp:BLANCO, D:D_S },
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"Y", qp:"q1", sp:"Y", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"a", qp:"q2", sp:"a", D:D_L },
+      { q:"q2", s:"Y", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"X", qp:"q0", sp:"X", D:D_R },
+      { q:"q3", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q3", s:BLANCO, qp:"q4", sp:BLANCO, D:D_S },
+    ],
+    nombre: "a^n b^n",
+  });
+}
+
+function mtAnBnCn() {
+  /* §6.2 del libro: ciclo "a→X, b→Y, c→Z" repetido. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4","q5"], q0: "q0", F: ["q5"],
+    sigma: ["a","b","c"], gamma: ["a","b","c","X","Y","Z"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:"Y", qp:"q4", sp:"Y", D:D_R },
+      { q:"q0", s:BLANCO, qp:"q5", sp:BLANCO, D:D_S },
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"Y", qp:"q1", sp:"Y", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"Y", D:D_R },
+      { q:"q2", s:"b", qp:"q2", sp:"b", D:D_R },
+      { q:"q2", s:"Z", qp:"q2", sp:"Z", D:D_R },
+      { q:"q2", s:"c", qp:"q3", sp:"Z", D:D_L },
+      { q:"q3", s:"b", qp:"q3", sp:"b", D:D_L },
+      { q:"q3", s:"a", qp:"q3", sp:"a", D:D_L },
+      { q:"q3", s:"Y", qp:"q3", sp:"Y", D:D_L },
+      { q:"q3", s:"Z", qp:"q3", sp:"Z", D:D_L },
+      { q:"q3", s:"X", qp:"q0", sp:"X", D:D_R },
+      { q:"q4", s:"Y", qp:"q4", sp:"Y", D:D_R },
+      { q:"q4", s:"Z", qp:"q4", sp:"Z", D:D_R },
+      { q:"q4", s:BLANCO, qp:"q5", sp:BLANCO, D:D_S },
+    ],
+    nombre: "a^n b^n c^n   (§6.2)",
+  });
+}
+
+function mtAnBnCnDn() {
+  /* Extension a 4 simbolos: marcar a→W, b→X, c→Y, d→Z. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4","q5","q6"], q0:"q0", F:["q6"],
+    sigma: ["a","b","c","d"], gamma: ["a","b","c","d","W","X","Y","Z"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"W", D:D_R },
+      { q:"q0", s:"X", qp:"q5", sp:"X", D:D_R },
+      { q:"q0", s:BLANCO, qp:"q6", sp:BLANCO, D:D_S },
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"X", qp:"q1", sp:"X", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"X", D:D_R },
+      { q:"q2", s:"b", qp:"q2", sp:"b", D:D_R },
+      { q:"q2", s:"Y", qp:"q2", sp:"Y", D:D_R },
+      { q:"q2", s:"c", qp:"q3", sp:"Y", D:D_R },
+      { q:"q3", s:"c", qp:"q3", sp:"c", D:D_R },
+      { q:"q3", s:"Z", qp:"q3", sp:"Z", D:D_R },
+      { q:"q3", s:"d", qp:"q4", sp:"Z", D:D_L },
+      { q:"q4", s:"c", qp:"q4", sp:"c", D:D_L },
+      { q:"q4", s:"b", qp:"q4", sp:"b", D:D_L },
+      { q:"q4", s:"a", qp:"q4", sp:"a", D:D_L },
+      { q:"q4", s:"X", qp:"q4", sp:"X", D:D_L },
+      { q:"q4", s:"Y", qp:"q4", sp:"Y", D:D_L },
+      { q:"q4", s:"Z", qp:"q4", sp:"Z", D:D_L },
+      { q:"q4", s:"W", qp:"q0", sp:"W", D:D_R },
+      { q:"q5", s:"X", qp:"q5", sp:"X", D:D_R },
+      { q:"q5", s:"Y", qp:"q5", sp:"Y", D:D_R },
+      { q:"q5", s:"Z", qp:"q5", sp:"Z", D:D_R },
+      { q:"q5", s:BLANCO, qp:"q6", sp:BLANCO, D:D_S },
+    ],
+    nombre: "a^n b^n c^n d^n",
+  });
+}
+
+function mtIgualAB() {
+  /* §6.2: {w ∈ {a,b}* : #a(w) = #b(w)}.
+     Marca primera 'a' como A, busca una 'b' y la marca B; o al reves.
+     Acepta cuando solo quedan A/B y blanco. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4","q5"], q0:"q0", F:["q5"],
+    sigma: ["a","b"], gamma: ["a","b","A","B"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"A", D:D_R },
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"B", qp:"q1", sp:"B", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"B", D:D_L },
+      { q:"q2", s:"a", qp:"q2", sp:"a", D:D_L },
+      { q:"q2", s:"B", qp:"q2", sp:"B", D:D_L },
+      { q:"q2", s:"A", qp:"q0", sp:"A", D:D_R },
+      { q:"q0", s:"b", qp:"q3", sp:"B", D:D_R },
+      { q:"q3", s:"b", qp:"q3", sp:"b", D:D_R },
+      { q:"q3", s:"A", qp:"q3", sp:"A", D:D_R },
+      { q:"q3", s:"a", qp:"q4", sp:"A", D:D_L },
+      { q:"q4", s:"b", qp:"q4", sp:"b", D:D_L },
+      { q:"q4", s:"A", qp:"q4", sp:"A", D:D_L },
+      { q:"q4", s:"B", qp:"q0", sp:"B", D:D_R },
+      { q:"q0", s:"A", qp:"q0", sp:"A", D:D_R },
+      { q:"q0", s:"B", qp:"q0", sp:"B", D:D_R },
+      { q:"q0", s:BLANCO, qp:"q5", sp:BLANCO, D:D_S },
+    ],
+    nombre: "#a = #b   (§6.2)",
+  });
+}
+
+function mtIgualABC() {
+  /* Extension: {w ∈ {a,b,c}* : #a(w) = #b(w) = #c(w)}.
+     Cada ciclo busca una a, una b y una c, las marca A,B,C y vuelve. */
+  const D = [];
+  // q0 inicia un ciclo (necesita una a, b, c sin marcar)
+  // En cada ciclo: buscar a -> A, b -> B, c -> C, repetir.
+  D.push({ q:"q0", s:"a", qp:"q1", sp:"A", D:D_R });
+  // q1: buscar primera b sin marcar
+  for (const s of ["a","b","c","A","B","C"]) {
+    if (s === "b") D.push({ q:"q1", s, qp:"q2", sp:"B", D:D_R });
+    else D.push({ q:"q1", s, qp:"q1", sp:s, D:D_R });
   }
-  let afd;
+  // q2: buscar primera c sin marcar
+  for (const s of ["a","b","c","A","B","C"]) {
+    if (s === "c") D.push({ q:"q2", s, qp:"q3", sp:"C", D:D_L });
+    else D.push({ q:"q2", s, qp:"q2", sp:s, D:D_R });
+  }
+  // q3: regresar a la primera A; volver a q0
+  for (const s of ["a","b","c","B","C"])
+    D.push({ q:"q3", s, qp:"q3", sp:s, D:D_L });
+  D.push({ q:"q3", s:"A", qp:"q0", sp:"A", D:D_R });
+  // Aceptacion: q0 solo ve marcados o blanco
+  for (const s of ["A","B","C"])
+    D.push({ q:"q0", s, qp:"q0", sp:s, D:D_R });
+  D.push({ q:"q0", s:BLANCO, qp:"q4", sp:BLANCO, D:D_S });
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4"], q0:"q0", F:["q4"],
+    sigma: ["a","b","c"], gamma: ["a","b","c","A","B","C"],
+    delta: D,
+    nombre: "#a = #b = #c",
+  });
+}
+
+function mtPalindromoPar() {
+  /* §6.2: {w·w^R : w ∈ {a,b}*}. Compara extremos simetricos
+     borrandolos; acepta solo si se vacia (longitud par). */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4","q5","q6"], q0:"q0", F:["q6"],
+    sigma: ["a","b"], gamma: ["a","b"],
+    delta: [
+      // Estado inicial: longitud 0 -> aceptar; o leer extremo izquierdo
+      { q:"q0", s:BLANCO, qp:"q6", sp:BLANCO, D:D_S },
+      { q:"q0", s:"a", qp:"q1", sp:BLANCO, D:D_R },
+      { q:"q0", s:"b", qp:"q3", sp:BLANCO, D:D_R },
+      // q1: leimos 'a' a la izquierda; avanzar hasta el blanco derecho
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"b", qp:"q1", sp:"b", D:D_R },
+      { q:"q1", s:BLANCO, qp:"q2", sp:BLANCO, D:D_L },
+      // q2: extremo derecho debe ser 'a'
+      { q:"q2", s:"a", qp:"q5", sp:BLANCO, D:D_L },
+      // q3: leimos 'b' a la izquierda; avanzar hasta el blanco derecho
+      { q:"q3", s:"a", qp:"q3", sp:"a", D:D_R },
+      { q:"q3", s:"b", qp:"q3", sp:"b", D:D_R },
+      { q:"q3", s:BLANCO, qp:"q4", sp:BLANCO, D:D_L },
+      // q4: extremo derecho debe ser 'b'
+      { q:"q4", s:"b", qp:"q5", sp:BLANCO, D:D_L },
+      // q5: regresar al blanco izquierdo
+      { q:"q5", s:"a", qp:"q5", sp:"a", D:D_L },
+      { q:"q5", s:"b", qp:"q5", sp:"b", D:D_L },
+      { q:"q5", s:BLANCO, qp:"q0", sp:BLANCO, D:D_R },
+    ],
+    nombre: "palindromo par   (§6.2)",
+  });
+}
+
+function mtWW() {
+  /* {w·w : w ∈ {a,b}*}. Tecnica: marcar cada simbolo a la izquierda,
+     buscar su 'pareja' a la derecha en la posicion correspondiente.
+     Implementacion sencilla: copiamos primero la mitad derecha sobre
+     una zona auxiliar y comparamos.
+
+     Por simplicidad y para mantener el grafo legible, esta version
+     usa dos pasadas: (1) detectar la longitud poniendo un marcador
+     central, (2) comparar simbolo a simbolo.
+
+     Nota: el caso longitud impar nunca se acepta.
+  */
+  return new MT({
+    estados: ["q0","q1","q2","q3","q4","q5","q6","q7","q8","q9"], q0:"q0", F:["q9"],
+    sigma: ["a","b"], gamma: ["a","b","A","B","#"],
+    delta: [
+      // (0) caso vacio: w = λ -> aceptar
+      { q:"q0", s:BLANCO, qp:"q9", sp:BLANCO, D:D_S },
+      // Paso 1: marcar primera mitad simbolo a simbolo
+      { q:"q0", s:"a", qp:"q1", sp:"A", D:D_R },
+      { q:"q0", s:"b", qp:"q1", sp:"B", D:D_R },
+      // q1: ir al final
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"b", qp:"q1", sp:"b", D:D_R },
+      { q:"q1", s:"#", qp:"q1", sp:"#", D:D_R },
+      { q:"q1", s:BLANCO, qp:"q2", sp:BLANCO, D:D_L },
+      // q2: marcar ultima posicion como # (si no existe ya un #)
+      { q:"q2", s:"a", qp:"q3", sp:"#", D:D_L },
+      { q:"q2", s:"b", qp:"q3", sp:"#", D:D_L },
+      // q3: volver al principio
+      { q:"q3", s:"a", qp:"q3", sp:"a", D:D_L },
+      { q:"q3", s:"b", qp:"q3", sp:"b", D:D_L },
+      { q:"q3", s:"#", qp:"q3", sp:"#", D:D_L },
+      { q:"q3", s:"A", qp:"q0", sp:"A", D:D_R },
+      { q:"q3", s:"B", qp:"q0", sp:"B", D:D_R },
+      // q0 cuando vea # justo despues del ultimo marcador: pasamos a fase 2
+      { q:"q0", s:"#", qp:"q4", sp:"#", D:D_L },
+      // q4: ir al primer A/B sin emparejar (justo a la izquierda)
+      { q:"q4", s:"A", qp:"q5", sp:"a", D:D_R },
+      { q:"q4", s:"B", qp:"q7", sp:"b", D:D_R },
+      // q5: marcaba 'a' en mitad izq; busca primera 'a' en mitad der (despues de #)
+      { q:"q5", s:"#", qp:"q5", sp:"#", D:D_R },
+      { q:"q5", s:"a", qp:"q6", sp:"#", D:D_L },
+      // q7: idem con 'b'
+      { q:"q7", s:"#", qp:"q7", sp:"#", D:D_R },
+      { q:"q7", s:"b", qp:"q6", sp:"#", D:D_L },
+      // q6: regresar al # central por la izquierda
+      { q:"q6", s:"a", qp:"q6", sp:"a", D:D_L },
+      { q:"q6", s:"b", qp:"q6", sp:"b", D:D_L },
+      { q:"q6", s:"#", qp:"q8", sp:"#", D:D_L },
+      // q8: buscar el siguiente marcador a la izquierda
+      { q:"q8", s:"a", qp:"q8", sp:"a", D:D_L },
+      { q:"q8", s:"b", qp:"q8", sp:"b", D:D_L },
+      { q:"q8", s:"A", qp:"q4", sp:"a", D:D_R },
+      { q:"q8", s:"B", qp:"q4", sp:"b", D:D_R },
+      { q:"q8", s:BLANCO, qp:"q4", sp:BLANCO, D:D_R },
+      // Aceptacion: q4 ve # justo a su derecha y nada mas
+      { q:"q4", s:"#", qp:"q9", sp:"#", D:D_S },
+    ],
+    nombre: "ww",
+  });
+}
+
+/* ====================================================================
+ * Parser del DSL del lenguaje
+ * ==================================================================== */
+
+function normaliza(s) {
+  return s.trim()
+    .replace(/\s+/g, " ")
+    .replace(/í/g, "i").replace(/Í/g, "I");
+}
+
+function parseLanguageInput(raw) {
+  if (!raw || raw.trim() === "")
+    throw new Error("Escribe un lenguaje. Mira los ejemplos arriba.");
+  const t = normaliza(raw);
+  // regex <pattern>
+  if (t.toLowerCase().startsWith("regex ")) {
+    const pat = raw.trim().slice(6);  // mantener case del patron
+    if (!pat) throw new Error("Falta el patron despues de 'regex'.");
+    return { kind: "regex", pattern: pat };
+  }
+  const tl = t.toLowerCase();
+  if (tl === "a^n b^n")             return { kind: "anbn" };
+  if (tl === "a^n b^n c^n")         return { kind: "anbncn" };
+  if (tl === "a^n b^n c^n d^n")     return { kind: "anbncndn" };
+  if (tl === "#a = #b")             return { kind: "igab" };
+  if (tl === "#a = #b = #c")        return { kind: "igabc" };
+  if (tl === "palindromo par" || tl === "palindromos par")
+    return { kind: "palpar" };
+  if (tl === "ww")                  return { kind: "ww" };
+
+  throw new Error(
+    `No reconozco '${raw.trim()}'. Mira los patrones admitidos en la ayuda.`
+  );
+}
+
+function construirMT(spec) {
+  switch (spec.kind) {
+    case "regex":     return mtRegex(spec.pattern);
+    case "anbn":      return mtAnBn();
+    case "anbncn":    return mtAnBnCn();
+    case "anbncndn":  return mtAnBnCnDn();
+    case "igab":      return mtIgualAB();
+    case "igabc":     return mtIgualABC();
+    case "palpar":    return mtPalindromoPar();
+    case "ww":        return mtWW();
+  }
+  throw new Error("Patron no implementado: " + spec.kind);
+}
+
+/* ====================================================================
+ * Wiring
+ * ==================================================================== */
+
+async function generar() {
+  err(null);
+  const input = document.getElementById("lang").value;
+  let mt;
   try {
-    afd = regexToAfdMin(pattern, alphaInput);
+    const spec = parseLanguageInput(input);
+    mt = construirMT(spec);
   } catch (e) {
-    mostrarError("No pude compilar la expresion regular: " + e.message);
+    err(e.message);
+    document.getElementById("grafo").innerHTML =
+      '<div class="placeholder">No se pudo generar la MT.</div>';
+    document.getElementById("mt-meta").textContent = "";
     return;
   }
-  afdToFormulario(afd);
-  construirYReiniciar();
+  await dibujar(mt);
 }
 
-/* ==================================================================
- * 8. Event wiring
- * ================================================================== */
-
-document.querySelectorAll("[data-example]").forEach(b =>
-  b.addEventListener("click", () => cargarEjemplo(b.dataset.example)));
-document.querySelectorAll("[data-regex]").forEach(b =>
-  b.addEventListener("click", () => {
-    document.getElementById("regex-input").value = b.dataset.regex;
-    document.getElementById("regex-alpha").value = b.dataset.alpha || "";
-    generarMTdesdeRegex();
-  }));
-document.getElementById("btn-regex").addEventListener("click", generarMTdesdeRegex);
-document.getElementById("regex-input").addEventListener("keydown", e => {
-  if (e.key === "Enter") generarMTdesdeRegex();
+document.getElementById("go").addEventListener("click", generar);
+document.getElementById("lang").addEventListener("keydown", e => {
+  if (e.key === "Enter") generar();
 });
-document.getElementById("btn-build").addEventListener("click", construirYReiniciar);
-document.getElementById("btn-step").addEventListener("click", unPaso);
-document.getElementById("btn-play").addEventListener("click", ejecutar);
-document.getElementById("btn-pause").addEventListener("click", pausar);
-document.getElementById("btn-reset").addEventListener("click", reiniciarSimulacion);
+document.querySelectorAll("button.try").forEach(b =>
+  b.addEventListener("click", () => {
+    document.getElementById("lang").value = b.dataset.lang;
+    generar();
+  }));
 
-// Carga inicial: el ejemplo mas sencillo
-cargarEjemplo("empieza-con-a");
+// Carga inicial
+generar();
 </script>
-
-</main>
 
 </body>
 </html>
