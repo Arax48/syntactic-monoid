@@ -192,23 +192,67 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
           <td>{w·w : w ∈ {a,b}*}</td>
           <td>—</td>
         </tr>
+        <tr><th colspan="3" style="background:#f0f4f8; padding:.5rem .9rem;
+                                    font-size:.78rem; color:#424a53;
+                                    text-transform:none; letter-spacing:0;
+                                    font-style:italic;">
+          Patrones con dos variables y restricción entre ellas
+          (<code>m &gt;= n</code>, <code>m &lt;= n</code>, <code>m = n</code>)
+        </th></tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^n c^m, m >= n">a^n b^n c^m, m &gt;= n</button></td>
+          <td>{aⁿbⁿcᵐ : m ≥ n, n ≥ 0}</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^n c^m, m <= n">a^n b^n c^m, m &lt;= n</button></td>
+          <td>{aⁿbⁿcᵐ : m ≤ n, n ≥ 0}</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^m, m >= n">a^n b^m, m &gt;= n</button></td>
+          <td>{aⁿbᵐ : m ≥ n}</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><button class="try" data-lang="a^n b^m, m <= n">a^n b^m, m &lt;= n</button></td>
+          <td>{aⁿbᵐ : m ≤ n}</td>
+          <td>—</td>
+        </tr>
         <tr style="background:#f6f8fa;">
           <td colspan="3" style="padding:.6rem .9rem; color:#424a53;">
-            <b>Restricción opcional:</b> añade
-            <code>, n &gt;= 1</code> al final para excluir el caso n = 0.
-            Ejemplo:
-            <button class="try" data-lang="a^n b^n, n >= 1">a^n b^n, n &gt;= 1</button>
-            (solo aceptaría {aⁿbⁿ : n ≥ 1}; rechaza la palabra vacía λ).
-            La restricción no aplica a <code>regex</code>: ahí controla
-            el mínimo directamente la propia expresión (p. ej.,
-            <code>(0|1)+</code> en vez de <code>(0|1)*</code>).
+            <b>Cómo combinar restricciones.</b> Sepáralas con coma. Se
+            admite:
+            <ul style="margin:.4rem 0 .2rem 1.2rem; padding:0; font-size:.85rem;">
+              <li><code>, n &gt;= 1</code> (excluye n = 0, es decir, la
+                  palabra vacía λ). Ejemplo:
+                  <button class="try" data-lang="a^n b^n, n >= 1">a^n b^n, n &gt;= 1</button>
+              </li>
+              <li><code>, m &gt;= n</code> (relaciones <code>&gt;=</code>,
+                  <code>&lt;=</code>, <code>=</code> entre dos variables).
+              </li>
+              <li>Ambas a la vez:
+                  <button class="try" data-lang="a^n b^n c^m, m >= n, n >= 1">a^n b^n c^m, m &gt;= n, n &gt;= 1</button>
+              </li>
+              <li>Sinónimos válidos: <code>where</code>, <code>donde</code>,
+                  <code>;</code>. Los signos <code>&gt;</code> y
+                  <code>&lt;</code> se convierten internamente a las
+                  versiones estrictas equivalentes
+                  (<code>m &gt; n</code> ≡ <code>m &gt;= n</code> con
+                  <code>n &gt;= 1</code>).
+              </li>
+            </ul>
+            La restricción <code>n &gt;= 1</code> no aplica a
+            <code>regex</code>: ahí la cota la fija la propia expresión
+            (p. ej., <code>(0|1)+</code> en vez de <code>(0|1)*</code>).
           </td>
         </tr>
       </tbody>
     </table>
     <p class="note">
-      Por defecto se admite n = 0 (la palabra vacía λ está incluida).
-      Las construcciones siguen los algoritmos del §6.2 del libro;
+      Por defecto se admite n = 0 (palabra vacía incluida). Las
+      construcciones siguen los algoritmos del §6.2 del libro y
+      generalizaciones del mismo estilo (marcar–emparejar–rebobinar);
       los lenguajes regulares pasan por el Teorema 6.1.1 (AFD → MT).
     </p>
   </div>
@@ -609,6 +653,161 @@ function mtWW() {
   });
 }
 
+function mtAnBnCmGE() {
+  /* {a^n b^n c^m : m >= n, n >= 0}. Fases:
+       1. Emparejar 'a's con 'b's (X, Y).
+       2. Por cada X (= cada a original), emparejar con una c (Z).
+       3. Si quedan c's de mas, OK; si q_c2 se queda sin c con X aun
+          por emparejar, abortar (m < n).
+       4. Tras agotar las X's, verificar que el resto solo contiene
+          A,Y,Z,c y luego blanco (para rechazar simbolos fuera de lugar). */
+  return new MT({
+    estados: ["q0","q1","q2","q3","qc0","qc1","qc2","qver","qacc"],
+    q0: "q0", F: ["qacc"],
+    sigma: ["a","b","c"], gamma: ["a","b","c","X","Y","A","Z"],
+    delta: [
+      // Fase 1: emparejar a-b
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q0", s:"c", qp:"qc0", sp:"c", D:D_S },     // n=0, cualquier m
+      { q:"q0", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // vacio
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"Y", qp:"q1", sp:"Y", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"a", qp:"q2", sp:"a", D:D_L },
+      { q:"q2", s:"Y", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"X", qp:"q0", sp:"X", D:D_R },
+      // Post-fase-1: avanzar entre Y's; si llega a c, fase 2; si □ y hay X's, m<n => rechazo (sin transicion en q3:□)
+      { q:"q3", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q3", s:"c", qp:"qc1", sp:"c", D:D_L },
+      // n=0: solo c's; las saltamos
+      { q:"qc0", s:"c", qp:"qc0", sp:"c", D:D_R },
+      { q:"qc0", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+      // Fase 2: emparejar X con c (X→A, c→Z)
+      { q:"qc1", s:"Y", qp:"qc1", sp:"Y", D:D_L },
+      { q:"qc1", s:"A", qp:"qc1", sp:"A", D:D_L },
+      { q:"qc1", s:"Z", qp:"qc1", sp:"Z", D:D_L },
+      { q:"qc1", s:"X", qp:"qc2", sp:"A", D:D_R },
+      { q:"qc1", s:BLANCO, qp:"qver", sp:BLANCO, D:D_R }, // no quedan X's
+      { q:"qc2", s:"A", qp:"qc2", sp:"A", D:D_R },
+      { q:"qc2", s:"Y", qp:"qc2", sp:"Y", D:D_R },
+      { q:"qc2", s:"Z", qp:"qc2", sp:"Z", D:D_R },
+      { q:"qc2", s:"X", qp:"qc2", sp:"X", D:D_R },       // X aun por marcar a la derecha
+      { q:"qc2", s:"c", qp:"qc1", sp:"Z", D:D_L },
+      // qc2:□ no esta definido => m < n => rechazo
+      // Verificacion final: solo A,Y,Z,c hasta el blanco
+      { q:"qver", s:"A", qp:"qver", sp:"A", D:D_R },
+      { q:"qver", s:"Y", qp:"qver", sp:"Y", D:D_R },
+      { q:"qver", s:"Z", qp:"qver", sp:"Z", D:D_R },
+      { q:"qver", s:"c", qp:"qver", sp:"c", D:D_R },
+      { q:"qver", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+    ],
+    nombre: "a^n b^n c^m,  m ≥ n",
+  });
+}
+
+function mtAnBnCmLE() {
+  /* {a^n b^n c^m : m <= n, n >= 0}. Algoritmo dual:
+       1. Emparejar 'a's con 'b's (X, Y).
+       2. Por cada c (de izquierda a derecha), buscar una X y marcarla A.
+          Si no hay X (m > n), abortar.
+       3. Aceptar cuando se agoten las c's, dejando X's sobrantes. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","qmc","qmd","qacc"],
+    q0: "q0", F: ["qacc"],
+    sigma: ["a","b","c"], gamma: ["a","b","c","X","Y","A","Z"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      // q0:'c' SIN transicion => n=0, m≥1 => rechazo
+      { q:"q0", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"Y", qp:"q1", sp:"Y", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"a", qp:"q2", sp:"a", D:D_L },
+      { q:"q2", s:"Y", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"X", qp:"q0", sp:"X", D:D_R },
+      // q3: avanzar entre Y's, llegar a la primera c (o □)
+      { q:"q3", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q3", s:"c", qp:"qmc", sp:"Z", D:D_L },        // marca c → busca X
+      { q:"q3", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // m=0, sobran X's
+      // qmc: ir a la izquierda a buscar la X mas a la izquierda libre
+      { q:"qmc", s:"Y", qp:"qmc", sp:"Y", D:D_L },
+      { q:"qmc", s:"A", qp:"qmc", sp:"A", D:D_L },
+      { q:"qmc", s:"Z", qp:"qmc", sp:"Z", D:D_L },
+      { q:"qmc", s:"X", qp:"qmd", sp:"A", D:D_R },
+      // qmc:□ SIN transicion => no hay X disponible => m > n => rechazo
+      // qmd: ir a la derecha buscando la siguiente c
+      { q:"qmd", s:"A", qp:"qmd", sp:"A", D:D_R },
+      { q:"qmd", s:"Y", qp:"qmd", sp:"Y", D:D_R },
+      { q:"qmd", s:"Z", qp:"qmd", sp:"Z", D:D_R },
+      { q:"qmd", s:"X", qp:"qmd", sp:"X", D:D_R },
+      { q:"qmd", s:"c", qp:"qmc", sp:"Z", D:D_L },
+      { q:"qmd", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // se acabaron las c's
+    ],
+    nombre: "a^n b^n c^m,  m ≤ n",
+  });
+}
+
+function mtAnBmGE() {
+  /* {a^n b^m : m >= n, n >= 0}. Empareja cada a con una b; las
+     b's sobrantes son aceptables. */
+  return new MT({
+    estados: ["q0","q1","q2","q3","qskip","qacc"],
+    q0: "q0", F: ["qacc"],
+    sigma: ["a","b"], gamma: ["a","b","X","Y"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q0", s:"b", qp:"qskip", sp:"b", D:D_R },     // n=0, m≥1
+      { q:"q0", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // n=0, m=0
+      { q:"q1", s:"a", qp:"q1", sp:"a", D:D_R },
+      { q:"q1", s:"Y", qp:"q1", sp:"Y", D:D_R },
+      { q:"q1", s:"b", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"a", qp:"q2", sp:"a", D:D_L },
+      { q:"q2", s:"Y", qp:"q2", sp:"Y", D:D_L },
+      { q:"q2", s:"X", qp:"q0", sp:"X", D:D_R },
+      { q:"q3", s:"Y", qp:"q3", sp:"Y", D:D_R },
+      { q:"q3", s:"b", qp:"qskip", sp:"b", D:D_R },
+      { q:"q3", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+      { q:"qskip", s:"b", qp:"qskip", sp:"b", D:D_R },
+      { q:"qskip", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+    ],
+    nombre: "a^n b^m,  m ≥ n",
+  });
+}
+
+function mtAnBmLE() {
+  /* {a^n b^m : m <= n, n >= 0}. Marca primero todas las a's (a→X),
+     luego empareja cada b (b→B) con una X (X→A). Si no hay X para
+     una b, rechaza. Las X's sobrantes son aceptables. */
+  return new MT({
+    estados: ["q0","q1","qback","q2","qacc"],
+    q0: "q0", F: ["qacc"],
+    sigma: ["a","b"], gamma: ["a","b","X","A","B"],
+    delta: [
+      { q:"q0", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q0", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S },
+      // q0:'b' SIN transicion => n=0, m≥1 => rechazo
+      { q:"q1", s:"a", qp:"q1", sp:"X", D:D_R },
+      { q:"q1", s:"b", qp:"qback", sp:"B", D:D_L },
+      { q:"q1", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // m=0, sobran X's
+      { q:"qback", s:"a", qp:"qback", sp:"a", D:D_L },
+      { q:"qback", s:"b", qp:"qback", sp:"b", D:D_L },
+      { q:"qback", s:"B", qp:"qback", sp:"B", D:D_L },
+      { q:"qback", s:"A", qp:"qback", sp:"A", D:D_L },
+      { q:"qback", s:"X", qp:"q2", sp:"A", D:D_R },
+      // qback:□ SIN transicion => sin X disponible => m > n => rechazo
+      { q:"q2", s:"X", qp:"q2", sp:"X", D:D_R },
+      { q:"q2", s:"A", qp:"q2", sp:"A", D:D_R },
+      { q:"q2", s:"B", qp:"q2", sp:"B", D:D_R },
+      { q:"q2", s:"b", qp:"qback", sp:"B", D:D_L },     // siguiente b
+      { q:"q2", s:BLANCO, qp:"qacc", sp:BLANCO, D:D_S }, // se acabaron b's
+    ],
+    nombre: "a^n b^m,  m ≤ n",
+  });
+}
+
 /* ====================================================================
  * Parser del DSL del lenguaje
  * ==================================================================== */
@@ -619,21 +818,41 @@ function normaliza(s) {
     .replace(/í/g, "i").replace(/Í/g, "I");
 }
 
-/* Restriccion opcional: ", n >= K".
-   Para K=1, transformamos la MT agregando un estado inicial nuevo
-   q_init que clona las transiciones no-blanco de q0; asi la MT
-   exige consumir al menos un simbolo antes de poder aceptar.
-   Para K=0 no hay cambio. K>=2 no se soporta. */
+/* Restriccion opcional 'n >= 1'. Anade un estado inicial q_init que
+   clona solo las transiciones de q0 que llevan a estados desde donde
+   se puede regresar a q0 (es decir, las que participan en el ciclo
+   de emparejamiento). Asi se descartan los "atajos" n=0
+   (por ejemplo, q0:c → qc0 en a^n b^n c^m, m >= n) y la MT queda
+   obligada a ejecutar al menos un ciclo. */
 function withMinN(mt, minN) {
   if (!minN || minN <= 0) return mt;
-  const fromQ0NoBlank = mt.delta.filter(t => t.q === mt.q0 && t.s !== BLANCO);
-  if (fromQ0NoBlank.length === 0) {
+  // Grafo de sucesores estado → conjunto de estados alcanzables en 1 paso
+  const succ = new Map();
+  for (const t of mt.delta) {
+    if (!succ.has(t.q)) succ.set(t.q, new Set());
+    succ.get(t.q).add(t.qp);
+  }
+  function alcanza(origen, destino) {
+    if (origen === destino) return true;
+    const vis = new Set([origen]), q = [origen];
+    while (q.length) {
+      const x = q.shift();
+      for (const y of succ.get(x) || []) {
+        if (y === destino) return true;
+        if (!vis.has(y)) { vis.add(y); q.push(y); }
+      }
+    }
+    return false;
+  }
+  const candidatas = mt.delta.filter(t => t.q === mt.q0 && t.s !== BLANCO);
+  const ciclicas = candidatas.filter(t => alcanza(t.qp, mt.q0));
+  if (ciclicas.length === 0) {
     throw new Error("Este patron no admite la restriccion 'n >= 1'.");
   }
   let qInit = "q_init", i = 0;
   while (mt.estados.has(qInit)) qInit = `q_init${++i}`;
   const newDelta = mt.delta.slice();
-  for (const t of fromQ0NoBlank) {
+  for (const t of ciclicas) {
     newDelta.push({ q: qInit, s: t.s, qp: t.qp, sp: t.sp, D: t.D });
   }
   return new MT({
@@ -647,70 +866,182 @@ function withMinN(mt, minN) {
   });
 }
 
+/* Parsea una restriccion individual: "var op (var | numero)".
+   Devuelve {lhs, op, rhs, rhsIsVar}. */
+function parseConstraint(s) {
+  const m = s.trim().match(/^([a-z])\s*(>=|<=|=|>|<)\s*([a-z]|\d+)$/i);
+  if (!m) throw new Error(`No entiendo la restriccion '${s}'.`);
+  const rhsIsVar = /[a-z]/i.test(m[3]);
+  return {
+    lhs: m[1].toLowerCase(),
+    op: m[2],
+    rhs: rhsIsVar ? m[3].toLowerCase() : parseInt(m[3], 10),
+    rhsIsVar,
+  };
+}
+
+/* Toma el texto despues del cuerpo y devuelve la lista de
+   restricciones (separadas por coma o punto y coma). */
+function parseConstraintList(text) {
+  if (!text || !text.trim()) return [];
+  return text.split(/[,;]/).map(s => s.trim()).filter(Boolean)
+    .map(parseConstraint);
+}
+
+/* Separa el texto en cuerpo y texto de restricciones. Lo hace si el
+   resto despues del primer separador parsea como lista de
+   restricciones; si no, devuelve todo como cuerpo. */
+function splitBodyConstraints(t) {
+  const split = t.match(/^(.+?)\s*(?:,\s*|;\s*|\s+where\s+|\s+donde\s+)(.+)$/i);
+  if (!split) return { body: t, constraints: [] };
+  try {
+    const constraints = parseConstraintList(split[2]);
+    return { body: split[1].trim(), constraints };
+  } catch (e) {
+    // El "resto" no es una lista de restricciones; lo dejamos en el cuerpo.
+    return { body: t, constraints: [] };
+  }
+}
+
+/* Normaliza una restriccion entre dos variables al par canonico
+   (rhs op_canonico lhs) con op ∈ {>=, =}.  Por ejemplo,
+   "m <= n" se reescribe como "n >= m". */
+function canonical(c) {
+  if (c.op === ">") return { lhs: c.lhs, op: ">=", rhs: c.rhs, strict: true };
+  if (c.op === "<") return { lhs: c.rhs, op: ">=", rhs: c.lhs, strict: true };
+  if (c.op === "<=") return { lhs: c.rhs, op: ">=", rhs: c.lhs };
+  return c;  // >= o = ya canonicos
+}
+
 function parseLanguageInput(raw) {
   if (!raw || raw.trim() === "")
     throw new Error("Escribe un lenguaje. Mira los ejemplos arriba.");
   const t = normaliza(raw);
 
-  /* Extrae la restriccion opcional ", n >= K" (tambien acepta
-     "; n >= K" o " donde n >= K" o " where n >= K"). El cuerpo
-     queda en `body`. */
-  let body = t, minN = 0;
-  const m = t.match(
-    /^(.*?)\s*[,;]?\s*(?:where\s+|donde\s+)?n\s*>=\s*(\d+)\s*$/i
-  );
-  if (m && /[,;]|where|donde|^\s*n\s*>=/i.test(t.slice(m[1].length))) {
-    body = m[1].trim();
-    const k = parseInt(m[2], 10);
-    if (k < 0) throw new Error("n no puede ser negativo.");
-    if (k > 1)
-      throw new Error(
-        "Solo se admite 'n >= 0' (defecto) y 'n >= 1'. Para minimos " +
-        "mayores: la cota la fija el propio patron (por ejemplo, " +
-        "usa 'regex aabb(ab)*' o ajusta a mano)."
-      );
-    minN = k;
-  }
-
+  // Separar cuerpo y restricciones.
+  const { body, constraints } = splitBodyConstraints(t);
   const tl = body.toLowerCase();
+
+  // 1) regex <patron>: sin restricciones de variables.
   if (tl.startsWith("regex ")) {
-    if (minN > 0) throw new Error(
-      "La restriccion 'n >= 1' no aplica a 'regex'. Para excluir λ " +
-      "modifica la expresion: por ejemplo, escribe '(0|1)+' en lugar " +
-      "de '(0|1)*'."
+    if (constraints.length > 0) throw new Error(
+      "Las restricciones no aplican a 'regex'. Modifica la propia " +
+      "expresion regular (por ejemplo, '(0|1)+' en vez de '(0|1)*')."
     );
     const pat = body.slice(6).trim();
     if (!pat) throw new Error("Falta el patron despues de 'regex'.");
     return { kind: "regex", pattern: pat };
   }
-  let kind = null;
-  if (tl === "a^n b^n")             kind = "anbn";
-  else if (tl === "a^n b^n c^n")    kind = "anbncn";
-  else if (tl === "a^n b^n c^n d^n") kind = "anbncndn";
-  else if (tl === "#a = #b")        kind = "igab";
-  else if (tl === "#a = #b = #c")   kind = "igabc";
-  else if (tl === "palindromo par" || tl === "palindromos par") kind = "palpar";
-  else if (tl === "ww")             kind = "ww";
 
-  if (!kind) {
-    throw new Error(
-      `No reconozco '${body}'. Mira los patrones admitidos en la ayuda.`
-    );
+  // 2) Extraer las restricciones numericas (var >= K) que se aplicaran
+  //    via withMinN, separandolas de las restricciones entre variables.
+  let minN = 0;
+  const interVar = [];
+  for (const c of constraints) {
+    if (!c.rhsIsVar) {
+      if (c.op !== ">=")
+        throw new Error(`Solo se admite '>=' con un numero (no '${c.op} ${c.rhs}').`);
+      if (c.rhs < 0) throw new Error("n no puede ser negativo.");
+      if (c.rhs > 1) throw new Error(
+        "Solo se admite 'n >= 0' (defecto) y 'n >= 1'. Para mayores, ajusta el patron."
+      );
+      minN = Math.max(minN, c.rhs);
+    } else {
+      interVar.push(c);
+    }
   }
-  return { kind, minN };
+
+  // 3) Patrones de una sola variable (todos los letras usan 'n').
+  const singleVar = {
+    "a^n b^n":          "anbn",
+    "a^n b^n c^n":      "anbncn",
+    "a^n b^n c^n d^n":  "anbncndn",
+    "#a = #b":          "igab",
+    "#a = #b = #c":     "igabc",
+    "palindromo par":   "palpar",
+    "palindromos par":  "palpar",
+    "ww":               "ww",
+  };
+  if (singleVar[tl]) {
+    if (interVar.length > 0) throw new Error(
+      `El patron '${body}' usa una sola variable; no admite restricciones entre variables como '${interVar[0].lhs} ${interVar[0].op} ${interVar[0].rhs}'.`
+    );
+    return { kind: singleVar[tl], minN };
+  }
+
+  // 4) Patrones multivariable.
+
+  //    a^n b^m, con restriccion entre n y m.
+  if (tl === "a^n b^m" || tl === "a^m b^n") {
+    return parseAnBm(body, tl, interVar, minN);
+  }
+  //    a^n b^n c^m, con restriccion entre n y m.
+  if (tl === "a^n b^n c^m" || tl === "a^m b^m c^n") {
+    return parseAnBnCm(body, tl, interVar, minN);
+  }
+
+  throw new Error(
+    `No reconozco '${body}'. Mira los patrones admitidos en la ayuda.`
+  );
+}
+
+/* Para a^n b^m y a^m b^n: una restriccion entre las dos variables. */
+function parseAnBm(body, tl, interVar, minN) {
+  if (interVar.length === 0) throw new Error(
+    `'${body}' usa dos variables distintas; agrega una restriccion como ', m >= n' o ', m = n'.`
+  );
+  if (interVar.length > 1) throw new Error(
+    `Demasiadas restricciones para '${body}'.`
+  );
+  // Para "a^m b^n", renombramos m↔n para que el resto del codigo razone como si fuera "a^n b^m".
+  let c = interVar[0];
+  if (tl === "a^m b^n") c = swapVars(c, "n", "m");
+  c = canonical(c);
+  // Casos: m >= n  /  n >= m  /  m = n
+  if (c.op === "=") return { kind: "anbn", minN };  // m = n equivalente
+  // canonical => op es ">="
+  if (c.lhs === "m" && c.rhs === "n") return { kind: "anbm_ge", minN };
+  if (c.lhs === "n" && c.rhs === "m") return { kind: "anbm_le", minN };
+  throw new Error(`No entiendo la restriccion '${c.lhs} ${c.op} ${c.rhs}' sobre 'a^n b^m'.`);
+}
+
+/* Para a^n b^n c^m y a^m b^m c^n: una restriccion entre n y m. */
+function parseAnBnCm(body, tl, interVar, minN) {
+  if (interVar.length === 0) throw new Error(
+    `'${body}' tiene dos variables; agrega una restriccion como ', m >= n' o ', m = n'.`
+  );
+  if (interVar.length > 1) throw new Error(
+    `Demasiadas restricciones para '${body}'.`
+  );
+  let c = interVar[0];
+  if (tl === "a^m b^m c^n") c = swapVars(c, "n", "m");
+  c = canonical(c);
+  if (c.op === "=") return { kind: "anbncn", minN };  // colapsa a a^n b^n c^n
+  if (c.lhs === "m" && c.rhs === "n") return { kind: "anbncm_ge", minN };
+  if (c.lhs === "n" && c.rhs === "m") return { kind: "anbncm_le", minN };
+  throw new Error(`No entiendo la restriccion '${c.lhs} ${c.op} ${c.rhs}' sobre 'a^n b^n c^m'.`);
+}
+
+function swapVars(c, a, b) {
+  const sw = v => v === a ? b : (v === b ? a : v);
+  return { ...c, lhs: sw(c.lhs), rhs: c.rhsIsVar ? sw(c.rhs) : c.rhs };
 }
 
 function construirMT(spec) {
   let mt;
   switch (spec.kind) {
     case "regex":     return mtRegex(spec.pattern);   // sin minN
-    case "anbn":      mt = mtAnBn();      break;
-    case "anbncn":    mt = mtAnBnCn();    break;
-    case "anbncndn":  mt = mtAnBnCnDn();  break;
-    case "igab":      mt = mtIgualAB();   break;
-    case "igabc":     mt = mtIgualABC();  break;
+    case "anbn":      mt = mtAnBn();        break;
+    case "anbncn":    mt = mtAnBnCn();      break;
+    case "anbncndn":  mt = mtAnBnCnDn();    break;
+    case "igab":      mt = mtIgualAB();     break;
+    case "igabc":     mt = mtIgualABC();    break;
     case "palpar":    mt = mtPalindromoPar(); break;
-    case "ww":        mt = mtWW();        break;
+    case "ww":        mt = mtWW();          break;
+    case "anbm_ge":   mt = mtAnBmGE();      break;
+    case "anbm_le":   mt = mtAnBmLE();      break;
+    case "anbncm_ge": mt = mtAnBnCmGE();    break;
+    case "anbncm_le": mt = mtAnBnCmLE();    break;
     default: throw new Error("Patron no implementado: " + spec.kind);
   }
   return withMinN(mt, spec.minN);
