@@ -131,6 +131,29 @@ details.syntax td:first-child { width: 8rem; }
 #words-result td.r-accept { color: #1a7f37; font-weight: 600; }
 #words-result td.r-reject { color: #6e7681; }
 #words-result td.r-error  { color: #cf222e; font-size: .85rem; }
+
+/* Resaltado del estado actual y la transición tomada en el AFD mínimo,
+   sincronizado con la cinta de la palabra seleccionada. */
+.svg-wrap svg g.node.active > ellipse,
+.svg-wrap svg g.node.active > polygon,
+.svg-wrap svg g.node.active > circle,
+.svg-wrap svg g.node.active > path {
+  fill: #fff4d6 !important;
+  stroke: #cf222e !important;
+  stroke-width: 3 !important;
+}
+.svg-wrap svg g.node.active > text {
+  fill: #cf222e !important;
+  font-weight: 700;
+}
+.svg-wrap svg g.edge.active > path {
+  stroke: #cf222e !important;
+  stroke-width: 2.4 !important;
+}
+.svg-wrap svg g.edge.active > polygon {
+  fill: #cf222e !important;
+  stroke: #cf222e !important;
+}
 #words-result tr.row-w { cursor: pointer; }
 #words-result tr.row-w:hover { background: #f6f8fa; }
 #words-result tr.row-w.selected { background: #ddf4ff; }
@@ -691,6 +714,38 @@ function pintarPasoAFD() {
   $("r-back").disabled  = pasoAFD === 0;
   $("r-fwd").disabled   = pasoAFD === total - 1;
   $("r-play").disabled  = pasoAFD === total - 1;
+
+  // Resaltar el estado actual y la transición tomada en el grafo del AFD.
+  const prev = pasoAFD > 0
+    ? traceAFD.configuraciones[pasoAFD - 1].estado
+    : null;
+  highlightSvgTrace(document.getElementById("min-svg"), c.estado, prev);
+}
+
+/* Resalta el nodo del estado actual y la arista tomada en el último
+   paso (prev -> current) dentro del SVG indicado. */
+function highlightSvgTrace(container, currentState, prevState) {
+  if (!container) return;
+  for (const g of container.querySelectorAll("g.node, g.edge")) {
+    g.classList.remove("active");
+  }
+  if (currentState) {
+    for (const g of container.querySelectorAll("g.node")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === currentState) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
+  if (prevState && currentState) {
+    const target = `${prevState}->${currentState}`;
+    for (const g of container.querySelectorAll("g.edge")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === target) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
 }
 
 function resetAFD() { pausarAFD(); pasoAFD = 0; pintarPasoAFD(); }

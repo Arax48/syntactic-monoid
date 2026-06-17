@@ -120,6 +120,31 @@ details.syntax .note { color: #6e7681; font-size: .85rem;
 .mt-meta { font-size: .85rem; color: #6e7681; margin: .4rem 0 .8rem;
            font-family: ui-monospace, Menlo, monospace; }
 
+/* Resaltado del estado actual y de la transición tomada en el digrafo,
+   sincronizado con la cinta paso a paso (la presentación SVG por
+   atributos directos `fill=...` se sobreescribe con estas reglas CSS,
+   que tienen mayor prioridad). */
+.svg-wrap svg g.node.active > ellipse,
+.svg-wrap svg g.node.active > polygon,
+.svg-wrap svg g.node.active > circle,
+.svg-wrap svg g.node.active > path {
+  fill: #fff4d6 !important;
+  stroke: #cf222e !important;
+  stroke-width: 3 !important;
+}
+.svg-wrap svg g.node.active > text {
+  fill: #cf222e !important;
+  font-weight: 700;
+}
+.svg-wrap svg g.edge.active > path {
+  stroke: #cf222e !important;
+  stroke-width: 2.4 !important;
+}
+.svg-wrap svg g.edge.active > polygon {
+  fill: #cf222e !important;
+  stroke: #cf222e !important;
+}
+
 /* Verificador de palabras (tabla de resultados) */
 section.simulador { margin-top: 2rem; }
 #words {
@@ -1294,8 +1319,11 @@ async function generar() {
     return;
   }
   await dibujar(mt);
-  // Mostrar verificador con palabras por defecto
+  // Mostrar verificador con palabras por defecto y limpiar la cinta vieja
   mtActual = mt;
+  simulacion = null;
+  pasoActual = 0;
+  document.getElementById("cinta-section").hidden = true;
   document.getElementById("verifier").hidden = false;
   if (!document.getElementById("words").value.trim()) {
     document.getElementById("words").value = palabrasPorDefecto();
@@ -1432,6 +1460,39 @@ function pintarPaso() {
   document.getElementById("t-back").disabled  = pasoActual === 0;
   document.getElementById("t-fwd").disabled   = pasoActual === total - 1;
   document.getElementById("t-play").disabled  = pasoActual === total - 1;
+
+  // Reflejar el estado actual y la transición tomada en el digrafo.
+  const prev = pasoActual > 0
+    ? simulacion.configuraciones[pasoActual - 1].estado
+    : null;
+  highlightSvgTrace(document.getElementById("grafo"), c.estado, prev);
+}
+
+/* Resalta en el SVG del grafo el nodo del estado actual y la arista
+   tomada en el último paso (prev -> current). Si current/prev son
+   null, simplemente limpia los resaltados. */
+function highlightSvgTrace(container, currentState, prevState) {
+  if (!container) return;
+  for (const g of container.querySelectorAll("g.node, g.edge")) {
+    g.classList.remove("active");
+  }
+  if (currentState) {
+    for (const g of container.querySelectorAll("g.node")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === currentState) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
+  if (prevState && currentState) {
+    const target = `${prevState}->${currentState}`;
+    for (const g of container.querySelectorAll("g.edge")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === target) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
 }
 
 function resetAnim() { pausarAnim(); pasoActual = 0; pintarPaso(); }
