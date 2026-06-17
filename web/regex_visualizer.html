@@ -131,6 +131,53 @@ details.syntax td:first-child { width: 8rem; }
 #words-result td.r-accept { color: #1a7f37; font-weight: 600; }
 #words-result td.r-reject { color: #6e7681; }
 #words-result td.r-error  { color: #cf222e; font-size: .85rem; }
+#words-result tr.row-w { cursor: pointer; }
+#words-result tr.row-w:hover { background: #f6f8fa; }
+#words-result tr.row-w.selected { background: #ddf4ff; }
+
+/* Vista de la cinta del AFD (palabra seleccionada) */
+.tape-section { margin-top: 1.6rem; }
+.tape-section h3 { margin: 0 0 .6rem 0; font-size: 1.02rem; }
+.trace-ctl { display: flex; gap: .4rem; align-items: center;
+             flex-wrap: wrap; margin-bottom: .8rem; }
+.trace-ctl button { padding: .3rem .7rem; border: 1px solid #d1d9e0;
+                    background: #fff; border-radius: 6px; cursor: pointer;
+                    font-size: .85rem; }
+.trace-ctl button:hover:not(:disabled) { background: #f3f4f6; }
+.trace-ctl button:disabled { opacity: .45; cursor: not-allowed; }
+.trace-ctl .step-info { font-size: .85rem; color: #57606a;
+                        margin-left: .6rem; font-family: ui-monospace, Menlo, monospace; }
+.tape-box { background: #fff; border: 1px solid #eaecef; border-radius: 8px;
+            padding: 1.2rem 1rem; overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+.tape-box .tape-inner { display: flex; flex-direction: column;
+                        align-items: center; min-width: max-content; }
+.tape-box .cells { display: flex; gap: 0; }
+.tape-box .cells .cell {
+  width: 2.4rem; height: 2.4rem;
+  display: flex; align-items: center; justify-content: center;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1.05rem;
+  border: 1px solid #d1d9e0; background: #fff; margin: 0 -1px;
+  transition: background-color .15s, border-color .15s;
+}
+.tape-box .cells .cell.head { background: #ddf4ff; border-color: #0969da;
+                              border-width: 2px; font-weight: 700; z-index: 1; }
+.tape-box .cells .cell.blank { color: #afb8c1; }
+.tape-box .cells .cell.consumed { background: #f6f8fa; color: #6e7681; }
+.tape-box .arrows { display: flex; gap: 0; margin-top: .3rem; }
+.tape-box .arrows .slot { width: 2.4rem; text-align: center;
+                          color: #0969da; margin: 0 -1px; font-weight: 700; }
+.trace-meta-r { margin-top: 1rem; display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: .4rem 1.5rem; font-size: .92rem; color: #424a53; }
+.trace-meta-r b { color: #57606a; font-weight: 600; }
+.trace-meta-r code { background: #f6f8fa; padding: .15rem .4rem;
+                     border-radius: 4px; border: 1px solid #eaecef; }
+.r-badge { display: inline-block; padding: .12rem .5rem; border-radius: 4px;
+           font-size: .8rem; font-weight: 600; }
+.r-badge.acepta  { background: #dafbe1; color: #1a7f37; }
+.r-badge.rechaza { background: #ffe5e5; color: #cf222e; }
+.r-badge.encurso { background: #ddf4ff; color: #0969da; }
 
 footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
          border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
@@ -293,6 +340,29 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 1
 10</textarea>
   <table id="words-result"></table>
+
+  <div class="tape-section" id="afd-tape" hidden>
+    <h3>Cinta — <code id="r-word"></code></h3>
+    <div class="trace-ctl">
+      <button id="r-reset">⏮ inicio</button>
+      <button id="r-back">◀ paso atrás</button>
+      <button id="r-fwd">paso ▶</button>
+      <button id="r-play">▶▶ animar</button>
+      <button id="r-pause" hidden>⏸ pausar</button>
+      <span class="step-info" id="r-step-info"></span>
+    </div>
+    <div class="tape-box">
+      <div class="tape-inner">
+        <div class="cells" id="r-cells"></div>
+        <div class="arrows" id="r-arrows"></div>
+      </div>
+    </div>
+    <div class="trace-meta-r">
+      <div><b>Estado actual</b>: <code id="r-state">—</code></div>
+      <div><b>Símbolo leído</b>: <code id="r-read">—</code></div>
+      <div><b>Resultado</b>: <span id="r-res">—</span></div>
+    </div>
+  </div>
 </section>
 
 <footer>
@@ -495,7 +565,13 @@ async function doRender() {
   renderWordsTable(minimal);
 }
 
+let afdActualMin = null;   // ultimo AFD minimo construido (para la cinta)
+let traceAFD = null;       // simulacion de la palabra seleccionada
+let pasoAFD = 0;
+let timerAFD = null;
+
 function renderWordsTable(afd) {
+  afdActualMin = afd;
   const text = $("words").value;
   const lines = text.split("\n");
   const rows = lines.map(w => {
@@ -509,16 +585,146 @@ function renderWordsTable(afd) {
       cls = "r-error";
       msg = err.message;
     }
-    return `<tr><td><code>${display}</code></td><td class="${cls}">${msg}</td></tr>`;
+    const dataW = w.replace(/"/g, "&quot;");
+    return `<tr class="row-w" data-w="${dataW}"><td><code>${display}</code></td><td class="${cls}">${msg}</td></tr>`;
   });
   $("words-result").innerHTML =
     "<thead><tr><th>palabra</th><th>resultado</th></tr></thead>" +
     "<tbody>" + rows.join("") + "</tbody>";
+  $("words-result").querySelectorAll("tr.row-w").forEach(tr => {
+    tr.addEventListener("click", () => seleccionarAFD(tr.dataset.w));
+  });
+}
+
+/* Simula el AFD minimo sobre una palabra y devuelve la traza
+   por configuracion (estado, posicion, simbolo leido). */
+function simulateAFD(afd, palabra) {
+  const configs = [{ paso: 0, estado: afd.start, posicion: 0,
+                     leido: palabra.length > 0 ? palabra[0] : null,
+                     aceptado: null }];
+  let estado = afd.start;
+  for (let i = 0; i < palabra.length; i++) {
+    const sym = palabra[i];
+    if (!afd.alphabet.has(sym)) {
+      return { configuraciones: configs, resultado: "rechazo",
+               razon: `Símbolo '${sym}' fuera del alfabeto` };
+    }
+    estado = afd.trans.get(estado).get(sym);
+    configs.push({
+      paso: i + 1, estado, posicion: i + 1,
+      leido: i + 1 < palabra.length ? palabra[i + 1] : null,
+      aceptado: null,
+    });
+  }
+  const ok = afd.accepting.has(estado);
+  configs[configs.length - 1].aceptado = ok;
+  return { configuraciones: configs,
+           resultado: ok ? "aceptacion" : "rechazo" };
+}
+
+function seleccionarAFD(palabra) {
+  if (!afdActualMin) return;
+  pausarAFD();
+  traceAFD = simulateAFD(afdActualMin, palabra);
+  pasoAFD = 0;
+  $("afd-tape").hidden = false;
+  $("r-word").textContent = palabra === "" ? "(palabra vacía λ)" : palabra;
+  $("words-result").querySelectorAll("tr.row-w").forEach(tr => {
+    tr.classList.toggle("selected", tr.dataset.w === palabra.replace(/"/g, "&quot;"));
+  });
+  pintarPasoAFD();
+}
+
+function pintarPasoAFD() {
+  if (!traceAFD) return;
+  const palabra = $("r-word").textContent === "(palabra vacía λ)"
+                ? "" : $("r-word").textContent;
+  const total = traceAFD.configuraciones.length;
+  const c = traceAFD.configuraciones[pasoAFD];
+
+  const cellsEl = $("r-cells");
+  const arrowsEl = $("r-arrows");
+  cellsEl.innerHTML = ""; arrowsEl.innerHTML = "";
+
+  // Mostrar como cinta: la palabra (con un blanco al final) y el cabezal
+  const chars = palabra === "" ? ["□"] : palabra.split("");
+  if (palabra !== "") chars.push("□");  // marcador de fin
+  const headPos = c.posicion;
+
+  chars.forEach((ch, i) => {
+    const cell = document.createElement("div");
+    const isHead = i === headPos;
+    const consumed = i < headPos;
+    const isBlank = ch === "□";
+    cell.className = "cell" + (isHead ? " head" : "")
+                   + (consumed ? " consumed" : "")
+                   + (isBlank ? " blank" : "");
+    cell.textContent = ch;
+    cellsEl.appendChild(cell);
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.textContent = isHead ? "▲" : "";
+    arrowsEl.appendChild(slot);
+  });
+
+  $("r-state").textContent = c.estado;
+  $("r-read").textContent = c.leido === null ? "—" : c.leido;
+
+  const ultimoPaso = pasoAFD === total - 1;
+  const resEl = $("r-res");
+  resEl.innerHTML = "";
+  const badge = document.createElement("span");
+  if (!ultimoPaso) {
+    badge.className = "r-badge encurso";
+    badge.textContent = "en curso...";
+  } else if (traceAFD.resultado === "aceptacion") {
+    badge.className = "r-badge acepta";
+    badge.textContent = "✓ acepta";
+  } else {
+    badge.className = "r-badge rechaza";
+    badge.textContent = traceAFD.razon || "✗ rechaza";
+  }
+  resEl.appendChild(badge);
+
+  $("r-step-info").textContent = `paso ${pasoAFD} / ${total - 1}`;
+  $("r-reset").disabled = pasoAFD === 0;
+  $("r-back").disabled  = pasoAFD === 0;
+  $("r-fwd").disabled   = pasoAFD === total - 1;
+  $("r-play").disabled  = pasoAFD === total - 1;
+}
+
+function resetAFD() { pausarAFD(); pasoAFD = 0; pintarPasoAFD(); }
+function backAFD()  { if (pasoAFD > 0) { pasoAFD--; pintarPasoAFD(); } }
+function fwdAFD()   {
+  if (traceAFD && pasoAFD < traceAFD.configuraciones.length - 1) {
+    pasoAFD++; pintarPasoAFD();
+  }
+}
+function playAFD() {
+  pausarAFD();
+  $("r-play").hidden  = true;
+  $("r-pause").hidden = false;
+  timerAFD = setInterval(() => {
+    if (!traceAFD || pasoAFD >= traceAFD.configuraciones.length - 1) {
+      pausarAFD(); return;
+    }
+    pasoAFD++; pintarPasoAFD();
+  }, 400);
+}
+function pausarAFD() {
+  if (timerAFD) { clearInterval(timerAFD); timerAFD = null; }
+  $("r-play").hidden  = false;
+  $("r-pause").hidden = true;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   $("pattern").addEventListener("input", scheduleRender);
   $("alphabet").addEventListener("input", scheduleRender);
+  $("r-reset").addEventListener("click", resetAFD);
+  $("r-back").addEventListener("click", backAFD);
+  $("r-fwd").addEventListener("click", fwdAFD);
+  $("r-play").addEventListener("click", playAFD);
+  $("r-pause").addEventListener("click", pausarAFD);
   $("words").addEventListener("input", () => {
     // recalcular solo la tabla cuando cambian palabras (sin redibujar SVG)
     if (renderTimeout) clearTimeout(renderTimeout);

@@ -120,6 +120,74 @@ details.syntax .note { color: #6e7681; font-size: .85rem;
 .mt-meta { font-size: .85rem; color: #6e7681; margin: .4rem 0 .8rem;
            font-family: ui-monospace, Menlo, monospace; }
 
+/* Verificador de palabras (tabla de resultados) */
+section.simulador { margin-top: 2rem; }
+#words {
+  width: 100%; min-height: 6rem; padding: .6rem .8rem;
+  font-family: ui-monospace, Menlo, monospace; font-size: .92rem;
+  border: 1px solid #d1d9e0; border-radius: 6px; background: #fff;
+  resize: vertical;
+}
+#words:focus { outline: 2px solid #0969da; outline-offset: -1px;
+               border-color: #0969da; }
+#btn-eval { padding: .5rem 1rem; background: #0969da; color: #fff;
+            border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
+            font-weight: 600; font-size: .9rem; margin-top: .5rem; }
+#btn-eval:hover { background: #0860c4; }
+#results { width: 100%; margin-top: 1rem; border-collapse: collapse;
+           font-size: .92rem; }
+#results th { padding: .45rem .7rem; border-bottom: 2px solid #d1d9e0;
+              font-size: .76rem; color: #57606a; font-weight: 600;
+              text-transform: uppercase; letter-spacing: .03em;
+              text-align: left; }
+#results td { padding: .5rem .7rem; border-bottom: 1px solid #eaecef; }
+#results .word { font-family: ui-monospace, Menlo, monospace; }
+#results .word.empty { color: #afb8c1; font-style: italic; }
+.badge { display: inline-block; padding: .15rem .55rem; border-radius: 4px;
+         font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.badge.acepta   { background: #dafbe1; color: #1a7f37; }
+.badge.rechaza  { background: #ffe5e5; color: #cf222e; }
+.badge.bucle    { background: #fff4d6; color: #9a6700; }
+.badge.encurso  { background: #ddf4ff; color: #0969da; }
+#results tr.row-word { cursor: pointer; }
+#results tr.row-word:hover { background: #f6f8fa; }
+#results tr.row-word.selected { background: #ddf4ff; }
+#results tr.row-word.selected td { font-weight: 600; }
+
+/* Vista de la cinta con cabezal y controles */
+.trace-controls { display: flex; gap: .5rem; align-items: center;
+                  flex-wrap: wrap; margin-bottom: .8rem; }
+.trace-controls button { padding: .35rem .8rem; border: 1px solid #d1d9e0;
+                         background: #fff; border-radius: 6px; cursor: pointer;
+                         font-size: .88rem; }
+.trace-controls button:hover:not(:disabled) { background: #f3f4f6; }
+.trace-controls button:disabled { opacity: .45; cursor: not-allowed; }
+.trace-controls .step-info { font-size: .88rem; color: #57606a;
+                              margin-left: .8rem; font-family: ui-monospace, Menlo, monospace; }
+.tape-display { background: #fff; border: 1px solid #eaecef;
+                border-radius: 8px; padding: 1.4rem 1rem;
+                overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+.tape-container { display: flex; flex-direction: column; align-items: center;
+                  min-width: max-content; }
+.tape-cells { display: flex; gap: 0; }
+.tape-cells .cell { width: 2.4rem; height: 2.4rem;
+                    display: flex; align-items: center; justify-content: center;
+                    font-family: ui-monospace, Menlo, monospace; font-size: 1.05rem;
+                    border: 1px solid #d1d9e0; background: #fff;
+                    margin: 0 -1px; transition: background-color .15s, border-color .15s; }
+.tape-cells .cell.head { background: #ddf4ff; border-color: #0969da;
+                         border-width: 2px; font-weight: 700; z-index: 1; }
+.tape-cells .cell.blank { color: #afb8c1; }
+.tape-arrow { display: flex; gap: 0; margin-top: .3rem; }
+.tape-arrow .slot { width: 2.4rem; text-align: center; color: #0969da;
+                    margin: 0 -1px; font-size: 1rem; font-weight: 700; }
+.trace-meta { margin-top: 1.2rem; display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+              gap: .4rem 1.5rem; font-size: .92rem; color: #424a53; }
+.trace-meta b { color: #57606a; font-weight: 600; }
+.trace-meta code { background: #f6f8fa; padding: .15rem .4rem;
+                   border-radius: 4px; border: 1px solid #eaecef; }
+
 footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
          border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
 </style>
@@ -280,6 +348,42 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
   <div class="placeholder">Escribe un lenguaje arriba y pulsa “Generar MT”.</div>
 </div>
 
+<section class="simulador" id="verifier" hidden>
+  <h2>Probar palabras</h2>
+  <p style="color:#57606a; font-size:.9rem; margin:.2rem 0 .6rem;">
+    Una palabra por línea (una línea vacía representa a λ). Cada palabra
+    se simula sobre la MT; clic en una fila para ver la cinta paso a paso.
+  </p>
+  <textarea id="words" autocomplete="off" autocapitalize="off"
+            spellcheck="false"></textarea>
+  <div><button id="btn-eval">Evaluar</button></div>
+  <table id="results"></table>
+</section>
+
+<section class="simulador" id="cinta-section" hidden>
+  <h2>Cinta — <code id="trace-word"></code></h2>
+  <div class="trace-controls">
+    <button id="t-reset">⏮ inicio</button>
+    <button id="t-back">◀ paso atrás</button>
+    <button id="t-fwd">paso ▶</button>
+    <button id="t-play">▶▶ animar</button>
+    <button id="t-pause" hidden>⏸ pausar</button>
+    <span class="step-info" id="step-info"></span>
+  </div>
+  <div class="tape-display">
+    <div class="tape-container">
+      <div class="tape-cells" id="tape-cells"></div>
+      <div class="tape-arrow" id="tape-arrow"></div>
+    </div>
+  </div>
+  <div class="trace-meta">
+    <div><b>Estado</b>: <code id="trace-state">—</code></div>
+    <div><b>Leyendo</b>: <code id="trace-read">—</code></div>
+    <div><b>Configuración (§6.1)</b>: <code id="trace-config">—</code></div>
+    <div><b>Resultado</b>: <span id="trace-result">—</span></div>
+  </div>
+</section>
+
 <footer>
   syntactic-monoid · modelo MT según §6.1 de De Castro ·
   renderizado con <a href="https://github.com/mdaines/viz-js" target="_blank" rel="noopener">viz.js</a>
@@ -332,6 +436,52 @@ class MT {
       if (this.F.has(t.q))
         throw new Error(`No se permiten transiciones desde F: '${t.q}'.`);
     }
+  }
+
+  /* Simula la MT sobre una palabra; devuelve la traza completa para
+     pintar la cinta paso a paso. */
+  simulate(input, maxSteps = 600) {
+    // Pre-chequeo: simbolos en Σ
+    for (const c of input) {
+      if (!this.sigma.has(c)) {
+        return {
+          resultado: "rechazo",
+          razon: `Símbolo '${c}' no pertenece a Σ`,
+          pasos: 0,
+          configuraciones: [{
+            paso: 0, estado: this.q0, cinta: new Map(),
+            cabezal: 0, leido: "?", transicion: null,
+          }],
+        };
+      }
+    }
+    const delta = new Map();
+    for (const t of this.delta) delta.set(`${t.q}|${t.s}`, t);
+
+    const cinta = new Map();
+    for (let i = 0; i < input.length; i++) cinta.set(i, input[i]);
+    let cabezal = 0, estado = this.q0;
+    const configs = [];
+
+    for (let paso = 0; paso <= maxSteps; paso++) {
+      const sym = cinta.has(cabezal) ? cinta.get(cabezal) : BLANCO;
+      configs.push({
+        paso, estado, cinta: new Map(cinta),
+        cabezal, leido: sym, transicion: null,
+      });
+      if (this.F.has(estado))
+        return { resultado: "aceptacion", pasos: paso, configuraciones: configs };
+      const trans = delta.get(`${estado}|${sym}`);
+      if (!trans)
+        return { resultado: "rechazo", pasos: paso, configuraciones: configs };
+      configs[configs.length - 1].transicion = trans;
+      if (trans.sp === BLANCO) cinta.delete(cabezal);
+      else cinta.set(cabezal, trans.sp);
+      if (trans.D === "→") cabezal++;
+      else if (trans.D === "←") cabezal--;
+      estado = trans.qp;
+    }
+    return { resultado: "bucle", pasos: maxSteps, configuraciones: configs };
   }
 }
 
@@ -1144,7 +1294,177 @@ async function generar() {
     return;
   }
   await dibujar(mt);
+  // Mostrar verificador con palabras por defecto
+  mtActual = mt;
+  document.getElementById("verifier").hidden = false;
+  if (!document.getElementById("words").value.trim()) {
+    document.getElementById("words").value = palabrasPorDefecto();
+  }
+  evaluarPalabras();
 }
+
+/* =====================================================================
+ * Verificador y cinta animada
+ * ===================================================================== */
+
+let mtActual = null;
+let simulacion = null;
+let pasoActual = 0;
+let timerAnim = null;
+
+function palabrasPorDefecto() {
+  return ["", "ab", "aabb", "abc", "aabbcc", "abccc"].join("\n");
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function evaluarPalabras() {
+  if (!mtActual) return;
+  const text = document.getElementById("words").value;
+  // Cada linea es una palabra (incluyendo lineas vacias = lambda).
+  const palabras = text.split("\n");
+  const table = document.getElementById("results");
+  const filas = palabras.map((p, idx) => {
+    const sim = mtActual.simulate(p);
+    const cls = sim.resultado === "aceptacion" ? "acepta"
+              : sim.resultado === "rechazo"   ? "rechaza" : "bucle";
+    const txt = sim.resultado === "aceptacion" ? "✓ acepta"
+              : sim.resultado === "rechazo"   ? "✗ rechaza" : "⊘ bucle";
+    const pal = p === "" ? '<span class="word empty">λ (vacía)</span>'
+                         : `<span class="word">${escHtml(p)}</span>`;
+    return `<tr class="row-word" data-palabra="${escHtml(p)}">` +
+           `<td>${pal}</td>` +
+           `<td><span class="badge ${cls}">${txt}</span></td>` +
+           `<td>${sim.pasos}</td></tr>`;
+  }).join("");
+  table.innerHTML =
+    "<thead><tr><th>palabra</th><th>resultado</th><th>pasos</th></tr></thead>" +
+    `<tbody>${filas}</tbody>`;
+  table.querySelectorAll("tr.row-word").forEach(tr => {
+    tr.addEventListener("click", () => seleccionarPalabra(tr.dataset.palabra));
+  });
+}
+
+function seleccionarPalabra(palabra) {
+  if (!mtActual) return;
+  pausarAnim();
+  simulacion = mtActual.simulate(palabra);
+  pasoActual = 0;
+  document.getElementById("cinta-section").hidden = false;
+  document.getElementById("trace-word").textContent =
+    palabra === "" ? "(palabra vacía λ)" : palabra;
+  document.querySelectorAll("#results tr.row-word").forEach(tr => {
+    tr.classList.toggle("selected", tr.dataset.palabra === palabra);
+  });
+  pintarPaso();
+}
+
+function pintarPaso() {
+  if (!simulacion) return;
+  const total = simulacion.configuraciones.length;
+  const c = simulacion.configuraciones[pasoActual];
+  const cellsEl = document.getElementById("tape-cells");
+  const arrowEl = document.getElementById("tape-arrow");
+  cellsEl.innerHTML = ""; arrowEl.innerHTML = "";
+
+  // Rango de celdas a mostrar (con margen blanco a cada lado)
+  let min = c.cabezal, max = c.cabezal;
+  for (const k of c.cinta.keys()) {
+    if (k < min) min = k;
+    if (k > max) max = k;
+  }
+  min -= 1; max += 1;
+
+  // Pintar celdas
+  for (let i = min; i <= max; i++) {
+    const cell = document.createElement("div");
+    const sym = c.cinta.has(i) ? c.cinta.get(i) : BLANCO;
+    const isHead = i === c.cabezal;
+    const isBlank = !c.cinta.has(i);
+    cell.className = "cell" + (isHead ? " head" : "") + (isBlank ? " blank" : "");
+    cell.textContent = sym;
+    cellsEl.appendChild(cell);
+
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.textContent = isHead ? "▲" : "";
+    arrowEl.appendChild(slot);
+  }
+
+  document.getElementById("trace-state").textContent = c.estado;
+  document.getElementById("trace-read").textContent = c.leido;
+
+  // Configuracion uqv: porcion no-vacia de la cinta con el estado intercalado
+  let cmin = c.cabezal, cmax = c.cabezal;
+  for (const k of c.cinta.keys()) {
+    if (k < cmin) cmin = k;
+    if (k > cmax) cmax = k;
+  }
+  const partes = [];
+  for (let i = cmin; i < c.cabezal; i++)
+    partes.push(c.cinta.has(i) ? c.cinta.get(i) : BLANCO);
+  partes.push(c.estado);
+  for (let i = c.cabezal; i <= cmax; i++)
+    partes.push(c.cinta.has(i) ? c.cinta.get(i) : BLANCO);
+  const config = partes.join("") || (c.estado + BLANCO);
+  document.getElementById("trace-config").textContent = config;
+
+  // Badge de resultado
+  const resEl = document.getElementById("trace-result");
+  resEl.innerHTML = "";
+  const span = document.createElement("span");
+  const enUltimo = pasoActual === total - 1;
+  const cls = !enUltimo ? "encurso"
+            : simulacion.resultado === "aceptacion" ? "acepta"
+            : simulacion.resultado === "rechazo"   ? "rechaza" : "bucle";
+  const txt = !enUltimo ? "en curso..."
+            : simulacion.resultado === "aceptacion" ? "✓ acepta"
+            : simulacion.resultado === "rechazo"   ? "✗ rechaza" : "⊘ bucle";
+  span.className = "badge " + cls;
+  span.textContent = txt;
+  resEl.appendChild(span);
+
+  document.getElementById("step-info").textContent =
+    `paso ${pasoActual} / ${total - 1}`;
+  document.getElementById("t-reset").disabled = pasoActual === 0;
+  document.getElementById("t-back").disabled  = pasoActual === 0;
+  document.getElementById("t-fwd").disabled   = pasoActual === total - 1;
+  document.getElementById("t-play").disabled  = pasoActual === total - 1;
+}
+
+function resetAnim() { pausarAnim(); pasoActual = 0; pintarPaso(); }
+function pasoAtras() { if (pasoActual > 0)  { pasoActual--; pintarPaso(); } }
+function pasoAdelante() {
+  if (simulacion && pasoActual < simulacion.configuraciones.length - 1) {
+    pasoActual++; pintarPaso();
+  }
+}
+function animar() {
+  pausarAnim();
+  document.getElementById("t-play").hidden  = true;
+  document.getElementById("t-pause").hidden = false;
+  timerAnim = setInterval(() => {
+    if (!simulacion || pasoActual >= simulacion.configuraciones.length - 1) {
+      pausarAnim();
+      return;
+    }
+    pasoActual++; pintarPaso();
+  }, 400);
+}
+function pausarAnim() {
+  if (timerAnim) { clearInterval(timerAnim); timerAnim = null; }
+  document.getElementById("t-play").hidden  = false;
+  document.getElementById("t-pause").hidden = true;
+}
+
+document.getElementById("btn-eval").addEventListener("click", evaluarPalabras);
+document.getElementById("t-reset").addEventListener("click", resetAnim);
+document.getElementById("t-back").addEventListener("click", pasoAtras);
+document.getElementById("t-fwd").addEventListener("click", pasoAdelante);
+document.getElementById("t-play").addEventListener("click", animar);
+document.getElementById("t-pause").addEventListener("click", pausarAnim);
 
 document.getElementById("go").addEventListener("click", generar);
 document.getElementById("lang").addEventListener("keydown", e => {
