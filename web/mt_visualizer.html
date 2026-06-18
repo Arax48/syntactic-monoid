@@ -167,6 +167,40 @@ section.simulador { margin-top: 2rem; }
 .badge.bucle    { background: #fff4d6; color: #9a6700; }
 .badge.encurso  { background: #ddf4ff; color: #0969da; }
 
+/* Sección de estructura algebraica de M(A) */
+.algebra-section { margin-top: 2rem; }
+.algebra-section h2 { margin-bottom: .4rem; }
+.algebra-meta { display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: .4rem 1.5rem; font-size: .92rem;
+                color: #424a53; margin: .6rem 0 1rem; }
+.algebra-meta b { color: #57606a; font-weight: 600; }
+.algebra-meta code { background: #f6f8fa; padding: .15rem .4rem;
+                     border-radius: 4px; border: 1px solid #eaecef; }
+.algebra-badges { display: flex; gap: .4rem; flex-wrap: wrap;
+                  margin: .6rem 0 1rem; }
+.algebra-badges .badge {
+  display: inline-block; padding: .2rem .65rem; border-radius: 5px;
+  font-size: .85rem; font-weight: 600;
+}
+.algebra-badges .badge.yes { background: #dafbe1; color: #1a7f37; }
+.algebra-badges .badge.no  { background: #f6f8fa; color: #6e7681; }
+.algebra-badges .badge.spec { background: #ddf4ff; color: #0969da; }
+.algebra-summary { background: #f0f6ff; border: 1px solid #c7e0ff;
+                   border-radius: 8px; padding: .9rem 1.2rem;
+                   font-size: .98rem; margin: .6rem 0;
+                   color: #24292f; }
+.algebra-summary strong { color: #0969da; }
+.algebra-summary code { background: #fff; padding: .1rem .4rem;
+                        border-radius: 4px; border: 1px solid #c7e0ff; }
+.algebra-note { color: #57606a; font-size: .85rem; margin-top: .9rem;
+                font-style: italic; }
+.algebra-not-applicable {
+  background: #fff8c5; border: 1px solid #d4a72c; border-radius: 8px;
+  padding: .9rem 1.2rem; font-size: .92rem; color: #424a53;
+}
+.algebra-not-applicable strong { color: #9a6700; }
+
 /* Vista de la cinta con cabezal y controles */
 .trace-controls { display: flex; gap: .5rem; align-items: center;
                   flex-wrap: wrap; margin-bottom: .8rem; }
@@ -206,6 +240,7 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.10.0/lib/viz-standalone.js"></script>
 <script src="shared/regex_afd.js"></script>
+<script src="shared/monoid.js"></script>
 </head>
 <body>
 
@@ -360,6 +395,18 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
 <div class="svg-wrap" id="grafo">
   <div class="placeholder">Escribe un lenguaje arriba y pulsa “Generar MT”.</div>
 </div>
+
+<section class="algebra-section" id="algebra" hidden>
+  <h2>Estructura algebraica de M(A)</h2>
+  <p style="color:#57606a; font-size:.9rem; margin:.2rem 0 .8rem;">
+    Para lenguajes <em>regulares</em> (descritos por <code>regex</code>),
+    se construye el monoide de transición M(A) del AFD mínimo equivalente
+    y se analiza su estructura. Para lenguajes <em>no regulares</em>
+    (a<sup>n</sup>b<sup>n</sup>, palíndromos, etc.) el monoide sintáctico
+    es infinito y se indica que la construcción no aplica.
+  </p>
+  <div id="algebra-content"></div>
+</section>
 
 <section class="simulador" id="verifier" hidden>
   <h2>Probar una palabra</h2>
@@ -1296,9 +1343,9 @@ function construirMT(spec) {
 async function generar() {
   err(null);
   const input = document.getElementById("lang").value;
-  let mt;
+  let mt, spec;
   try {
-    const spec = parseLanguageInput(input);
+    spec = parseLanguageInput(input);
     mt = construirMT(spec);
   } catch (e) {
     err(e.message);
@@ -1317,6 +1364,125 @@ async function generar() {
   if (!document.getElementById("word-input").value.trim()) {
     document.getElementById("word-input").value = "abc";
   }
+  renderAlgebraMT(spec);
+}
+
+/* ====================================================================
+ * Estructura algebraica de M(A) — solo cuando el lenguaje es regular.
+ * Para patrones no regulares (a^n b^n, palíndromo, ww, etc.) muestra
+ * una nota explicando por qué la construcción del proyecto no aplica.
+ * ==================================================================== */
+
+function renderAlgebraMT(spec) {
+  const sec = document.getElementById("algebra");
+  const cont = document.getElementById("algebra-content");
+  sec.hidden = false;
+
+  if (spec.kind === "regex") {
+    let afd;
+    try {
+      afd = regexToAfdMin(spec.pattern, null);
+    } catch (e) {
+      cont.innerHTML =
+        `<div class="algebra-not-applicable">` +
+        `<strong>No se pudo compilar la regex:</strong> ${e.message}` +
+        `</div>`;
+      return;
+    }
+    renderAlgebraDesdeAfd(afd, cont);
+    return;
+  }
+
+  // Lenguaje no regular: el monoide sintáctico es infinito.
+  const nombreLeg = {
+    "anbn": "{a<sup>n</sup>b<sup>n</sup>}",
+    "anbncn": "{a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>}",
+    "anbncndn": "{a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>d<sup>n</sup>}",
+    "igab": "{w : #a(w) = #b(w)}",
+    "igabc": "{w : #a = #b = #c}",
+    "palpar": "palíndromos de longitud par",
+    "ww": "{ww : w ∈ Σ*}",
+    "anbm_ge": "{a<sup>n</sup>b<sup>m</sup> : m ≥ n}",
+    "anbm_le": "{a<sup>n</sup>b<sup>m</sup> : m ≤ n}",
+    "anbncm_ge": "{a<sup>n</sup>b<sup>n</sup>c<sup>m</sup> : m ≥ n}",
+    "anbncm_le": "{a<sup>n</sup>b<sup>n</sup>c<sup>m</sup> : m ≤ n}",
+  }[spec.kind] || "este lenguaje";
+
+  cont.innerHTML =
+    `<div class="algebra-not-applicable">` +
+    `<p><strong>Lenguaje no regular.</strong> El lenguaje ${nombreLeg} ` +
+    `no es regular (Cap 3.1 del libro, criterio de no regularidad), así ` +
+    `que su monoide sintáctico M(L) es <strong>infinito</strong>.</p>` +
+    `<p style="margin:.5rem 0 0;">La construcción algebraica del ` +
+    `proyecto (M(A) finito, |Q|<sup>|Q|</sup>, clases de equivalencia ` +
+    `mod n, V₄, S₃, …) está pensada para AFDs y aplica solo a lenguajes ` +
+    `regulares. Para descripciones de lenguajes regulares, ingresa ` +
+    `<code>regex &lt;patrón&gt;</code> en la caja superior y se ` +
+    `construirá M(A) del AFD mínimo equivalente.</p>` +
+    `</div>`;
+}
+
+function renderAlgebraDesdeAfd(afd, cont) {
+  const Qsize = afd.states.size;
+  const cota = Math.pow(Qsize, Qsize);
+  let monoid, info;
+  try {
+    monoid = computeMonoid(afd, 4096);
+    info = analyzeMonoid(monoid);
+  } catch (e) {
+    cont.innerHTML =
+      `<div class="algebra-not-applicable">` +
+      `<strong>No se pudo construir M(A):</strong> ${e.message}` +
+      `</div>`;
+    return;
+  }
+
+  const yes = (cond, txt) =>
+    `<span class="badge ${cond ? "yes" : "no"}">${cond ? "✓" : "✗"} ${txt}</span>`;
+  const badges = [
+    yes(info.isGroup, "es un grupo"),
+    yes(info.isAbelian, "abeliano"),
+  ];
+  if (info.isGroup) badges.push(yes(info.isCyclic, "cíclico"));
+  if (!info.isGroup && info.isAperiodic)
+    badges.push('<span class="badge spec">aperiódico (star-free)</span>');
+
+  let summary;
+  if (info.isGroup && info.isCyclic) {
+    const w = info.cyclicGenWord;
+    const gen = (w === "" || w == null) ? "λ" : `<code>${w}</code>`;
+    summary = `M(A) ≅ <strong>${info.isoLabel}</strong>, generado por la palabra ${gen}.`;
+  } else if (info.isGroup) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>.`;
+  } else if (info.isAperiodic) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
+              `Por el <strong>Teorema de Schützenberger</strong>, el lenguaje ` +
+              `es <em>star-free</em> (definible en lógica de primer orden).`;
+  } else {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
+              `Contiene subgrupos no triviales pero algunas transformaciones ` +
+              `no son invertibles.`;
+  }
+
+  cont.innerHTML = `
+    <div class="algebra-meta">
+      <div><b>|M(A)|:</b> <code>${info.n}</code></div>
+      <div><b>cota |Q|<sup>|Q|</sup>:</b> <code>${cota}</code></div>
+      <div><b>identidad:</b> <code>f<sub>λ</sub> = id<sub>Q</sub></code></div>
+      <div><b>idempotentes:</b> <code>${info.idempotents.length}</code></div>
+      <div><b>unidades U(M):</b> <code>${info.units.length}</code></div>
+      <div><b>centro Z(M):</b> <code>${info.center.length}</code></div>
+    </div>
+    <div class="algebra-badges">${badges.join("")}</div>
+    <div class="algebra-summary">${summary}</div>
+    <p class="algebra-note">
+      Por el Teorema de Myhill-Nerode (§2.15) y la minimización (§2.16),
+      cuando el AFD es mínimo M(A) coincide con el monoide sintáctico
+      del lenguaje L(A). El homomorfismo natural φ : Σ* → M(A) envía cada
+      palabra w a su transformación inducida f<sub>w</sub>; el cociente
+      Σ*/Ker(φ) ≅ M(A) por el Primer Teorema del Isomorfismo.
+    </p>
+  `;
 }
 
 /* =====================================================================

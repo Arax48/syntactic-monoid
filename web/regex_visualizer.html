@@ -152,6 +152,40 @@ details.syntax td:first-child { width: 8rem; }
   fill: #cf222e !important;
   stroke: #cf222e !important;
 }
+/* Sección de estructura algebraica de M(A) */
+.algebra-section { margin-top: 2rem; }
+.algebra-section h2 { margin-bottom: .4rem; }
+.algebra-meta { display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: .4rem 1.5rem; font-size: .92rem;
+                color: #424a53; margin: .6rem 0 1rem; }
+.algebra-meta b { color: #57606a; font-weight: 600; }
+.algebra-meta code { background: #f6f8fa; padding: .15rem .4rem;
+                     border-radius: 4px; border: 1px solid #eaecef; }
+.algebra-badges { display: flex; gap: .4rem; flex-wrap: wrap;
+                  margin: .6rem 0 1rem; }
+.algebra-badges .badge {
+  display: inline-block; padding: .2rem .65rem; border-radius: 5px;
+  font-size: .85rem; font-weight: 600;
+}
+.algebra-badges .badge.yes { background: #dafbe1; color: #1a7f37; }
+.algebra-badges .badge.no  { background: #f6f8fa; color: #6e7681; }
+.algebra-badges .badge.spec { background: #ddf4ff; color: #0969da; }
+.algebra-summary { background: #f0f6ff; border: 1px solid #c7e0ff;
+                   border-radius: 8px; padding: .9rem 1.2rem;
+                   font-size: .98rem; margin: .6rem 0;
+                   color: #24292f; }
+.algebra-summary strong { color: #0969da; }
+.algebra-summary code { background: #fff; padding: .1rem .4rem;
+                        border-radius: 4px; border: 1px solid #c7e0ff; }
+.algebra-note { color: #57606a; font-size: .85rem; margin-top: .9rem;
+                font-style: italic; }
+.algebra-not-applicable {
+  background: #fff8c5; border: 1px solid #d4a72c; border-radius: 8px;
+  padding: .9rem 1.2rem; font-size: .92rem; color: #424a53;
+}
+.algebra-not-applicable strong { color: #9a6700; }
+
 /* Vista de la cinta del AFD (palabra ingresada) */
 .tape-section { margin-top: 1.6rem; }
 .tape-section h3 { margin: 0 0 .6rem 0; font-size: 1.02rem; }
@@ -201,6 +235,7 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.10.0/lib/viz-standalone.js"></script>
 <script src="shared/regex_afd.js"></script>
+<script src="shared/monoid.js"></script>
 </head>
 <body>
 
@@ -343,6 +378,17 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 <section>
   <h2>AFD <span class="stat" id="min-stat"></span></h2>
   <div class="svg-wrap" id="min-svg"></div>
+</section>
+
+<section class="algebra-section" id="algebra" hidden>
+  <h2>Estructura algebraica de M(A)</h2>
+  <p style="color:#57606a; font-size:.9rem; margin:.2rem 0 .8rem;">
+    Monoide de transición del AFD mínimo. Se calcula
+    <em>f<sub>w</sub></em>(q) = δ̂(q, w) para todas las palabras
+    distinguibles y se analiza la estructura algebraica de M(A) =
+    {<em>f<sub>w</sub></em> : w ∈ Σ*}.
+  </p>
+  <div id="algebra-content"></div>
 </section>
 
 <section class="test-words">
@@ -581,6 +627,84 @@ async function doRender() {
   // pertenecer a un AFD distinto. El usuario re-prueba si quiere.
   afdActualMin = minimal;
   $("afd-tape").hidden = true;
+
+  // Estructura algebraica del monoide de transicion.
+  renderAlgebra(minimal);
+}
+
+/* ====================================================================
+ * Estructura algebraica de M(A)
+ * ==================================================================== */
+
+function renderAlgebra(afd) {
+  const sec = $("algebra");
+  const cont = $("algebra-content");
+  sec.hidden = false;
+
+  const Qsize = afd.states.size;
+  const cota = Math.pow(Qsize, Qsize);
+
+  let monoid, info;
+  try {
+    monoid = computeMonoid(afd, 4096);
+    info = analyzeMonoid(monoid);
+  } catch (e) {
+    cont.innerHTML =
+      `<div class="algebra-not-applicable">` +
+      `<strong>No se pudo construir M(A):</strong> ${e.message} ` +
+      `Esto ocurre con AFDs de muchos estados; el calculo crece como ` +
+      `|Q|<sup>|Q|</sup>.` +
+      `</div>`;
+    return;
+  }
+
+  const yes = (cond, txt) =>
+    `<span class="badge ${cond ? "yes" : "no"}">${cond ? "✓" : "✗"} ${txt}</span>`;
+
+  const badges = [
+    yes(info.isGroup, "es un grupo"),
+    yes(info.isAbelian, "abeliano"),
+  ];
+  if (info.isGroup) badges.push(yes(info.isCyclic, "cíclico"));
+  if (!info.isGroup && info.isAperiodic)
+    badges.push('<span class="badge spec">aperiódico (star-free)</span>');
+
+  let summary;
+  if (info.isGroup && info.isCyclic) {
+    const w = info.cyclicGenWord;
+    const gen = (w === "" || w == null) ? "λ" : `<code>${w}</code>`;
+    summary = `M(A) ≅ <strong>${info.isoLabel}</strong>, generado por la palabra ${gen}.`;
+  } else if (info.isGroup) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>.`;
+  } else if (info.isAperiodic) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
+              `Por el <strong>Teorema de Schützenberger</strong>, el lenguaje L(A) ` +
+              `es <em>star-free</em> (definible en lógica de primer orden).`;
+  } else {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
+              `Contiene subgrupos no triviales pero algunas transformaciones no son invertibles.`;
+  }
+
+  cont.innerHTML = `
+    <div class="algebra-meta">
+      <div><b>|M(A)|:</b> <code>${info.n}</code></div>
+      <div><b>cota |Q|<sup>|Q|</sup>:</b> <code>${cota}</code></div>
+      <div><b>identidad:</b> <code>f<sub>λ</sub> = id<sub>Q</sub></code></div>
+      <div><b>idempotentes:</b> <code>${info.idempotents.length}</code></div>
+      <div><b>unidades U(M):</b> <code>${info.units.length}</code></div>
+      <div><b>centro Z(M):</b> <code>${info.center.length}</code></div>
+    </div>
+    <div class="algebra-badges">${badges.join("")}</div>
+    <div class="algebra-summary">${summary}</div>
+    <p class="algebra-note">
+      Por el Teorema de Myhill-Nerode (§2.15) y la minimización (§2.16),
+      cuando el AFD es mínimo M(A) coincide con el monoide sintáctico
+      del lenguaje L(A). El homomorfismo natural
+      φ : Σ* → M(A) envía cada palabra w a su transformación inducida
+      f<sub>w</sub>; las clases de su núcleo dan el cociente
+      Σ*/Ker(φ) ≅ M(A) (Primer Teorema del Isomorfismo).
+    </p>
+  `;
 }
 
 let afdActualMin = null;   // ultimo AFD minimo construido (para la cinta)
