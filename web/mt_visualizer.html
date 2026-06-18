@@ -145,39 +145,27 @@ details.syntax .note { color: #6e7681; font-size: .85rem;
   stroke: #cf222e !important;
 }
 
-/* Verificador de palabras (tabla de resultados) */
+/* Verificador de palabras: input simple + simulación de cinta */
 section.simulador { margin-top: 2rem; }
-#words {
-  width: 100%; min-height: 6rem; padding: .6rem .8rem;
-  font-family: ui-monospace, Menlo, monospace; font-size: .92rem;
+.word-input-row { display: flex; gap: .6rem; align-items: stretch;
+                  margin: .6rem 0; }
+#word-input {
+  flex: 1; padding: .55rem .9rem;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1rem;
   border: 1px solid #d1d9e0; border-radius: 6px; background: #fff;
-  resize: vertical;
 }
-#words:focus { outline: 2px solid #0969da; outline-offset: -1px;
-               border-color: #0969da; }
-#btn-eval { padding: .5rem 1rem; background: #0969da; color: #fff;
-            border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
-            font-weight: 600; font-size: .9rem; margin-top: .5rem; }
-#btn-eval:hover { background: #0860c4; }
-#results { width: 100%; margin-top: 1rem; border-collapse: collapse;
-           font-size: .92rem; }
-#results th { padding: .45rem .7rem; border-bottom: 2px solid #d1d9e0;
-              font-size: .76rem; color: #57606a; font-weight: 600;
-              text-transform: uppercase; letter-spacing: .03em;
-              text-align: left; }
-#results td { padding: .5rem .7rem; border-bottom: 1px solid #eaecef; }
-#results .word { font-family: ui-monospace, Menlo, monospace; }
-#results .word.empty { color: #afb8c1; font-style: italic; }
+#word-input:focus { outline: 2px solid #0969da; outline-offset: -1px;
+                    border-color: #0969da; }
+#btn-probar { padding: .55rem 1.2rem; background: #0969da; color: #fff;
+              border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
+              font-weight: 600; font-size: .95rem; }
+#btn-probar:hover { background: #0860c4; }
 .badge { display: inline-block; padding: .15rem .55rem; border-radius: 4px;
          font-size: .82rem; font-weight: 600; white-space: nowrap; }
 .badge.acepta   { background: #dafbe1; color: #1a7f37; }
 .badge.rechaza  { background: #ffe5e5; color: #cf222e; }
 .badge.bucle    { background: #fff4d6; color: #9a6700; }
 .badge.encurso  { background: #ddf4ff; color: #0969da; }
-#results tr.row-word { cursor: pointer; }
-#results tr.row-word:hover { background: #f6f8fa; }
-#results tr.row-word.selected { background: #ddf4ff; }
-#results tr.row-word.selected td { font-weight: 600; }
 
 /* Vista de la cinta con cabezal y controles */
 .trace-controls { display: flex; gap: .5rem; align-items: center;
@@ -374,15 +362,16 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
 </div>
 
 <section class="simulador" id="verifier" hidden>
-  <h2>Probar palabras</h2>
+  <h2>Probar una palabra</h2>
   <p style="color:#57606a; font-size:.9rem; margin:.2rem 0 .6rem;">
-    Una palabra por línea (una línea vacía representa a λ). Cada palabra
-    se simula sobre la MT; clic en una fila para ver la cinta paso a paso.
+    Escribe una cadena de entrada y pulsa <b>Probar</b> (o Enter) para
+    simular la MT paso a paso sobre ella.
   </p>
-  <textarea id="words" autocomplete="off" autocapitalize="off"
-            spellcheck="false"></textarea>
-  <div><button id="btn-eval">Evaluar</button></div>
-  <table id="results"></table>
+  <div class="word-input-row">
+    <input id="word-input" type="text" placeholder="ej: aabbcc"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="btn-probar">Probar</button>
+  </div>
 </section>
 
 <section class="simulador" id="cinta-section" hidden>
@@ -1319,16 +1308,15 @@ async function generar() {
     return;
   }
   await dibujar(mt);
-  // Mostrar verificador con palabras por defecto y limpiar la cinta vieja
+  // Mostrar input de prueba y limpiar la cinta vieja
   mtActual = mt;
   simulacion = null;
   pasoActual = 0;
   document.getElementById("cinta-section").hidden = true;
   document.getElementById("verifier").hidden = false;
-  if (!document.getElementById("words").value.trim()) {
-    document.getElementById("words").value = palabrasPorDefecto();
+  if (!document.getElementById("word-input").value.trim()) {
+    document.getElementById("word-input").value = "abc";
   }
-  evaluarPalabras();
 }
 
 /* =====================================================================
@@ -1340,52 +1328,15 @@ let simulacion = null;
 let pasoActual = 0;
 let timerAnim = null;
 
-function palabrasPorDefecto() {
-  return ["", "ab", "aabb", "abc", "aabbcc", "abccc"].join("\n");
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
-function evaluarPalabras() {
+function probarPalabra() {
   if (!mtActual) return;
-  const text = document.getElementById("words").value;
-  // Cada linea es una palabra (incluyendo lineas vacias = lambda).
-  const palabras = text.split("\n");
-  const table = document.getElementById("results");
-  const filas = palabras.map((p, idx) => {
-    const sim = mtActual.simulate(p);
-    const cls = sim.resultado === "aceptacion" ? "acepta"
-              : sim.resultado === "rechazo"   ? "rechaza" : "bucle";
-    const txt = sim.resultado === "aceptacion" ? "✓ acepta"
-              : sim.resultado === "rechazo"   ? "✗ rechaza" : "⊘ bucle";
-    const pal = p === "" ? '<span class="word empty">λ (vacía)</span>'
-                         : `<span class="word">${escHtml(p)}</span>`;
-    return `<tr class="row-word" data-palabra="${escHtml(p)}">` +
-           `<td>${pal}</td>` +
-           `<td><span class="badge ${cls}">${txt}</span></td>` +
-           `<td>${sim.pasos}</td></tr>`;
-  }).join("");
-  table.innerHTML =
-    "<thead><tr><th>palabra</th><th>resultado</th><th>pasos</th></tr></thead>" +
-    `<tbody>${filas}</tbody>`;
-  table.querySelectorAll("tr.row-word").forEach(tr => {
-    tr.addEventListener("click", () => seleccionarPalabra(tr.dataset.palabra));
-  });
-}
-
-function seleccionarPalabra(palabra) {
-  if (!mtActual) return;
+  const palabra = document.getElementById("word-input").value;
   pausarAnim();
   simulacion = mtActual.simulate(palabra);
   pasoActual = 0;
   document.getElementById("cinta-section").hidden = false;
   document.getElementById("trace-word").textContent =
     palabra === "" ? "(palabra vacía λ)" : palabra;
-  document.querySelectorAll("#results tr.row-word").forEach(tr => {
-    tr.classList.toggle("selected", tr.dataset.palabra === palabra);
-  });
   pintarPaso();
 }
 
@@ -1520,7 +1471,10 @@ function pausarAnim() {
   document.getElementById("t-pause").hidden = true;
 }
 
-document.getElementById("btn-eval").addEventListener("click", evaluarPalabras);
+document.getElementById("btn-probar").addEventListener("click", probarPalabra);
+document.getElementById("word-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") probarPalabra();
+});
 document.getElementById("t-reset").addEventListener("click", resetAnim);
 document.getElementById("t-back").addEventListener("click", pasoAtras);
 document.getElementById("t-fwd").addEventListener("click", pasoAdelante);

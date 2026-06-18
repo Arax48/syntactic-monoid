@@ -116,21 +116,19 @@ details.syntax td:first-child { width: 8rem; }
 
 .test-words { margin-top: 2rem; }
 .test-words p { color: #57606a; font-size: .9rem; margin: .3rem 0 .6rem; }
-.test-words textarea {
-  width: 100%; min-height: 120px; padding: .6rem .8rem;
-  border: 1px solid #d0d7de; border-radius: 6px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: .92rem; resize: vertical; background: #fff;
+.word-input-row { display: flex; gap: .6rem; align-items: stretch;
+                  margin: .6rem 0; }
+#word-input {
+  flex: 1; padding: .55rem .9rem;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1rem;
+  border: 1px solid #d1d9e0; border-radius: 6px; background: #fff;
 }
-.test-words textarea:focus { outline: 2px solid #0969da; outline-offset: -1px; }
-#words-result { border-collapse: collapse; width: 100%; margin-top: .8rem;
-                font-size: .92rem; }
-#words-result th { text-align: left; background: #f0f3f6;
-                   padding: .4rem .7rem; font-weight: 600; }
-#words-result td { border-top: 1px solid #eaecef; padding: .4rem .7rem; }
-#words-result td.r-accept { color: #1a7f37; font-weight: 600; }
-#words-result td.r-reject { color: #6e7681; }
-#words-result td.r-error  { color: #cf222e; font-size: .85rem; }
+#word-input:focus { outline: 2px solid #0969da; outline-offset: -1px;
+                    border-color: #0969da; }
+#btn-probar { padding: .55rem 1.2rem; background: #0969da; color: #fff;
+              border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
+              font-weight: 600; font-size: .95rem; }
+#btn-probar:hover { background: #0860c4; }
 
 /* Resaltado del estado actual y la transición tomada en el AFD mínimo,
    sincronizado con la cinta de la palabra seleccionada. */
@@ -154,11 +152,7 @@ details.syntax td:first-child { width: 8rem; }
   fill: #cf222e !important;
   stroke: #cf222e !important;
 }
-#words-result tr.row-w { cursor: pointer; }
-#words-result tr.row-w:hover { background: #f6f8fa; }
-#words-result tr.row-w.selected { background: #ddf4ff; }
-
-/* Vista de la cinta del AFD (palabra seleccionada) */
+/* Vista de la cinta del AFD (palabra ingresada) */
 .tape-section { margin-top: 1.6rem; }
 .tape-section h3 { margin: 0 0 .6rem 0; font-size: 1.02rem; }
 .trace-ctl { display: flex; gap: .4rem; align-items: center;
@@ -352,17 +346,14 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
 </section>
 
 <section class="test-words">
-  <h2>Probar palabras</h2>
-  <p>Una palabra por línea. Línea vacía = palabra vacía λ.</p>
-  <textarea id="words" autocomplete="off" autocapitalize="off"
-            spellcheck="false">01
-001
-1101
-
-0
-1
-10</textarea>
-  <table id="words-result"></table>
+  <h2>Probar una palabra</h2>
+  <p>Escribe una cadena de entrada y pulsa <b>Probar</b> (o Enter) para
+     simular el AFD paso a paso sobre ella.</p>
+  <div class="word-input-row">
+    <input id="word-input" type="text" placeholder="ej: 1101"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="btn-probar">Probar</button>
+  </div>
 
   <div class="tape-section" id="afd-tape" hidden>
     <h3>Cinta — <code id="r-word"></code></h3>
@@ -560,7 +551,8 @@ async function doRender() {
     $("afn-stat").textContent = "";
     $("afd-stat").textContent = "";
     $("min-stat").textContent = "";
-    $("words-result").innerHTML = "";
+    afdActualMin = null;
+    $("afd-tape").hidden = true;
     return;
   }
 
@@ -585,38 +577,21 @@ async function doRender() {
   $("afd-svg").replaceChildren(dfaSvg);
   $("min-svg").replaceChildren(minSvg);
 
-  renderWordsTable(minimal);
+  // Guardar el AFD minimo actual; ocultar cinta vieja porque puede
+  // pertenecer a un AFD distinto. El usuario re-prueba si quiere.
+  afdActualMin = minimal;
+  $("afd-tape").hidden = true;
 }
 
 let afdActualMin = null;   // ultimo AFD minimo construido (para la cinta)
-let traceAFD = null;       // simulacion de la palabra seleccionada
+let traceAFD = null;       // simulacion de la palabra ingresada
 let pasoAFD = 0;
 let timerAFD = null;
 
-function renderWordsTable(afd) {
-  afdActualMin = afd;
-  const text = $("words").value;
-  const lines = text.split("\n");
-  const rows = lines.map(w => {
-    const display = w === "" ? "λ (vacia)" : w.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-    let cls, msg;
-    try {
-      const ok = afdAccepts(afd, w);
-      cls = ok ? "r-accept" : "r-reject";
-      msg = ok ? "✓ acepta" : "✗ rechaza";
-    } catch (err) {
-      cls = "r-error";
-      msg = err.message;
-    }
-    const dataW = w.replace(/"/g, "&quot;");
-    return `<tr class="row-w" data-w="${dataW}"><td><code>${display}</code></td><td class="${cls}">${msg}</td></tr>`;
-  });
-  $("words-result").innerHTML =
-    "<thead><tr><th>palabra</th><th>resultado</th></tr></thead>" +
-    "<tbody>" + rows.join("") + "</tbody>";
-  $("words-result").querySelectorAll("tr.row-w").forEach(tr => {
-    tr.addEventListener("click", () => seleccionarAFD(tr.dataset.w));
-  });
+function probarPalabra() {
+  if (!afdActualMin) return;
+  const palabra = $("word-input").value;
+  seleccionarAFD(palabra);
 }
 
 /* Simula el AFD minimo sobre una palabra y devuelve la traza
@@ -652,9 +627,6 @@ function seleccionarAFD(palabra) {
   pasoAFD = 0;
   $("afd-tape").hidden = false;
   $("r-word").textContent = palabra === "" ? "(palabra vacía λ)" : palabra;
-  $("words-result").querySelectorAll("tr.row-w").forEach(tr => {
-    tr.classList.toggle("selected", tr.dataset.w === palabra.replace(/"/g, "&quot;"));
-  });
   pintarPasoAFD();
 }
 
@@ -780,19 +752,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("r-fwd").addEventListener("click", fwdAFD);
   $("r-play").addEventListener("click", playAFD);
   $("r-pause").addEventListener("click", pausarAFD);
-  $("words").addEventListener("input", () => {
-    // recalcular solo la tabla cuando cambian palabras (sin redibujar SVG)
-    if (renderTimeout) clearTimeout(renderTimeout);
-    renderTimeout = setTimeout(() => {
-      try {
-        const pattern = $("pattern").value;
-        const alphaSet = parseAlphabetInput($("alphabet").value);
-        const afn = regexToNFA(pattern, alphaSet);
-        const afd = afnToAfd(afn);
-        const minimal = minimizeAfd(afd);
-        renderWordsTable(minimal);
-      } catch (_) { /* sera mostrado por scheduleRender en otro ciclo */ }
-    }, 150);
+  $("btn-probar").addEventListener("click", probarPalabra);
+  $("word-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") probarPalabra();
   });
   for (const btn of document.querySelectorAll(".examples button")) {
     btn.addEventListener("click", () => {
