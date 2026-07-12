@@ -2,11 +2,15 @@
 
 > 🌐 **Sitio en vivo:** <https://arax48.github.io/syntactic-monoid/web/>
 >
-> Hub del proyecto en el navegador, sin instalación: visualizador de
-> regex → AFD, generador de Máquinas de Turing desde una descripción de
-> lenguaje, hojas informativas algebraicas precalculadas y tabla de
-> convenciones del libro de De Castro. Funciona en cualquier navegador
-> moderno.
+> Todo el sitio es **un único archivo HTML** (`web/index.html`) con dos
+> secciones: **Autómatas** (regex → AFD mínimo) y **Máquina de Turing**
+> (modelo §6.1 desde una descripción de lenguaje). Para cada autómata y
+> cada MT generada, la página calcula las propiedades de álgebra
+> abstracta que le corresponden: el monoide de transición M(A), sus
+> idempotentes, unidades y centro, si es grupo (ℤ/nℤ, V₄, S₃, …),
+> abeliano, cíclico o aperiódico (star-free); para lenguajes no
+> regulares se explica por qué el monoide sintáctico es infinito.
+> Funciona en cualquier navegador moderno, sin instalación.
 
 Implementación matemáticamente rigurosa y completa en Python para construir
 el **monoide de transición** `M(A)` asociado a un Autómata Finito Determinista,
@@ -32,17 +36,9 @@ en futuras *slices*.
 syntactic-monoid/
 ├── main.py                  # CLI interactiva + subcomandos (importa desde backend/)
 ├── visualization.py         # Graphviz + matplotlib + reportes
-├── web/                     # Sitio estático (HTML+CSS+JS, sin servidor)
-│   ├── index.html           # Portada/hub con navegación a todo el sitio
-│   ├── regex_visualizer.html# Regex → AFN-λ → AFD → AFD mínimo
-│   ├── mt_visualizer.html   # Máquinas de Turing (§6.1) con cinta animada
-│   ├── convenciones.html    # Tabla De Castro vs notación clásica
-│   ├── ejemplos/            # Hojas informativas precalculadas (4 AFDs)
-│   │   ├── parity_afd.html, mod3_afd.html
-│   │   ├── ends_with_01_afd.html, klein_v4_afd.html
-│   └── shared/style.css     # Estilos compartidos del sitio
-├── scripts/
-│   └── build_web_examples.py# Regenera web/ejemplos/ desde examples/
+├── web/                     # Sitio estático (sin servidor)
+│   └── index.html           # ÚNICO archivo: sección Autómatas + sección MT,
+│                            # cada una con su análisis algebraico de M(A)
 ├── backend/                 # Motor de cómputo
 │   ├── models/              # Modelos formales
 │   │   ├── dfa.py           # AFD + minimización, producto, equivalencia
@@ -154,80 +150,60 @@ python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
 python main.py visualize "(0|1)*01" --no-open   # solo genera, no abre
 ```
 
-### Sitio estático completo (sin terminal)
+### Sitio estático de un solo archivo (sin terminal)
 
 Para acceder al proyecto sin escribir ningún comando, abre
 `web/index.html` directamente en tu navegador (doble-clic en el
-explorador de archivos). Es la **portada** con navegación a:
+explorador de archivos), o visita el sitio en vivo. **Todo el sitio es
+ese único archivo**, con dos secciones:
 
-- **Regex → AFD** (visualizador interactivo).
-- **Máquinas de Turing** (editor + simulador con cinta animada).
-- **Monoide sintáctico** (4 hojas informativas precalculadas
-  para los AFDs canónicos: paridad, mod 3, termina en 01,
-  Klein V₄).
-- **Convenciones** (tabla De Castro ↔ notación clásica).
+**Sección 1 · Autómatas (regex → AFD).** Página autocontenida con el
+parser de regex, Thompson (§2.12), subset construction (§2.7.1) y
+Hopcroft (§2.16) portados a JavaScript; los grafos se renderizan con
+[viz.js](https://github.com/mdaines/viz-js) cargado por CDN.
 
-Todas las páginas comparten la barra de navegación superior y los
-estilos en `web/shared/style.css`. Las hojas informativas en
-`web/ejemplos/` se generan con
-`python scripts/build_web_examples.py` (requiere `markdown`).
+- Caja de regex con re-render **en vivo** mientras escribes (debounced).
+- Caja de alfabeto opcional (con `.` o regexes sin literales hay que dárselo).
+- Botones de ejemplos pre-cargados (`(0|1)*01`, paridad, mod 3,
+  paridad de a ∧ b ≅ V₄, …).
+- Digrafo del AFD mínimo con nota de reducción de estados.
+- **Estructura algebraica de M(A)**, calculada en vivo para cada AFD:
+  |M(A)| vs la cota |Q|^|Q|, idempotentes, unidades U(M), centro Z(M),
+  ¿es grupo?, ¿abeliano?, ¿cíclico (con palabra generadora)?,
+  ¿aperiódico? (Schützenberger / star-free) y clasificación
+  (ℤ/nℤ, V₄, S₃, …).
+- Verificador de palabras con cinta animada paso a paso, sincronizada
+  con el resaltado del estado y la transición en el digrafo.
 
-### Visualizador de expresiones regulares
+**Sección 2 · Máquina de Turing (§6.1–§6.2).** El modelo completo
+(tupla `(Q, q0, F, Σ, Γ, δ)`, cinta bidireccional, blanco `□` externo,
+desplazamientos `←/→/−`) portado a JavaScript.
 
-Para jugar con regexes sin escribir ningún comando, abre el archivo
-`web/regex_visualizer.html` directamente en tu navegador (doble click
-en el explorador de archivos). Es una página autocontenida con todo el
-parser, Thompson, subset construction y Hopcroft portados a JavaScript;
-los grafos se renderizan con [viz.js](https://github.com/mdaines/viz-js)
-cargado por CDN.
+- Entrada por descripción del lenguaje: `a^n b^n c^n`, `#a = #b`,
+  `palindromo par`, `ww`, patrones con restricciones (`m >= n`,
+  `n >= 1`) y `regex <patrón>` (Teorema 6.1.1: AFD → MT).
+- Diagrama de estados con el estado actual resaltado y etiquetas
+  de arcos en el formato del libro `s | s' D`.
+- Cinta bidireccional animada con cabezal y configuración instantánea
+  *u q v* (§6.1); controles paso a paso / animar / pausar.
+- **Estructura algebraica**, calculada para cada MT: si el lenguaje es
+  regular (`regex …`) se construye M(A) del AFD mínimo equivalente con
+  el mismo análisis completo de la sección 1; si el lenguaje no es
+  regular (aⁿbⁿ, palíndromos, ww, …) se explica que su monoide
+  sintáctico M(L) es infinito y por qué la construcción finita no
+  aplica (§3.1).
+- Validación estructural según §6.1 (F ≠ ∅, Σ ⊆ Γ, `□ ∉ Γ`,
+  no transiciones desde F, δ determinística).
 
-También se puede abrir desde la línea de comandos:
+> Requiere internet la primera vez para descargar viz.js (~1 MB).
+> Después funciona offline siempre que tu navegador haya cacheado el
+> script. Sin internet, se muestra el código DOT plano como fallback.
+
+El visualizador también se puede abrir desde la línea de comandos:
 
 ```bash
 python main.py interactive
 ```
-
-Características de la página:
-
-- Caja de regex con re-render **en vivo** mientras escribes (debounced).
-- Caja de alfabeto opcional (con `.` o regexes sin literales hay que dárselo).
-- Botones de ejemplos pre-cargados (`(0|1)*01`, paridad, mod 3, …).
-- Hoja de sintaxis y operadores plegable.
-- Tres digrafos lado a lado: AFN Thompson (λ-transiciones discontinuas),
-  AFD por subconjuntos, AFD mínimo, con el conteo de estados y la nota
-  de reducción.
-- Cuadro de **palabras de prueba** (una por línea) que se evalúan sobre
-  el AFD mínimo en tiempo real con ✓ / ✗.
-- Fallback offline: si no hay internet, muestra el código DOT plano y
-  un enlace a Graphviz Online.
-
-> Requiere internet la primera vez para descargar viz.js (~1 MB).
-> Después funciona offline siempre que tu navegador haya cacheado el
-> script.
-
-### Visualizador interactivo de Máquinas de Turing
-
-Para experimentar con MT del modelo estándar de De Castro (§6.1), abre
-`web/mt_visualizer.html` directamente en tu navegador. Es una página
-autocontenida con todo el modelo (tupla `(Q, q0, F, Σ, Γ, δ)`, cinta
-bidireccional, símbolo blanco `□` externo, desplazamientos `←/→/−`)
-portado a JavaScript, y los grafos renderizados con viz.js.
-
-Características de la página:
-
-- Editor en formulario para Σ, Γ, Q, q0, F y transiciones.
-- Sintaxis simple de transiciones, una por línea:
-  `q, s -> q', s', D` (con `→/←/−` o `R/L/S` y `_` ≡ `□`).
-- Ejemplos pre-cargados, incluidos dos del §6.2 del libro:
-  *empieza con 'a'*, *decide a\**, *#a = #b*, *a^n b^n c^n*.
-- Diagrama de estados con el estado actual resaltado, etiquetas
-  de arcos en el formato del libro `s | s' D`.
-- Cinta bidireccional con cabezal visual; panel de estado con la
-  configuración instantánea *u q v* (§6.1).
-- Controles **▶ Un paso**, **▶▶ Ejecutar** (animado), **⏸ Pausar**
-  y **⏮ Reiniciar**. Tope de pasos configurable para evitar bucles.
-- Validación estructural en tiempo de construcción según §6.1
-  (F ≠ ∅, Σ ⊆ Γ, `□ ∉ Γ`, no transiciones desde F, δ deterministica).
 
 ### Sintaxis de las expresiones regulares
 
