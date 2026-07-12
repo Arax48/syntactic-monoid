@@ -11,6 +11,13 @@
 > abeliano, cíclico o aperiódico (star-free); para lenguajes no
 > regulares se explica por qué el monoide sintáctico es infinito.
 > Funciona en cualquier navegador moderno, sin instalación.
+>
+> 📦 La versión anterior del sitio (multi-página: portada, visualizadores
+> separados, convenciones y hojas informativas precalculadas) se conserva
+> íntegra en la rama
+> [`version-anterior-multipagina`](https://github.com/Arax48/syntactic-monoid/tree/version-anterior-multipagina).
+> GitHub Pages solo sirve `main`; para ver la versión anterior en el
+> navegador, haz checkout de esa rama y abre su `web/index.html` localmente.
 
 Implementación matemáticamente rigurosa y completa en Python para construir
 el **monoide de transición** `M(A)` asociado a un Autómata Finito Determinista,
