@@ -36,7 +36,7 @@ from backend.verification import check_against_regex, verify_samples
 from backend.visualization import regex_to_html
 
 INTERACTIVE_HTML = (
-    Path(__file__).resolve().parent / "web" / "regex_visualizer.html"
+    Path(__file__).resolve().parent / "web" / "index.html"
 )
 
 # Las funciones de visualizacion se importan en uso porque requieren
@@ -468,7 +468,7 @@ def cli(argv: list[str] | None = None) -> int:
 
     p_compile = sub.add_parser(
         "from-regex",
-        help="Compilar una regex a AFD (Thompson + subset construction).",
+        help="Compilar una regex a AFD (AFN-λ + subset construction).",
     )
     p_compile.add_argument("pattern", help="Expresion regular.")
     p_compile.add_argument(
@@ -671,7 +671,7 @@ def _cli_infosheet(args: argparse.Namespace) -> int:
 
 
 def _cli_interactive() -> int:
-    """Abre web/regex_visualizer.html en el navegador por defecto."""
+    """Abre web/index.html en el navegador por defecto."""
     if not INTERACTIVE_HTML.exists():
         print(
             f"Error: no encuentro {INTERACTIVE_HTML}", file=sys.stderr

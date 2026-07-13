@@ -33,7 +33,7 @@
     </p>
     <p>
       Construye y verifica un AFD, compila una expresión regular a
-      AFN-λ (Teorema de Kleene Parte I) y al AFD mínimo (Hopcroft),
+      AFN-λ (Teorema de Kleene Parte I) y al AFD mínimo (§2.16),
       simula una Máquina de Turing del modelo estándar (§6.1) sobre una
       cinta bidireccional, y conecta todo con el monoide de transición
       <em>M</em>(<em>A</em>) y el teorema de isomorfismo (Saracino §12).
@@ -87,7 +87,7 @@
     <g transform="translate(175, 30)">
       <rect class="node" width="100" height="48" rx="8"/>
       <text class="node-text" x="50" y="22" text-anchor="middle">AFN-λ</text>
-      <text class="node-sub"  x="50" y="38" text-anchor="middle">Thompson</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">Kleene §2.12</text>
     </g>
     <!-- arrow AFN-λ -> AFD -->
     <line class="arrow-line" x1="280" y1="54" x2="325" y2="54" marker-end="url(#arrow)"/>
@@ -107,7 +107,7 @@
     <g transform="translate(330, 120)">
       <rect class="node" width="100" height="48" rx="8"/>
       <text class="node-text" x="50" y="22" text-anchor="middle">AFD mín.</text>
-      <text class="node-sub"  x="50" y="38" text-anchor="middle">Hopcroft</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">minimización</text>
     </g>
     <!-- arrow AFD min -> M(A) -->
     <line class="arrow-line" x1="325" y1="144" x2="280" y2="144" marker-end="url(#arrow)"/>
@@ -152,9 +152,9 @@
     <div class="label">§2.2 – §2.16</div>
     <div class="title">Expresiones regulares → AFD</div>
     <div class="desc">
-      Escribe una regex y mira la construcción de Thompson
+      Escribe una regex y mira la construcción del AFN-λ
       (Teorema 2.12.1), el AFD por subconjuntos (Teorema 2.7.1) y el
-      AFD mínimo de Hopcroft, lado a lado. Evalúa palabras de prueba
+      AFD mínimo (§2.16), lado a lado. Evalúa palabras de prueba
       contra el AFD mínimo en vivo.
     </div>
     <div class="footer-row">regex_visualizer.html</div>
@@ -193,7 +193,7 @@
     <div class="title">Convenciones De Castro</div>
     <div class="desc">
       Cuadro de equivalencia: notación clásica (DFA, NFA, ε,
-      Thompson) frente a la que usa el libro y este proyecto
+      construcción clásica) frente a la que usa el libro y este proyecto
       (AFD, AFN, λ, "Teorema de Kleene Parte I"). Útil al leer
       otros textos.
     </div>

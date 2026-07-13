@@ -1,4 +1,4 @@
-"""Pruebas para backend.language.regex (parser + Thompson)."""
+"""Pruebas para backend.language.regex (parser + construccion AFN-λ)."""
 
 from __future__ import annotations
 
@@ -162,7 +162,7 @@ def test_collect_alphabet_incluye_clase_de_caracteres() -> None:
 
 
 # ----------------------------------------------------------------------
-# Thompson - AFN acepta / rechaza
+# AFN-λ - AFN acepta / rechaza
 # ----------------------------------------------------------------------
 
 def test_nfa_simbolo_simple() -> None:

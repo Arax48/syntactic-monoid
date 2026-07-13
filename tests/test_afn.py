@@ -1,7 +1,7 @@
 """Pruebas para backend.models.afn.
 
 Cubre lo que NO esta ejercitado por los tests de la construccion de
-Thompson (test_regex.py): manipulacion directa de la API del AFN,
+Construccion de AFN-λ (test_regex.py): manipulacion directa de la API del AFN,
 manejo de λ-transiciones, simulacion no determinista y construccion
 de subconjuntos sobre un AFN escrito a mano.
 """

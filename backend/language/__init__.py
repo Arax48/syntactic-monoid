@@ -2,7 +2,7 @@
 backend.language
 ================
 
-Lenguajes formales: parseo de expresiones regulares (Thompson),
+Lenguajes formales: parseo de expresiones regulares (construcción de AFN-λ),
 clasificacion en la jerarquia de Chomsky, lema de bombeo y
 auto-generacion de automatas a partir de especificaciones.
 """

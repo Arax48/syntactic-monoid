@@ -106,7 +106,7 @@ Opciones:
 8. Mostrar clases de equivalencia
 9. Exportar reporte (texto + figuras)
 10. Ejecutar ejemplos canónicos
-11. Compilar regex a AFD (Thompson + subset construction)
+11. Compilar regex a AFD (AFN-λ + subset construction)
 12. Verificar AFD contra regex o muestra accept/reject
 13. Generar hoja informativa pedagógica (álgebra + autómatas)
 14. Visualizar regex en HTML estático (AFN + AFD + AFD mínimo)
@@ -131,7 +131,7 @@ python main.py examples
 ### Subcomandos de la *slice 1* (lenguajes regulares, end-to-end)
 
 ```bash
-# Compilar una regex a AFD (Thompson + construcción de subconjuntos)
+# Compilar una regex a AFD (AFN-λ + construcción de subconjuntos)
 python main.py from-regex "(0|1)*01" --out output/ends_with_01.json
 
 # Verificar que un AFD reconoce el mismo lenguaje que una regex.
@@ -146,8 +146,8 @@ python main.py verify examples/parity_afd.json --samples examples/parity_samples
 # ¿es grupo? ¿cuál? ¿qué dice eso del lenguaje?
 python main.py infosheet examples/mod3_afd.json --out output/mod3_info.md --markdown
 
-# Visualizar una regex como página HTML autocontenida: muestra el AFN
-# de Thompson, el AFD por subconjuntos y el AFD mínimo (Hopcroft) en
+# Visualizar una regex como página HTML autocontenida: muestra el AFN-λ,
+# el AFD por subconjuntos y el AFD mínimo (§2.16) en
 # un solo archivo. Auto-abre el navegador.
 python main.py visualize "(0|1)*01"
 python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
@@ -177,7 +177,7 @@ estilos en `web/shared/style.css`. Las hojas informativas en
 Para jugar con regexes sin escribir ningún comando, abre el archivo
 `web/regex_visualizer.html` directamente en tu navegador (doble click
 en el explorador de archivos). Es una página autocontenida con todo el
-parser, Thompson, subset construction y Hopcroft portados a JavaScript;
+parser, construcción de AFN-λ, subset construction y minimización portados a JavaScript;
 los grafos se renderizan con [viz.js](https://github.com/mdaines/viz-js)
 cargado por CDN.
 
@@ -193,7 +193,7 @@ Características de la página:
 - Caja de alfabeto opcional (con `.` o regexes sin literales hay que dárselo).
 - Botones de ejemplos pre-cargados (`(0|1)*01`, paridad, mod 3, …).
 - Hoja de sintaxis y operadores plegable.
-- Tres digrafos lado a lado: AFN Thompson (λ-transiciones discontinuas),
+- Tres digrafos lado a lado: AFN-λ (λ-transiciones discontinuas),
   AFD por subconjuntos, AFD mínimo, con el conteo de estados y la nota
   de reducción.
 - Cuadro de **palabras de prueba** (una por línea) que se evalúan sobre
@@ -262,7 +262,7 @@ de transformaciones (asociatividad, idempotencia, órbitas, ciclos);
 construcción del monoide M(A) (cerradura, cota `|Q|^|Q|`, tabla de
 Cayley, idempotentes, unidades, aperiodicidad); propiedades de `φ`
 (homomorfismo, reflexividad/simetría/transitividad de `∼`, Primer
-Teorema del Isomorfismo); parser de regex y construcción de Thompson;
+Teorema del Isomorfismo); parser de regex y construcción de AFN-λ;
 verificación por equivalencia y por muestras; análisis de estructura
 de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa.
 
