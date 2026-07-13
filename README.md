@@ -72,7 +72,9 @@ syntactic-monoid/
 ├── legacy/                  # Snapshot de los módulos planos originales
 ├── docs/
 │   ├── report.md            # Informe académico (13 secciones)
-│   └── presentation.md      # Presentación (≥ 15 diapositivas)
+│   ├── presentation.md      # Presentación (≥ 15 diapositivas)
+│   ├── algoritmo-principal.pdf/.tex     # El algoritmo principal (académico)
+│   └── explicacion-principiantes.pdf/.tex # Explicación para principiantes
 ├── output/                  # Reportes y figuras generadas (creado en runtime)
 ├── requirements.txt
 └── README.md
@@ -270,6 +272,18 @@ Más:
   ejemplos, resultados, discusión, conclusiones, referencias).
 - **Presentación:** [`docs/presentation.md`](docs/presentation.md) — 16
   diapositivas listas para defensa.
+- **El algoritmo principal (PDF):**
+  [`docs/algoritmo-principal.pdf`](docs/algoritmo-principal.pdf) — documento
+  académico (8 págs) que explica, paso a paso, la construcción del monoide de
+  transición `M(A)` y su análisis algebraico, con un ejemplo completo. Fuente
+  LaTeX: [`docs/algoritmo-principal.tex`](docs/algoritmo-principal.tex).
+- **Explicación para principiantes (PDF):**
+  [`docs/explicacion-principiantes.pdf`](docs/explicacion-principiantes.pdf) —
+  el mismo contenido desde cero, sin conocimientos previos (4 págs). Fuente
+  LaTeX: [`docs/explicacion-principiantes.tex`](docs/explicacion-principiantes.tex).
+
+> Los PDF se recompilan con `pdflatex <archivo>.tex` (dos pasadas para el
+> índice y las referencias cruzadas).
 
 ## 7. Marco teórico y fuentes
 
