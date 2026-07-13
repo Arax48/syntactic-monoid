@@ -468,7 +468,7 @@ def cli(argv: list[str] | None = None) -> int:
 
     p_compile = sub.add_parser(
         "from-regex",
-        help="Compilar una regex a AFD (Thompson + subset construction).",
+        help="Compilar una regex a AFD (AFN-λ + subset construction).",
     )
     p_compile.add_argument("pattern", help="Expresion regular.")
     p_compile.add_argument(

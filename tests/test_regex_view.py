@@ -38,7 +38,7 @@ def test_html_contiene_las_tres_secciones_de_grafo(tmp_path) -> None:
         open_browser=False,
     )
     html = out.read_text(encoding="utf-8")
-    assert "1. AFN por construccion de Thompson" in html
+    assert "1. AFN-λ por construccion clasica" in html
     assert "2. AFD por construccion de subconjuntos" in html
     assert "3. AFD minimo" in html
 
@@ -78,7 +78,7 @@ def test_html_muestra_el_patron(tmp_path) -> None:
 
 
 def test_html_indica_reduccion_cuando_hay(tmp_path) -> None:
-    # (0|1)*01: Thompson da AFN de muchos estados; subset construction
+    # (0|1)*01: la construccion da AFN de muchos estados; subset construction
     # produce 4 estados; el minimo tiene 3. Debe aparecer la nota.
     out = regex_to_html(
         "(0|1)*01",

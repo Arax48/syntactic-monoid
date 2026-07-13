@@ -6,12 +6,12 @@ Visualizacion de expresiones regulares como pagina HTML autocontenida.
 
 Pipeline:
 
-    pattern  --(parser + Thompson)-->  λ-AFN
+    pattern  --(parser + construccion AFN-λ)-->  λ-AFN
                                         |
                                         v  subset construction
                                        AFD
                                         |
-                                        v  Hopcroft
+                                        v  minimizacion
                                        AFD minimo
 
 Cada autómata se renderiza como SVG mediante Graphviz y se incrusta
@@ -432,7 +432,7 @@ def _render_html_page(
   </section>
 
   <section class="diagram">
-    <h2>1. AFN por construccion de Thompson</h2>
+    <h2>1. AFN-λ por construccion clasica</h2>
     <p class="stat">
       Cada operador de la regex genera un fragmento de AFN con sus
       &λ;-transiciones (lineas discontinuas grises).
@@ -462,7 +462,7 @@ def _render_html_page(
   </section>
 
   <section class="diagram">
-    <h2>3. AFD minimo (algoritmo de Hopcroft)</h2>
+    <h2>3. AFD minimo (minimizacion, §2.16)</h2>
     <p class="stat">
       El AFD con la cantidad minima de estados que reconoce el mismo
       lenguaje. Es unico salvo renombramiento.

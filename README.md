@@ -110,7 +110,7 @@ Opciones:
 8. Mostrar clases de equivalencia
 9. Exportar reporte (texto + figuras)
 10. Ejecutar ejemplos canónicos
-11. Compilar regex a AFD (Thompson + subset construction)
+11. Compilar regex a AFD (AFN-λ + subset construction)
 12. Verificar AFD contra regex o muestra accept/reject
 13. Generar hoja informativa pedagógica (álgebra + autómatas)
 14. Visualizar regex en HTML estático (AFN + AFD + AFD mínimo)
@@ -135,7 +135,7 @@ python main.py examples
 ### Subcomandos de la *slice 1* (lenguajes regulares, end-to-end)
 
 ```bash
-# Compilar una regex a AFD (Thompson + construcción de subconjuntos)
+# Compilar una regex a AFD (AFN-λ + construcción de subconjuntos)
 python main.py from-regex "(0|1)*01" --out output/ends_with_01.json
 
 # Verificar que un AFD reconoce el mismo lenguaje que una regex.
@@ -150,8 +150,8 @@ python main.py verify examples/parity_afd.json --samples examples/parity_samples
 # ¿es grupo? ¿cuál? ¿qué dice eso del lenguaje?
 python main.py infosheet examples/mod3_afd.json --out output/mod3_info.md --markdown
 
-# Visualizar una regex como página HTML autocontenida: muestra el AFN
-# de Thompson, el AFD por subconjuntos y el AFD mínimo (Hopcroft) en
+# Visualizar una regex como página HTML autocontenida: muestra el AFN-λ,
+# el AFD por subconjuntos y el AFD mínimo (§2.16) en
 # un solo archivo. Auto-abre el navegador.
 python main.py visualize "(0|1)*01"
 python main.py visualize "[a-c]+.*x" --alphabet abcxy --out output/test.html
@@ -166,8 +166,8 @@ explorador de archivos), o visita el sitio en vivo. **Todo el sitio es
 ese único archivo**, con dos secciones:
 
 **Sección 1 · Autómatas (regex → AFD).** Página autocontenida con el
-parser de regex, Thompson (§2.12), subset construction (§2.7.1) y
-Hopcroft (§2.16) portados a JavaScript; los grafos se renderizan con
+parser de regex, construcción de AFN-λ (§2.12), subset construction (§2.7.1) y
+minimización (§2.16) portados a JavaScript; los grafos se renderizan con
 [viz.js](https://github.com/mdaines/viz-js) cargado por CDN.
 
 - Caja de regex con re-render **en vivo** mientras escribes (debounced).
@@ -246,7 +246,7 @@ de transformaciones (asociatividad, idempotencia, órbitas, ciclos);
 construcción del monoide M(A) (cerradura, cota `|Q|^|Q|`, tabla de
 Cayley, idempotentes, unidades, aperiodicidad); propiedades de `φ`
 (homomorfismo, reflexividad/simetría/transitividad de `∼`, Primer
-Teorema del Isomorfismo); parser de regex y construcción de Thompson;
+Teorema del Isomorfismo); parser de regex y construcción de AFN-λ;
 verificación por equivalencia y por muestras; análisis de estructura
 de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa.
 

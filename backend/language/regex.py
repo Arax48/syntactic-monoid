@@ -41,7 +41,7 @@ Parser recursivo descendente con sintaxis concreta:
     escapes:                  '\\(' '\\*' '\\\\' ...
 
 Conversion regex → AFN-λ (Teorema 2.12.1, Teorema de Kleene Parte I):
-implementada por la "construccion de Thompson" (nombre clasico de
+implementada por la "construccion clasica de AFN-λ" (nombre clasico de
 algoritmo). Cada constructor del AST se traduce a un fragmento de
 AFN-λ con dos estados distinguidos (inicial y final). La conexion
 recursiva preserva la equivalencia L(AFN) = L[R].
@@ -355,13 +355,13 @@ def parse(pattern: str) -> RegexNode:
 
 
 # ----------------------------------------------------------------------
-# Construccion de Thompson
+# Construccion del AFN-λ
 # ----------------------------------------------------------------------
 
-class _ThompsonBuilder:
+class _NFABuilder:
     """Acumulador mutable para los estados y transiciones del AFN.
 
-    Se reciclan los nombres q0, q1, q2, ... como en Thompson clasico.
+    Se reciclan los nombres q0, q1, q2, ... como en la construccion clasica.
     """
 
     def __init__(self) -> None:
@@ -387,7 +387,7 @@ class _ThompsonBuilder:
 
 def _compile(
     node: RegexNode,
-    builder: _ThompsonBuilder,
+    builder: _NFABuilder,
     alphabet: FrozenSet[str],
 ) -> Tuple[str, str]:
     """Devuelve (estado_inicial, estado_final) del fragmento AFN del nodo."""
@@ -403,7 +403,7 @@ def _compile(
         return s, a
     if isinstance(node, Symbol):
         if node.char not in alphabet:
-            # No es un error: Thompson sigue construyendo, pero el simbolo
+            # No es un error: la construccion sigue, pero el simbolo
             # no estara en el alfabeto del AFN y la palabra que lo
             # contiene sera rechazada por el validador del AFN. Mejor
             # avisar al usuario explicitamente.
@@ -463,7 +463,7 @@ def regex_to_afn(
     alphabet: Optional[Iterable[str]] = None,
     name: Optional[str] = None,
 ) -> AFN:
-    """Compila una regex a un λ-AFN via Thompson.
+    """Compila una regex a un λ-AFN via la construccion clasica.
 
     Parametros
     ----------
@@ -494,7 +494,7 @@ def regex_to_afn(
         if not sigma:
             raise ValueError("El alfabeto no puede ser vacio.")
 
-    builder = _ThompsonBuilder()
+    builder = _NFABuilder()
     start, accept = _compile(ast, builder, sigma)
     return AFN(
         states=builder.states,
@@ -512,7 +512,7 @@ def regex_to_afd(
     alphabet: Optional[Iterable[str]] = None,
     name: Optional[str] = None,
 ):
-    """Compila una regex directamente a un AFD: Thompson + construccion
+    """Compila una regex directamente a un AFD: AFN-λ + construccion
     de subconjuntos. Util cuando solo interesa el AFD (por ejemplo para
     verificar equivalencia con un AFD del usuario).
     """

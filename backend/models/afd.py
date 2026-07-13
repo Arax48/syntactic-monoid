@@ -369,7 +369,7 @@ class AFD:
         return None
 
     def minimize(self) -> "AFD":
-        """Devuelve el AFD minimo equivalente usando el algoritmo de Hopcroft.
+        """Devuelve el AFD minimo equivalente usando el algoritmo de minimización (§2.16).
 
         El AFD minimo tiene el menor numero posible de estados y acepta
         exactamente el mismo lenguaje. Es unico salvo renombramiento de estados.
@@ -377,7 +377,7 @@ class AFD:
         # Step 1: Remove unreachable states
         reachable = self.reachable_states()
 
-        # Step 2: Hopcroft's partition refinement
+        # Step 2: partition refinement (minimización, §2.16)
         symbols = sorted(self.alphabet)
 
         # Initial partition: accepting vs non-accepting (among reachable)

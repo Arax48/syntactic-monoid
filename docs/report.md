@@ -687,7 +687,7 @@ e   |  e   1   11
    - *§2.7.1, §2.7.2: equivalencia AFD↔AFN, función δ̂.*
    - *§2.8 – §2.9: AFN-λ y equivalencia con AFN.*
    - *§2.10 – §2.11: complemento y producto cartesiano.*
-   - *§2.12: Teorema de Kleene Parte I (regex → AFN-λ, "Thompson").*
+   - *§2.12: Teorema de Kleene Parte I (regex → AFN-λ).*
    - *§2.13: Teorema de Kleene Parte II (autómata → regex via GEG).*
    - *§2.14: propiedades de clausura de los lenguajes regulares.*
    - *§2.15: Teorema de Myhill-Nerode (clases ≡_L → AFD mínimo).*

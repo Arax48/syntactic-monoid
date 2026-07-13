@@ -10,7 +10,7 @@
  *   RegexParser
  *   collectAlphabet(node)
  *   NFABuilder
- *   compileThompson(node, b, alpha)            -- construye fragmento AFN-λ
+ *   compileFragment(node, b, alpha)            -- construye fragmento AFN-λ
  *   regexToNFA(pattern, alphaInput)            -- regex → AFN-λ
  *   lambdaClosure(afn, statesIter)
  *   move(afn, states, sym)
@@ -165,7 +165,7 @@ class NFABuilder {
   }
 }
 
-function compileThompson(node, b, alpha) {
+function compileFragment(node, b, alpha) {
   if (node instanceof Empty) {
     const s = b.fresh(), a = b.fresh();
     return [s, a];
@@ -197,27 +197,27 @@ function compileThompson(node, b, alpha) {
     return [s, a];
   }
   if (node instanceof Cat) {
-    const [s1, a1] = compileThompson(node.left,  b, alpha);
-    const [s2, a2] = compileThompson(node.right, b, alpha);
+    const [s1, a1] = compileFragment(node.left,  b, alpha);
+    const [s2, a2] = compileFragment(node.right, b, alpha);
     b.addLam(a1, s2);
     return [s1, a2];
   }
   if (node instanceof Uni) {
-    const [s1, a1] = compileThompson(node.left,  b, alpha);
-    const [s2, a2] = compileThompson(node.right, b, alpha);
+    const [s1, a1] = compileFragment(node.left,  b, alpha);
+    const [s2, a2] = compileFragment(node.right, b, alpha);
     const s = b.fresh(), a = b.fresh();
     b.addLam(s, s1); b.addLam(s, s2);
     b.addLam(a1, a); b.addLam(a2, a);
     return [s, a];
   }
   if (node instanceof Kln) {
-    const [si, ai] = compileThompson(node.child, b, alpha);
+    const [si, ai] = compileFragment(node.child, b, alpha);
     const s = b.fresh(), a = b.fresh();
     b.addLam(s, si); b.addLam(s, a);
     b.addLam(ai, si); b.addLam(ai, a);
     return [s, a];
   }
-  throw new Error("Nodo desconocido en Thompson");
+  throw new Error("Nodo desconocido en la construccion");
 }
 
 function regexToNFA(pattern, alphaInput) {
@@ -233,7 +233,7 @@ function regexToNFA(pattern, alphaInput) {
     alpha = new Set([...alphaInput, ...inferred]);
   }
   const b = new NFABuilder();
-  const [start, accept] = compileThompson(ast, b, alpha);
+  const [start, accept] = compileFragment(ast, b, alpha);
   return {
     states: b.states, alphabet: alpha,
     trans: b.trans, lam: b.lam,
