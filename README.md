@@ -272,7 +272,7 @@ de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa
 |--------|---|---|---|---|---|
 | `parity_afd.json` | 2 | nº par de 1s | 2 | sí | ≅ ℤ/2ℤ |
 | `mod3_afd.json`   | 3 | nº de 1s ≡ 0 (mód 3) | 3 | sí | ≅ ℤ/3ℤ |
-| `ends_with_01_afd.json` | 3 | termina en 01 | 5 | no | monoide aperiódico (star-free) |
+| `ends_with_01_afd.json` | 3 | termina en 01 | 5 | no | monoide aperiódico |
 | `klein_v4_afd.json` | 4 | paridad de `a` ∧ paridad de `b` | 4 | sí | ≅ V₄ = ℤ/2ℤ × ℤ/2ℤ |
 
 Más:
@@ -287,9 +287,18 @@ Más:
 - **Presentación:** [`docs/presentation.md`](docs/presentation.md) — 16
   diapositivas listas para defensa.
 
-## 7. Licencia y créditos
+## 7. Marco teórico y fuentes
 
-Proyecto académico, libre para fines educativos. Implementación inspirada
-en el clásico capítulo VIII de *Eilenberg, Automata, Languages and Machines*
-y el capítulo de monoides sintácticos de Pin (*Mathematical Foundations of
-Automata Theory*).
+El proyecto se apoya **exclusivamente** en dos textos: Dan Saracino,
+*Abstract Algebra: A First Course* (álgebra: monoides §1, grupos §2,
+cíclicos/ℤ-nℤ §3, funciones §6, simétricos §7, relaciones §8,
+homomorfismos §11, teorema de isomorfismo §12, abelianos §13); y
+R. De Castro Korgi, *Introducción a la Teoría de la Computación* (2024)
+(autómatas, Myhill–Nerode §2.15, minimización §2.16, MT §6.1–6.2). El
+**monoide de transición** M(A) es una construcción propia que combina
+ambos; el nombre del repositorio (`syntactic-monoid`) es un identificador
+histórico.
+
+## 8. Licencia
+
+Proyecto académico, libre para fines educativos.

@@ -237,25 +237,30 @@
 <h2>Lo que no aparece en el libro</h2>
 
 <p>
-  El proyecto extiende lo que vimos en el curso con un aparato
-  algebraico que no es parte del libro de De Castro:
+  El proyecto tiende un puente entre las dos materias con una
+  construcción propia, apoyada únicamente en los dos textos del curso:
+  <b>Saracino</b> (<em>Abstract Algebra: A First Course</em>) para el
+  álgebra y <b>De Castro Korgi</b> para los autómatas.
 </p>
 
 <ul>
-  <li><b>Monoide sintáctico M(A)</b> de un AFD, como conjunto de
-      transformaciones <em>f<sub>w</sub></em> : <em>Q</em> → <em>Q</em>.
-      El libro llega al mismo terreno via §2.15 (Myhill-Nerode) y
+  <li><b>Monoide de transición M(A)</b> de un AFD, como conjunto de
+      transformaciones <em>f<sub>w</sub></em> : <em>Q</em> → <em>Q</em> bajo
+      composición (un monoide en el sentido de Saracino §1 y §6).
+      De Castro llega al mismo terreno via §2.15 (Myhill-Nerode) y
       §2.16 (minimización) pero no construye el monoide explícitamente.</li>
   <li><b>Homomorfismo natural</b> φ : Σ* → <em>M</em>(<em>A</em>) y el
-      <b>Primer Teorema del Isomorfismo</b> para monoides
-      (Σ*/ker(φ) ≅ <em>M</em>(<em>A</em>)).</li>
-  <li><b>Teorema de Schützenberger</b> (lenguajes star-free ↔ monoides
-      aperiódicos).</li>
+      <b>teorema de isomorfismo</b> (Σ*/ker(φ) ≅ <em>M</em>(<em>A</em>)),
+      en el espíritu de Saracino §12.</li>
+  <li><b>Aperiodicidad:</b> para todo elemento <em>x</em>, alguna potencia
+      se estabiliza (<em>x<sup>k</sup> = x<sup>k+1</sup></em>), definida con
+      las potencias de un elemento de Saracino §3.</li>
 </ul>
 
 <p>
-  La fundamentación bibliográfica de esa extensión está en
-  Eilenberg (1974) y Pin (2020); ver <code>docs/report.md</code> §12.
+  El <b>monoide de transición</b> no aparece con ese nombre en ninguno de
+  los dos libros: es el aporte propio del proyecto. Detalles en
+  <code>docs/report.md</code> §12.
 </p>
 
 <footer>

@@ -9,7 +9,7 @@
  *   - idempotentes, unidades, centro Z(M);
  *   - si es un grupo (todos los elementos invertibles), si es abeliano,
  *     si es cíclico (y su generador);
- *   - aperiodicidad de Schützenberger (lenguajes star-free);
+ *   - aperiodicidad (potencias que se estabilizan: x^k = x^(k+1));
  *   - clasificación a la clase canónica: ℤ/nℤ, V₄ = ℤ/2ℤ × ℤ/2ℤ,
  *     S₃, grupo abeliano/no-abeliano genérico, monoide aperiódico, etc.
  *

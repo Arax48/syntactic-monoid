@@ -111,7 +111,7 @@ table.afd-delta th, table.afd-delta td {
 <li><strong>q₀:</strong> s0</li>
 <li><strong>F:</strong> {s2}</li>
 </ul>
-<h2>2. Monoide sintáctico M(A)</h2>
+<h2>2. Monoide de transición M(A)</h2>
 <ul>
 <li><strong>|M(A)|:</strong> 5</li>
 <li><strong>Cota teórica:</strong> |Q|^|Q| = 27</li>
@@ -127,36 +127,43 @@ table.afd-delta th, table.afd-delta td {
 </ul>
 <h2>4. Conexiones con Discrete Math II</h2>
 <p>M(A) NO es un grupo, pero ES APERIODICO.</p>
-<p>Teorema de SCHUTZENBERGER (1965):
-L es reconocido por un monoide aperiodico
-⇔  L es STAR-FREE
-⇔  L es definible en logica de primer orden (FO).</p>
+<p>Aperiodico (definicion, via Saracino §3 &lsquo;potencias de un
+elemento&rsquo;): para todo elemento x de M(A) existe un k tal
+que x^k = x^(k+1); es decir, ninguna palabra genera un
+ciclo no trivial al iterarse.</p>
 <ul>
-<li>Su lenguaje L(A) puede expresarse SIN usar la estrella
-de Kleene, usando solo concatenacion, union y
-COMPLEMENTO (operaciones booleanas).</li>
-<li>El aperiodicidad significa que ningun subgrupo de M(A)
-es no trivial — algebraicamente M(A) es &lsquo;totalmente
-ordenado&rsquo; por la J-relacion de Green.</li>
+<li>Equivale a que M(A) no contenga ningun SUBGRUPO no
+trivial (no hay elementos con &lsquo;orden&rsquo; &gt; 1 en el sentido
+de Saracino §3): toda potencia acaba estabilizandose.</li>
+<li>Contrasta con el caso grupo, donde cada elemento tiene
+inverso y sus potencias recorren un ciclo (Saracino §2).</li>
 </ul>
 <h2>5. Curiosidades</h2>
 <ul>
 <li>M(A) es notablemente pequeno comparado con la cota teorica |Q|^|Q| = 27: la dinamica del automata es muy estructurada.</li>
 <li>Hay 4 elementos idempotentes (e² = e). En un grupo solo la identidad lo es; aqui hay mas, lo que confirma que M(A) NO es grupo.</li>
-<li>Por aperiodicidad, su lenguaje L(A) admite una expresion sin Kleene (star-free), equivalente a una formula de logica de primer orden con orden lineal.</li>
+<li>M(A) es aperiodico: al iterar cualquier palabra, la transformacion inducida se estabiliza (x^k = x^(k+1)). No hay ninguna palabra que actue como una &lsquo;rotacion&rsquo; ciclica.</li>
 </ul>
 <h2>6. ¿Y ahora qué?</h2>
 <ul>
-<li>Intente expresar L(A) como una regex sin &lsquo;*&rsquo; (star-free). Sera una buena prueba del teorema de Schutzenberger.</li>
+<li>Tome una palabra cualquiera y componga f_w consigo misma varias veces: vera que a partir de cierta potencia deja de cambiar (x^k = x^(k+1)). Esa es la aperiodicidad en accion.</li>
 <li>Use <code>python main.py verify &lt;su_dfa&gt;.json --regex "..."</code> para verificar que su AFD reconoce el lenguaje que cree.</li>
 <li>Use la opcion 6 del menu para ver la TABLA DE CAYLEY de M(A) y la opcion 9 para exportar un reporte completo con figuras.</li>
 </ul>
 <h2>7. En el libro de De Castro</h2>
-<p>El monoide sintactico M(A) NO aparece como tal en el libro
-de De Castro: el aparato algebraico (Eilenberg, Pin) excede
-el alcance del curso de ITC. Aun asi, lo que su AFD le dice
-sobre el LENGUAJE coincide con lo que el libro estudia en:</p>
-<p>§2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se
+<p>El monoide de transicion M(A) es una construccion propia que
+une las dos fuentes del curso:</p>
+<p>ALGEBRA (Saracino):
+§1     Operacion binaria asociativa con identidad: M(A) es un
+monoide bajo la composicion de funciones.
+§6     Funciones y su composicion — cada transformacion
+f_w: Q -&gt; Q y el producto f_u . f_v = f_(uv).
+§2,§3  Grupos, potencias y grupos ciclicos: sustentan &lsquo;¿es
+grupo?&rsquo;, &lsquo;ciclico&rsquo;, el generador y la clase ℤ/nℤ.
+§8,§11,§12  Relaciones de equivalencia y clases, homomorfismos
+y teorema de isomorfismo: el nucleo de φ y Σ*/Ker(φ).</p>
+<p>COMPUTACION (De Castro Korgi):
+§2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se
 construyo este monoide.
 §2.7.2 Funcion de transicion extendida δ̂ — es exactamente
 la formula que define cada transformacion f_w de M(A)
@@ -165,13 +172,13 @@ la formula que define cada transformacion f_w de M(A)
 ≡_L-equivalentes sii ningun sufijo las distingue.
 En este AFD, el nucleo de φ (de tamano 5) es un
 REFINAMIENTO de ≡_L; ambas coinciden si el AFD es minimo.
-§2.16  Algoritmo de minimizacion (Hopcroft). El AFD minimo
-es unico (Teorema 2.15.4) y sus estados son exactamente
-las clases de ≡_L.</p>
-<p>La propiedad &lsquo;star-free&rsquo; que se discute en la seccion 4
-NO es trabajada por De Castro; pertenece al estudio
-algebraico de Schutzenberger/Eilenberg. Es un buen punto
-para conectar con cursos avanzados de teoria de monoides.</p>
+§2.16  Algoritmo de minimizacion. El AFD minimo es unico
+(Teorema 2.15.4) y sus estados son exactamente las
+clases de ≡_L; por eso M(A) es un invariante de L.</p>
+<p>La aperiodicidad (seccion 4) se define aqui con las potencias
+de un elemento (Saracino §3): para todo x, x^k = x^(k+1).
+Es una lectura puramente algebraica de M(A), sin salir de
+las dos fuentes del curso.</p>
     </div>
   </div>
 

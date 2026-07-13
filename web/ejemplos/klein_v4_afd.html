@@ -111,7 +111,7 @@ table.afd-delta th, table.afd-delta td {
 <li><strong>q₀:</strong> 00</li>
 <li><strong>F:</strong> {00}</li>
 </ul>
-<h2>2. Monoide sintáctico M(A)</h2>
+<h2>2. Monoide de transición M(A)</h2>
 <ul>
 <li><strong>|M(A)|:</strong> 4</li>
 <li><strong>Cota teórica:</strong> |Q|^|Q| = 256</li>
@@ -148,11 +148,19 @@ subgrupo trivial — todas las palabras equivalentes son
 <li>Use la opcion 6 del menu para ver la TABLA DE CAYLEY de M(A) y la opcion 9 para exportar un reporte completo con figuras.</li>
 </ul>
 <h2>7. En el libro de De Castro</h2>
-<p>El monoide sintactico M(A) NO aparece como tal en el libro
-de De Castro: el aparato algebraico (Eilenberg, Pin) excede
-el alcance del curso de ITC. Aun asi, lo que su AFD le dice
-sobre el LENGUAJE coincide con lo que el libro estudia en:</p>
-<p>§2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se
+<p>El monoide de transicion M(A) es una construccion propia que
+une las dos fuentes del curso:</p>
+<p>ALGEBRA (Saracino):
+§1     Operacion binaria asociativa con identidad: M(A) es un
+monoide bajo la composicion de funciones.
+§6     Funciones y su composicion — cada transformacion
+f_w: Q -&gt; Q y el producto f_u . f_v = f_(uv).
+§2,§3  Grupos, potencias y grupos ciclicos: sustentan &lsquo;¿es
+grupo?&rsquo;, &lsquo;ciclico&rsquo;, el generador y la clase ℤ/nℤ.
+§8,§11,§12  Relaciones de equivalencia y clases, homomorfismos
+y teorema de isomorfismo: el nucleo de φ y Σ*/Ker(φ).</p>
+<p>COMPUTACION (De Castro Korgi):
+§2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se
 construyo este monoide.
 §2.7.2 Funcion de transicion extendida δ̂ — es exactamente
 la formula que define cada transformacion f_w de M(A)
@@ -161,9 +169,9 @@ la formula que define cada transformacion f_w de M(A)
 ≡_L-equivalentes sii ningun sufijo las distingue.
 En este AFD, el nucleo de φ (de tamano 4) es un
 REFINAMIENTO de ≡_L; ambas coinciden si el AFD es minimo.
-§2.16  Algoritmo de minimizacion (Hopcroft). El AFD minimo
-es unico (Teorema 2.15.4) y sus estados son exactamente
-las clases de ≡_L.</p>
+§2.16  Algoritmo de minimizacion. El AFD minimo es unico
+(Teorema 2.15.4) y sus estados son exactamente las
+clases de ≡_L; por eso M(A) es un invariante de L.</p>
     </div>
   </div>
 

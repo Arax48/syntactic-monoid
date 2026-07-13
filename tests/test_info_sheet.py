@@ -29,7 +29,7 @@ def test_as_text_contiene_las_seis_secciones(parity_afd: AFD) -> None:
     text = sheet.as_text()
     for header in (
         "TU AUTOMATA",
-        "MONOIDE SINTACTICO",
+        "MONOIDE DE TRANSICION",
         "¿ES UN GRUPO?",
         "CONEXIONES CON DISCRETE MATH",
         "CURIOSIDADES",
@@ -61,12 +61,15 @@ def test_mod3_menciona_clases_modulo_3(mod3_afd: AFD) -> None:
     assert "modulo 3" in text.lower() or "modulo 3" in text.lower()
 
 
-def test_no_grupo_aperiodico_menciona_schutzenberger(ends_01_afd: AFD) -> None:
+def test_no_grupo_aperiodico_describe_potencias(ends_01_afd: AFD) -> None:
     sheet = build_info_sheet(ends_01_afd)
     text = sheet.as_text()
     assert "NO es un grupo" in text or "NO - existen" in text
-    # ends_with_01 es aperiodico -> debe mencionar Schutzenberger y star-free.
-    assert "Schutzenberger" in text or "star-free" in text or "STAR-FREE" in text
+    # ends_with_01 es aperiodico -> se describe con potencias, sin
+    # Schutzenberger ni star-free (fuera del marco Saracino + De Castro).
+    assert "APERIODICO" in text or "aperiodico" in text
+    assert "x^k = x^(k+1)" in text or "potencia" in text.lower()
+    assert "Schutzenberger" not in text and "star-free" not in text.lower()
 
 
 def test_no_grupo_no_aperiodico_caso_por_defecto() -> None:
@@ -108,7 +111,7 @@ def test_markdown_usa_encabezados(mod3_afd: AFD) -> None:
     # Las 6 secciones aparecen como ## ...
     for header in (
         "## 1. Tu autómata",
-        "## 2. Monoide sintáctico",
+        "## 2. Monoide de transición",
         "## 3. ¿Es un grupo?",
         "## 4. Conexiones",
         "## 5. Curiosidades",

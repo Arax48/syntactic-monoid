@@ -35,8 +35,8 @@
       Construye y verifica un AFD, compila una expresión regular a
       AFN-λ (Teorema de Kleene Parte I) y al AFD mínimo (Hopcroft),
       simula una Máquina de Turing del modelo estándar (§6.1) sobre una
-      cinta bidireccional, y conecta todo con el monoide sintáctico
-      <em>M</em>(<em>A</em>) y el Primer Teorema del Isomorfismo.
+      cinta bidireccional, y conecta todo con el monoide de transición
+      <em>M</em>(<em>A</em>) y el teorema de isomorfismo (Saracino §12).
     </p>
     <div class="meta">
       <span><b>Convenciones:</b> AFD/AFN/AFN-λ, λ, ∪, □</span>
@@ -117,7 +117,7 @@
     <g transform="translate(175, 120)">
       <rect class="node" width="100" height="48" rx="8" style="stroke:#1a7f37;"/>
       <text class="node-text" x="50" y="22" text-anchor="middle" style="fill:#1a7f37;">M(A)</text>
-      <text class="node-sub"  x="50" y="38" text-anchor="middle">monoide sintáctico</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">monoide de transición</text>
     </g>
     <!-- arrow M(A) -> ℤ/nℤ -->
     <line class="arrow-line" x1="220" y1="170" x2="220" y2="205" marker-end="url(#arrow)" style="stroke:#1a7f37;"/>
@@ -264,7 +264,7 @@
     <div class="title">Termina en 01</div>
     <div class="desc">
       Cadenas binarias que terminan en "01". <em>M</em>(<em>A</em>)
-      <b>no</b> es grupo, pero es aperiódico (star-free).
+      <b>no</b> es grupo, pero es aperiódico.
     </div>
   </a>
 
@@ -329,8 +329,10 @@ python main.py report mi_afd.json --out output/mi_afd/</code></pre>
 </div>
 
 <p>
-  El aparato algebraico del monoide sintáctico no es parte del libro de
-  De Castro; se basa en Eilenberg (1974) y Pin (2020). Detalles
+  El monoide de transición <em>M</em>(<em>A</em>) es una construcción
+  propia del proyecto: no aparece con ese nombre en ninguno de los dos
+  libros. Se apoya en el álgebra de Saracino (monoides, composición,
+  homomorfismos) y en los autómatas de De Castro Korgi. Detalles
   completos en
   <a href="../docs/report.md"><code>docs/report.md</code></a>,
   sección 12.

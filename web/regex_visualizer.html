@@ -667,7 +667,7 @@ function renderAlgebra(afd) {
   ];
   if (info.isGroup) badges.push(yes(info.isCyclic, "cíclico"));
   if (!info.isGroup && info.isAperiodic)
-    badges.push('<span class="badge spec">aperiódico (star-free)</span>');
+    badges.push('<span class="badge spec">aperiódico</span>');
 
   let summary;
   if (info.isGroup && info.isCyclic) {
@@ -677,9 +677,10 @@ function renderAlgebra(afd) {
   } else if (info.isGroup) {
     summary = `M(A) es un <strong>${info.isoLabel}</strong>.`;
   } else if (info.isAperiodic) {
-    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
-              `Por el <strong>Teorema de Schützenberger</strong>, el lenguaje L(A) ` +
-              `es <em>star-free</em> (definible en lógica de primer orden).`;
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>: para cada ` +
+              `elemento <em>x</em> alguna potencia se estabiliza ` +
+              `(<em>x<sup>k</sup> = x<sup>k+1</sup></em>), es decir, no contiene ` +
+              `ningún subgrupo no trivial.`;
   } else {
     summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
               `Contiene subgrupos no triviales pero algunas transformaciones no son invertibles.`;
@@ -697,12 +698,14 @@ function renderAlgebra(afd) {
     <div class="algebra-badges">${badges.join("")}</div>
     <div class="algebra-summary">${summary}</div>
     <p class="algebra-note">
-      Por el Teorema de Myhill-Nerode (§2.15) y la minimización (§2.16),
-      cuando el AFD es mínimo M(A) coincide con el monoide sintáctico
-      del lenguaje L(A). El homomorfismo natural
-      φ : Σ* → M(A) envía cada palabra w a su transformación inducida
-      f<sub>w</sub>; las clases de su núcleo dan el cociente
-      Σ*/Ker(φ) ≅ M(A) (Primer Teorema del Isomorfismo).
+      El monoide de transición es M(A) = {<em>f<sub>w</sub></em> : w ∈ Σ*}
+      con la composición de funciones (Saracino §1 y §6). El homomorfismo
+      natural φ : Σ* → M(A) envía cada palabra w a su transformación
+      inducida f<sub>w</sub>; agrupar las palabras por «inducen la misma
+      transformación» da el cociente Σ*/Ker(φ) ≅ M(A), en el espíritu del
+      teorema de isomorfismo (Saracino §12). Por el Teorema de
+      Myhill-Nerode (De Castro §2.15) y la minimización (§2.16), tomar el
+      AFD mínimo garantiza que M(A) es un invariante del lenguaje L(A).
     </p>
   `;
 }

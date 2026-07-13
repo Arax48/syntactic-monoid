@@ -402,8 +402,8 @@ footer { color: #6e7681; font-size: .82rem; margin-top: 2.5rem;
     Para lenguajes <em>regulares</em> (descritos por <code>regex</code>),
     se construye el monoide de transición M(A) del AFD mínimo equivalente
     y se analiza su estructura. Para lenguajes <em>no regulares</em>
-    (a<sup>n</sup>b<sup>n</sup>, palíndromos, etc.) el monoide sintáctico
-    es infinito y se indica que la construcción no aplica.
+    (a<sup>n</sup>b<sup>n</sup>, palíndromos, etc.) el monoide de
+    transición es infinito y se indica que la construcción no aplica.
   </p>
   <div id="algebra-content"></div>
 </section>
@@ -1393,7 +1393,7 @@ function renderAlgebraMT(spec) {
     return;
   }
 
-  // Lenguaje no regular: el monoide sintáctico es infinito.
+  // Lenguaje no regular: el monoide de transición asociado es infinito.
   const nombreLeg = {
     "anbn": "{a<sup>n</sup>b<sup>n</sup>}",
     "anbncn": "{a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>}",
@@ -1411,8 +1411,9 @@ function renderAlgebraMT(spec) {
   cont.innerHTML =
     `<div class="algebra-not-applicable">` +
     `<p><strong>Lenguaje no regular.</strong> El lenguaje ${nombreLeg} ` +
-    `no es regular (Cap 3.1 del libro, criterio de no regularidad), así ` +
-    `que su monoide sintáctico M(L) es <strong>infinito</strong>.</p>` +
+    `no es regular (De Castro §3.1, criterio de no regularidad), así ` +
+    `que no hay AFD finito y su monoide de transición sería ` +
+    `<strong>infinito</strong>.</p>` +
     `<p style="margin:.5rem 0 0;">La construcción algebraica del ` +
     `proyecto (M(A) finito, |Q|<sup>|Q|</sup>, clases de equivalencia ` +
     `mod n, V₄, S₃, …) está pensada para AFDs y aplica solo a lenguajes ` +
@@ -1445,7 +1446,7 @@ function renderAlgebraDesdeAfd(afd, cont) {
   ];
   if (info.isGroup) badges.push(yes(info.isCyclic, "cíclico"));
   if (!info.isGroup && info.isAperiodic)
-    badges.push('<span class="badge spec">aperiódico (star-free)</span>');
+    badges.push('<span class="badge spec">aperiódico</span>');
 
   let summary;
   if (info.isGroup && info.isCyclic) {
@@ -1455,9 +1456,10 @@ function renderAlgebraDesdeAfd(afd, cont) {
   } else if (info.isGroup) {
     summary = `M(A) es un <strong>${info.isoLabel}</strong>.`;
   } else if (info.isAperiodic) {
-    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
-              `Por el <strong>Teorema de Schützenberger</strong>, el lenguaje ` +
-              `es <em>star-free</em> (definible en lógica de primer orden).`;
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>: para cada ` +
+              `elemento <em>x</em> alguna potencia se estabiliza ` +
+              `(<em>x<sup>k</sup> = x<sup>k+1</sup></em>), es decir, no contiene ` +
+              `ningún subgrupo no trivial.`;
   } else {
     summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
               `Contiene subgrupos no triviales pero algunas transformaciones ` +
@@ -1476,11 +1478,13 @@ function renderAlgebraDesdeAfd(afd, cont) {
     <div class="algebra-badges">${badges.join("")}</div>
     <div class="algebra-summary">${summary}</div>
     <p class="algebra-note">
-      Por el Teorema de Myhill-Nerode (§2.15) y la minimización (§2.16),
-      cuando el AFD es mínimo M(A) coincide con el monoide sintáctico
-      del lenguaje L(A). El homomorfismo natural φ : Σ* → M(A) envía cada
-      palabra w a su transformación inducida f<sub>w</sub>; el cociente
-      Σ*/Ker(φ) ≅ M(A) por el Primer Teorema del Isomorfismo.
+      El monoide de transición es M(A) = {<em>f<sub>w</sub></em> : w ∈ Σ*}
+      con la composición de funciones (Saracino §1 y §6). El homomorfismo
+      natural φ : Σ* → M(A) envía cada palabra w a su transformación
+      inducida f<sub>w</sub>; el cociente Σ*/Ker(φ) ≅ M(A), en el espíritu
+      del teorema de isomorfismo (Saracino §12). Por Myhill-Nerode
+      (De Castro §2.15) y la minimización (§2.16), tomar el AFD mínimo hace
+      de M(A) un invariante del lenguaje L(A).
     </p>
   `;
 }

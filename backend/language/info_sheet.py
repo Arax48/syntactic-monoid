@@ -10,7 +10,7 @@ ALGEBRA (Discrete Math II). El objetivo es que tras CONSTRUIR o
 VERIFICAR un automata el estudiante reciba un resumen que conteste:
 
     * ¿que automata tengo?
-    * ¿como es algebraicamente su monoide sintactico M(A)?
+    * ¿como es algebraicamente su monoide de transicion M(A)?
     * ¿es M(A) un grupo? si si, ¿cual?
     * ¿que tiene esto que ver con lo que veo en algebra?
     * ¿que cosa "rara" o sorprendente esta pasando aqui?
@@ -108,7 +108,7 @@ def _render_text(sheet: InfoSheet) -> List[str]:
     # --- 2. Monoide ---------------------------------------------------
     cota = len(dfa.states) ** len(dfa.states)
     out += [
-        "2. MONOIDE SINTACTICO M(A)",
+        "2. MONOIDE DE TRANSICION M(A)",
         _SUB,
         f"   |M(A)|        : {info.order}",
         f"   Cota |Q|^|Q|  : {cota}    (M es a lo sumo de este tamano)",
@@ -181,7 +181,7 @@ def _render_markdown(sheet: InfoSheet) -> List[str]:
     out.append(f"- **q₀:** {dfa.start}")
     out.append(f"- **F:** {{{', '.join(sorted(dfa.accepting))}}}")
     out.append("")
-    out.append("## 2. Monoide sintáctico M(A)")
+    out.append("## 2. Monoide de transición M(A)")
     out.append("")
     cota = len(dfa.states) ** len(dfa.states)
     out.append(f"- **|M(A)|:** {info.order}")
@@ -289,17 +289,16 @@ def _connection_paragraphs(sheet: InfoSheet) -> List[str]:
         return [
             "   M(A) NO es un grupo, pero ES APERIODICO.",
             "",
-            "   Teorema de SCHUTZENBERGER (1965):",
-            "      L es reconocido por un monoide aperiodico",
-            "          ⇔  L es STAR-FREE",
-            "          ⇔  L es definible en logica de primer orden (FO).",
+            "   Aperiodico (definicion, via Saracino §3 'potencias de un",
+            "   elemento'): para todo elemento x de M(A) existe un k tal",
+            "   que x^k = x^(k+1); es decir, ninguna palabra genera un",
+            "   ciclo no trivial al iterarse.",
             "",
-            "   * Su lenguaje L(A) puede expresarse SIN usar la estrella",
-            "     de Kleene, usando solo concatenacion, union y",
-            "     COMPLEMENTO (operaciones booleanas).",
-            "   * El aperiodicidad significa que ningun subgrupo de M(A)",
-            "     es no trivial — algebraicamente M(A) es 'totalmente",
-            "     ordenado' por la J-relacion de Green.",
+            "   * Equivale a que M(A) no contenga ningun SUBGRUPO no",
+            "     trivial (no hay elementos con 'orden' > 1 en el sentido",
+            "     de Saracino §3): toda potencia acaba estabilizandose.",
+            "   * Contrasta con el caso grupo, donde cada elemento tiene",
+            "     inverso y sus potencias recorren un ciclo (Saracino §2).",
         ]
     # Caso por defecto: monoide no grupo y no aperiodico.
     return [
@@ -360,9 +359,9 @@ def _curiosities(sheet: InfoSheet) -> List[str]:
 
     if info.is_aperiodic and not info.is_group:
         bullets.append(
-            "   * Por aperiodicidad, su lenguaje L(A) admite una "
-            "expresion sin Kleene (star-free), equivalente a una formula "
-            "de logica de primer orden con orden lineal."
+            "   * M(A) es aperiodico: al iterar cualquier palabra, la "
+            "transformacion inducida se estabiliza (x^k = x^(k+1)). No hay "
+            "ninguna palabra que actue como una 'rotacion' ciclica."
         )
 
     if not bullets:
@@ -394,8 +393,9 @@ def _recommendations(sheet: InfoSheet) -> List[str]:
         )
     if info.is_aperiodic and not info.is_group:
         recs.append(
-            "   * Intente expresar L(A) como una regex sin '*' (star-free). "
-            "Sera una buena prueba del teorema de Schutzenberger."
+            "   * Tome una palabra cualquiera y componga f_w consigo misma "
+            "varias veces: vera que a partir de cierta potencia deja de "
+            "cambiar (x^k = x^(k+1)). Esa es la aperiodicidad en accion."
         )
     recs.append(
         "   * Use `python main.py verify <su_dfa>.json --regex \"...\"` "
@@ -409,18 +409,27 @@ def _recommendations(sheet: InfoSheet) -> List[str]:
 
 
 def _book_references(sheet: InfoSheet) -> List[str]:
-    """Mapea cada concepto de la hoja a su seccion del libro de De Castro
-    ("Introduccion a la Teoria de la Computacion"), reconociendo que el
-    libro no define monoide sintactico explicitamente pero llega al
-    mismo lugar via Myhill-Nerode y minimizacion.
+    """Mapea cada concepto de la hoja a sus fuentes: el algebra a Saracino
+    ("Abstract Algebra: A First Course") y la computacion a De Castro Korgi
+    ("Introduccion a la Teoria de la Computacion"). El monoide de transicion
+    M(A) es una construccion propia que combina ambos.
     """
     info = sheet.analysis
     out: List[str] = [
-        "   El monoide sintactico M(A) NO aparece como tal en el libro",
-        "   de De Castro: el aparato algebraico (Eilenberg, Pin) excede",
-        "   el alcance del curso de ITC. Aun asi, lo que su AFD le dice",
-        "   sobre el LENGUAJE coincide con lo que el libro estudia en:",
+        "   El monoide de transicion M(A) es una construccion propia que",
+        "   une las dos fuentes del curso:",
         "",
+        "   ALGEBRA (Saracino):",
+        "   §1     Operacion binaria asociativa con identidad: M(A) es un",
+        "          monoide bajo la composicion de funciones.",
+        "   §6     Funciones y su composicion — cada transformacion",
+        "          f_w: Q -> Q y el producto f_u . f_v = f_(uv).",
+        "   §2,§3  Grupos, potencias y grupos ciclicos: sustentan '¿es",
+        "          grupo?', 'ciclico', el generador y la clase ℤ/nℤ.",
+        "   §8,§11,§12  Relaciones de equivalencia y clases, homomorfismos",
+        "          y teorema de isomorfismo: el nucleo de φ y Σ*/Ker(φ).",
+        "",
+        "   COMPUTACION (De Castro Korgi):",
         "   §2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se",
         "          construyo este monoide.",
         "   §2.7.2 Funcion de transicion extendida δ̂ — es exactamente",
@@ -430,24 +439,25 @@ def _book_references(sheet: InfoSheet) -> List[str]:
         "          ≡_L-equivalentes sii ningun sufijo las distingue.",
         f"          En este AFD, el nucleo de φ (de tamano {info.order}) es un",
         "          REFINAMIENTO de ≡_L; ambas coinciden si el AFD es minimo.",
-        "   §2.16  Algoritmo de minimizacion (Hopcroft). El AFD minimo",
-        "          es unico (Teorema 2.15.4) y sus estados son exactamente",
-        "          las clases de ≡_L.",
+        "   §2.16  Algoritmo de minimizacion. El AFD minimo es unico",
+        "          (Teorema 2.15.4) y sus estados son exactamente las",
+        "          clases de ≡_L; por eso M(A) es un invariante de L.",
     ]
     if info.is_group and info.is_cyclic:
         out += [
             "",
             "   La cuenta modulo n que aparece en la seccion 4 es el caso",
-            "   particular en que tanto Myhill-Nerode (§2.15) como el",
-            "   nucleo de φ coinciden con la aritmetica de ℤ/{0}ℤ.".format(info.order),
+            "   particular en que tanto Myhill-Nerode (De Castro §2.15) como",
+            f"   el nucleo de φ coinciden con la aritmetica de ℤ/{info.order}ℤ",
+            "   (Saracino §3).",
         ]
     if not info.is_group and info.is_aperiodic:
         out += [
             "",
-            "   La propiedad 'star-free' que se discute en la seccion 4",
-            "   NO es trabajada por De Castro; pertenece al estudio",
-            "   algebraico de Schutzenberger/Eilenberg. Es un buen punto",
-            "   para conectar con cursos avanzados de teoria de monoides.",
+            "   La aperiodicidad (seccion 4) se define aqui con las potencias",
+            "   de un elemento (Saracino §3): para todo x, x^k = x^(k+1).",
+            "   Es una lectura puramente algebraica de M(A), sin salir de",
+            "   las dos fuentes del curso.",
         ]
     return out
 

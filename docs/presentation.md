@@ -16,9 +16,10 @@ Matemática Discreta II · Teoría de la Computación
 ## Diapositiva 1 — Motivación
 
 - La teoría clásica de autómatas trata los AFDs como objetos **combinatorios**.
-- El enfoque **algebraico** (Schützenberger, Eilenberg, Pin, Straubing)
-  asocia a cada AFD un **monoide finito** cuya estructura captura el
-  comportamiento del autómata.
+- Este proyecto adopta una mirada **algebraica**, construida solo con las
+  dos fuentes del curso (Saracino y De Castro Korgi): a cada AFD se le
+  asocia un **monoide finito** cuya estructura captura el comportamiento
+  del autómata.
 - Pregunta central: **¿qué información sobre un AFD o un lenguaje regular
   puede leerse en la estructura algebraica de su monoide de transición?**
 
@@ -235,9 +236,11 @@ CLI funcional con menú de 10 opciones e impresión de tablas y figuras.
 - Tres ejemplos ilustran el caso "grupo" y el caso "aperiódico".
 
 **Trabajo futuro**
-- Monoide sintáctico `M(L)` vía minimización.
-- Detección automática de aperiodicidad (libertad de estrella).
+- Monoide del lenguaje `M(L)` vía minimización y verificar `M(A_min) ≅ M(L)`.
+- Exponer la tabla de Cayley y las clases del núcleo de `φ` como material
+  para el teorema de isomorfismo (Saracino §12).
+- Más familias de grupos de Saracino: productos directos (§5), abelianos
+  finitos (§13), simétricos (§7).
 - Extensión a transductores y autómatas con salida.
-- Caracterizaciones algebraicas dentro de la jerarquía de Eilenberg.
 
 **¡Gracias!**

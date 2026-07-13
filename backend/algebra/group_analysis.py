@@ -56,8 +56,9 @@ class GroupAnalysis:
     is_cyclic : bool
         True si M(A) es ciclico (existe un generador unico).
     is_aperiodic : bool
-        True si todos los subgrupos de M(A) son triviales (Schutzenberger:
-        equivalente a que L sea star-free).
+        True si M(A) es aperiodico: para todo elemento x existe k con
+        x^k = x^(k+1) (equivale a que ningun subgrupo de M(A) sea no
+        trivial). Definido con las potencias de un elemento (Saracino §3).
     cyclic_generator : Transformation | None
         Si M(A) es ciclico, un generador concreto (transformacion).
         None en otro caso.
