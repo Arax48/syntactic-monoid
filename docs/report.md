@@ -49,20 +49,23 @@ de 5 elementos cuya tabla evidencia la asimetría del lenguaje reconocido.
 
 La teoría clásica de autómatas suele presentarse como una colección de
 construcciones combinatorias (productos cruzados, minimización, equivalencia
-con expresiones regulares). El **enfoque algebraico** —iniciado por
-Schützenberger y consolidado por Eilenberg, Pin, Reutenauer y Straubing—
-ofrece una mirada complementaria: a cada lenguaje regular se le asocian
-**monoides finitos** cuya estructura caracteriza propiedades del lenguaje
-(p.ej. aperiodicidad, libertad de estrella, complejidad descriptiva).
+con expresiones regulares). Este proyecto adopta una **mirada algebraica
+complementaria**, construida enteramente con las dos fuentes del curso:
+Saracino (*Abstract Algebra: A First Course*) para las estructuras
+algebraicas, y De Castro Korgi (*Introducción a la Teoría de la Computación*)
+para los autómatas. A cada AFD se le asocia un **monoide finito** cuya
+estructura caracteriza propiedades del lenguaje (p.ej. si es un grupo, cuál,
+si es abeliano, cíclico o aperiódico).
 
 El presente proyecto se enmarca en este puente entre Matemática Discreta II
 (estructuras algebraicas, relaciones de equivalencia, teoremas de
 isomorfismo) y Teoría de la Computación (AFDs, lenguajes regulares). El
-objeto técnico que estudiamos es el **monoide de transición** `M(A)` —en la
-literatura: *transition monoid*— construido directamente a partir de la
-función de transición del AFD, sin necesidad de cuocientar el monoide libre
-`Σ*` por la congruencia sintáctica del lenguaje. La diferencia con el
-**monoide sintáctico** `M(L)` se discute en la sección 4.6.
+objeto técnico que estudiamos es el **monoide de transición** `M(A)`,
+construido directamente a partir de la función de transición del AFD: es un
+monoide bajo la composición de funciones (Saracino §1 y §6). Es una
+**construcción propia** del proyecto —no aparece como tal en ninguno de los
+dos libros—, cuyo carácter de invariante del lenguaje se justifica vía
+Myhill–Nerode y minimización, como se discute en la sección 4.6.
 
 Objetivos:
 1. Formalizar `M(A)` y demostrar sus propiedades de monoide.
@@ -338,16 +341,19 @@ misma imagen. La cota `|M(A)|` es suficiente porque cada nivel del BFS
 añade al menos un elemento nuevo hasta agotar el monoide; por tanto el
 representante mínimo de cualquier `f ∈ M(A)` tiene longitud `≤ |M(A)| - 1`.
 
-### 4.6 Monoide de transición vs. monoide sintáctico
+### 4.6 El monoide de transición y el AFD mínimo: invarianza del lenguaje
 
-El **monoide sintáctico** `M(L)` de un lenguaje `L ⊆ Σ*` se define a través
-de la **congruencia sintáctica** `≡_L`:
+El monoide `M(A)` se construye a partir de un AFD concreto `A`. Cabe
+preguntarse si depende solo del **lenguaje** `L(A)` o del dibujo particular
+del autómata. Para responderlo introducimos una relación de equivalencia
+sobre `Σ*` (Saracino §8), extensión de dos lados de la relación de
+Myhill–Nerode del libro de De Castro (§2.15):
 
 > `u ≡_L v  ⟺  ∀ x, y ∈ Σ*:  xuy ∈ L ⇔ xvy ∈ L`.
 
-`M(L) := Σ* / ≡_L`. La relación `≡_L` es una congruencia de monoide y de
-hecho es **la congruencia de monoide más gruesa que satura `L`** (cf. Pin,
-*Mathematical Foundations of Automata Theory*, §III.2).
+Definimos `M(L) := Σ* / ≡_L`, el **monoide del lenguaje** `L` (una
+construcción propia; De Castro solo trabaja la versión de un lado, §2.15).
+Mostraremos que `M(L)` coincide con `M(A)` justamente cuando `A` es mínimo.
 
 **Proposición 3 (relación entre las dos congruencias).** Para un AFD
 `A = (Q, Σ, δ, q₀, F)` que reconozca `L`, denotemos por `∼` la congruencia
@@ -387,12 +393,15 @@ función de transición es `δ_min([x], a) = [xa]`. Calculamos `f_u = f_v` en
 y `M(A_min) = Σ*/∼ = Σ*/≡_L = M(L)`. ∎
 
 **Conclusión.** El monoide de transición `M(A)` es siempre tan fino o más
-fino que el monoide sintáctico `M(L(A))`; ambos coinciden exactamente
-cuando `A` es mínimo. En este proyecto trabajamos directamente con `M(A)`
-porque (i) se construye algorítmicamente sin minimización previa,
-(ii) ilustra completamente el aparato del Primer Teorema, y (iii) cuando
-los AFDs de ejemplo son ya mínimos (caso de los tres ejemplos incluidos),
-`M(A) = M(L)` y la información obtenida es la sintáctica.
+fino que el monoide del lenguaje `M(L(A))`; ambos coinciden exactamente
+cuando `A` es mínimo. Por la unicidad del AFD mínimo (De Castro, Teorema
+2.15.4 y §2.16), esto muestra que `M(A_min)` es un **invariante del
+lenguaje** `L`, no del autómata concreto. En este proyecto trabajamos
+directamente con `M(A)` porque (i) se construye algorítmicamente sin
+minimización previa, (ii) ilustra completamente el aparato del Primer
+Teorema de Isomorfismo (Saracino §12), y (iii) cuando los AFDs de ejemplo
+son ya mínimos, `M(A) = M(L)` y la información obtenida es intrínseca al
+lenguaje.
 
 ---
 
@@ -613,14 +622,14 @@ e   |  e   1   11
 2. **AFDs con "estados absorbentes lectorialmente".** En el ejemplo `01`,
    los símbolos colapsan el dominio (la lectura de un `0` deja siempre el
    estado en `s1`), por lo que las transformaciones no son inyectivas y el
-   monoide no puede ser un grupo. Esto es consistente con la teoría: el
-   lenguaje "termina en `01`" es libre de estrella, y el monoide sintáctico
-   de un lenguaje libre de estrella es aperiódico (Teorema de
-   Schützenberger).
+   monoide no puede ser un grupo. En este caso `M(A)` resulta **aperiódico**:
+   para todo elemento `x` alguna potencia se estabiliza, `x^k = x^(k+1)`
+   (definición con potencias de un elemento, Saracino §3), lo que equivale
+   a que `M(A)` no contenga ningún subgrupo no trivial.
 3. **Cota `|Q|^|Q|`.** El ejemplo `01` muestra que la cota dista mucho de
    ser estrecha (5 vs. 27). En general, identificar `|M(A)|` exactamente es
-   un problema *no trivial*: existen lenguajes regulares cuyos monoides
-   sintácticos crecen exponencialmente en `|Q|`.
+   un problema *no trivial*: existen lenguajes regulares cuyos monoides de
+   transición crecen exponencialmente en `|Q|`.
 4. **Limitación del cociente truncado.** Computacionalmente no podemos
    exhibir clases infinitas de `Σ*`, pero exhibirlas hasta `|w| ≤ N` con
    `N ≥ |M(A)|` es suficiente para verificar el isomorfismo, porque la BFS
@@ -648,14 +657,13 @@ e   |  e   1   11
 
 ## 11. Trabajo futuro
 
-- Implementar el **monoide sintáctico** `M(L)` mediante minimización del AFD
-  y verificar `M(A_min) ≅ M(L)`.
-- Detectar **aperiodicidad** del monoide y, en consecuencia, **libertad de
-  estrella** del lenguaje (Schützenberger).
-- Extender a **autómatas con salida** (transductores) y al **monoide
-  sintáctico de relaciones racionales**.
-- Conectar con la jerarquía de **variedades de monoides** (Eilenberg) y
-  caracterizaciones algebraicas de subclases de lenguajes regulares.
+- Implementar el **monoide del lenguaje** `M(L)` mediante minimización del
+  AFD y verificar computacionalmente `M(A_min) ≅ M(L)` (sección 4.6).
+- Exponer la **tabla de Cayley** completa y las clases del núcleo de `φ`
+  como material de estudio para el Primer Teorema de Isomorfismo
+  (Saracino §12).
+- Extender el análisis a más familias de grupos que aparecen en Saracino
+  (productos directos §5, grupos abelianos finitos §13, simétricos §7).
 - Generar reportes en **LaTeX/PDF** automáticamente desde `visualization.py`.
 - Implementar **representación matricial** de transformaciones para escalar
   a AFDs con cientos de estados.
@@ -691,27 +699,28 @@ e   |  e   1   11
    - *§6.7 – §6.8: Tesis de Turing, codificación de MTs.*
    - *§6.11: Máquina de Turing universal.)*
 
-### Extensión algebraica (no cubierta por De Castro)
+### Texto base de álgebra
 
-El aparato del monoide sintáctico M(A), el homomorfismo natural φ y el
-Primer Teorema del Isomorfismo para monoides son el aporte específico
-de este proyecto; el libro de De Castro llega hasta Myhill-Nerode
-(§2.15) y minimización (§2.16) pero no construye M(A) explícitamente.
-Las siguientes referencias soportan ese aparato:
+1. **Saracino, D.** *Abstract Algebra: A First Course,* 2.ª ed., Waveland
+   Press, 2008. *(Referencia primaria del aparato algebraico. Mapeo de
+   secciones que sustentan el proyecto:*
+   - *§1: operación binaria asociativa con identidad — definición de monoide.*
+   - *§2: grupos y teoremas fundamentales.*
+   - *§3: potencias de un elemento, grupos cíclicos, ℤ/nℤ, aperiodicidad.*
+   - *§5: productos directos (V₄ = ℤ/2ℤ × ℤ/2ℤ).*
+   - *§6: funciones y composición (transformaciones f_w : Q → Q).*
+   - *§7: grupos simétricos (S₃).*
+   - *§8: relaciones de equivalencia y clases (núcleo de φ).*
+   - *§11: homomorfismos.*
+   - *§12: homomorfismos y subgrupos normales — teorema de isomorfismo.*
+   - *§13: grupos abelianos finitos.)*
 
-1. Eilenberg, S. *Automata, Languages and Machines, Vol. A & B.* Academic
-   Press, 1974–1976.
-2. Pin, J.-É. *Mathematical Foundations of Automata Theory.* Disponible en
-   línea, versión actualizada 2020.
-3. Sipser, M. *Introduction to the Theory of Computation,* 3.ª ed., Cengage,
-   2012.
-4. Hopcroft, J. E.; Motwani, R.; Ullman, J. D. *Introduction to Automata
-   Theory, Languages, and Computation,* 3.ª ed., Addison-Wesley, 2007.
-5. Howie, J. M. *Fundamentals of Semigroup Theory.* Oxford University Press,
-   1995.
-6. Lallement, G. *Semigroups and Combinatorial Applications.* Wiley, 1979.
-7. Rotman, J. J. *An Introduction to the Theory of Groups,* 4.ª ed.,
-   Springer, 1995. (Para el Primer Teorema del Isomorfismo en su versión
-   clásica.)
-8. Straubing, H. *Finite Automata, Formal Logic, and Circuit Complexity.*
-   Birkhäuser, 1994.
+### Nota sobre el aporte propio
+
+El **monoide de transición** `M(A)`, el homomorfismo natural `φ` y la
+aplicación del teorema de isomorfismo a este contexto son el aporte
+específico del proyecto: combinan la maquinaria algebraica de Saracino
+(monoides, composición, homomorfismos) con los autómatas de De Castro
+Korgi, cuyo libro llega hasta Myhill-Nerode (§2.15) y minimización
+(§2.16) pero no construye `M(A)` explícitamente. **El marco teórico se
+apoya únicamente en estas dos fuentes.**
