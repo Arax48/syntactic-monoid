@@ -6,14 +6,15 @@ Construccion explicita del MONOIDE DE TRANSICION M(A) asociado a un AFD.
 
 Aclaracion bibliografica
 ------------------------
-El libro de De Castro (referencia base del proyecto) NO define
-explicitamente el monoide sintactico de un lenguaje regular. El
-concepto mas cercano dentro del libro es el Teorema de Myhill-Nerode
-(§2.15), que caracteriza los lenguajes regulares mediante el numero
-finito de clases de una relacion de equivalencia ≡_L sobre Σ*, y la
-construccion del AFD minimo (§2.16) como cociente. Este modulo extiende
-ese marco con el aparato algebraico clasico (Eilenberg, Pin) y conecta
-ambas caracterizaciones (vease las notas en docs/report.md).
+El proyecto usa solo dos fuentes: Saracino ("Abstract Algebra: A First
+Course") para el algebra y De Castro Korgi ("Introduccion a la Teoria
+de la Computacion") para la computacion. M(A) es una construccion propia
+que las une: es un MONOIDE (conjunto con operacion binaria asociativa e
+identidad, Saracino §1) formado por la COMPOSICION de funciones f_w: Q->Q
+(Saracino §6), definidas sobre el AFD del libro de De Castro. El puente
+con el lenguaje es el Teorema de Myhill-Nerode (§2.15) y el AFD minimo
+(§2.16): al minimizar, M(A) queda determinado por L y no por el dibujo
+del automata (vease docs/report.md).
 
 Definicion
 ----------
@@ -278,10 +279,8 @@ class TransitionMonoid:
 
         Un monoide finito es aperiodico si para todo elemento x existe
         un n tal que x^{n+1} = x^n. Equivalentemente, todos los subgrupos
-        de M(A) son triviales (solo contienen la identidad).
-
-        Teorema de Schutzenberger: L es reconocido por un monoide aperiodico
-        si y solo si L es una lengua libre de estrellas (star-free).
+        de M(A) son triviales (solo contienen la identidad). Se define con
+        las potencias de un elemento (Saracino §3).
         """
         for f in self.elements:
             # Compute powers until stabilization

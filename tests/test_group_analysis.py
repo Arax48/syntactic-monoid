@@ -39,8 +39,8 @@ def test_termina_en_01_no_es_grupo(ends_01_afd: AFD) -> None:
     info = analyze(monoid)
     assert not info.is_group
     assert info.isomorphic_to is None
-    # Caracterizacion algebraica: M(A) es aperiodico ⟺ L es star-free
-    # (Schutzenberger). El lenguaje "termina en 01" es star-free.
+    # M(A) es aperiodico: para todo x, x^k = x^(k+1) (Saracino §3,
+    # potencias de un elemento). "termina en 01" cumple esta propiedad.
     assert info.is_aperiodic
     # No es ciclico porque no es grupo.
     assert not info.is_cyclic
