@@ -162,7 +162,7 @@ explorador de archivos). Es la **portada** con navegación a:
 
 - **Regex → AFD** (visualizador interactivo).
 - **Máquinas de Turing** (editor + simulador con cinta animada).
-- **Monoide sintáctico** (4 hojas informativas precalculadas
+- **Monoide de transición** (4 hojas informativas precalculadas
   para los AFDs canónicos: paridad, mod 3, termina en 01,
   Klein V₄).
 - **Convenciones** (tabla De Castro ↔ notación clásica).
