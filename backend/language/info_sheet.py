@@ -108,7 +108,7 @@ def _render_text(sheet: InfoSheet) -> List[str]:
     # --- 2. Monoide ---------------------------------------------------
     cota = len(dfa.states) ** len(dfa.states)
     out += [
-        "2. MONOIDE SINTACTICO M(A)",
+        "2. MONOIDE DE TRANSICION M(A)",
         _SUB,
         f"   |M(A)|        : {info.order}",
         f"   Cota |Q|^|Q|  : {cota}    (M es a lo sumo de este tamano)",

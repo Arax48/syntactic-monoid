@@ -29,7 +29,7 @@ def test_as_text_contiene_las_seis_secciones(parity_afd: AFD) -> None:
     text = sheet.as_text()
     for header in (
         "TU AUTOMATA",
-        "MONOIDE SINTACTICO",
+        "MONOIDE DE TRANSICION",
         "¿ES UN GRUPO?",
         "CONEXIONES CON DISCRETE MATH",
         "CURIOSIDADES",
