@@ -1,0 +1,270 @@
+\documentclass[11pt,a4paper]{article}
+
+% ------------------------------------------------------------------
+%  Explicación para principiantes — Proyecto Monoide de Transición
+% ------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+\babelprovide[import,main]{spanish}
+\usepackage{mathpazo}                 % Palatino (elegante, académico)
+\usepackage[scaled=0.90]{helvet}      % Helvética para títulos
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=2.6cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{pifont}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% ---------- Paleta ----------
+\definecolor{accent}{HTML}{1F4E79}   % azul profundo
+\definecolor{accent2}{HTML}{2E7D64}  % verde teal
+\definecolor{warn}{HTML}{9A6700}     % ámbar
+\definecolor{soft}{HTML}{F4F7FA}
+\definecolor{ink}{HTML}{1F2328}
+\color{ink}
+
+% ---------- Títulos ----------
+\titleformat{\section}{\sffamily\Large\bfseries\color{accent}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{accent2}}{}{0em}{}
+\titlespacing*{\section}{0pt}{1.4em}{0.5em}
+
+% ---------- Encabezado / pie ----------
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\sffamily\small\color{accent}\thepage}
+\fancyfoot[L]{\sffamily\footnotesize\color{gray}Proyecto Monoide de Transición}
+\fancyfoot[R]{\sffamily\footnotesize\color{gray}Explicación para principiantes}
+
+% ---------- Cajas de realce (multi-párrafo, robustas) ----------
+\newsavebox{\cboxbuf}
+\newenvironment{callout}[2]{%
+  \def\cc{#1}%
+  \begin{lrbox}{\cboxbuf}%
+  \begin{minipage}{\dimexpr\linewidth-2.8em\relax}%
+  \smallskip{\sffamily\bfseries\color{#1}#2}\par\smallskip
+}{%
+  \par\smallskip\end{minipage}\end{lrbox}%
+  \par\medskip\noindent
+  \begin{tikzpicture}
+    \node[draw=\cc!75,line width=0.8pt,rounded corners=5pt,
+          fill=\cc!7,inner sep=11pt]{\usebox{\cboxbuf}};
+  \end{tikzpicture}\par\medskip
+}
+
+\newcommand{\code}[1]{{\ttfamily #1}}
+\newcommand{\yes}{{\color{accent2}\ding{51}}}
+\setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=3pt}
+
+% ==================================================================
+\begin{document}
+
+% ---------- Cabecera de portada ----------
+\begin{center}
+  {\sffamily\bfseries\color{accent}\Huge ¿Qué hace este programa?}\\[6pt]
+  {\sffamily\Large\color{accent2}Explicación para principiantes totales}\\[10pt]
+  {\itshape De una regla para aceptar palabras\\
+   a la estructura matemática que la define}\\[8pt]
+  {\small Proyecto final $\cdot$ Matemática Discreta II \& Teoría de la Computación}
+\end{center}
+
+\begin{callout}{accent}{La idea en una sola frase}
+Escribes una \textbf{regla} para aceptar o rechazar palabras; el programa
+construye la \textbf{máquina} que la cumple, observa \textbf{qué le hace cada
+palabra} a esa máquina, comprime las infinitas palabras en un
+\textbf{objeto pequeño}, y te dice \textbf{a qué familia matemática pertenece}
+tu regla: un interruptor, un reloj, un detector de patrones\ldots
+\end{callout}
+
+Vamos a construir todo desde cero, como una torre de bloques: cada concepto
+se apoya en el anterior. Sin prisa y sin dar nada por sabido.
+
+% ------------------------------------------------------------------
+\section{La portera del club (el autómata)}
+
+Imagina una \textbf{máquina portera} en la puerta de un club. Le muestras una
+palabra (una cadena de letras) y solo sabe hacer dos cosas: decir
+\textbf{«pasas»} (acepta) o \textbf{«no pasas»} (rechaza).
+
+La regla que usa para decidir se llama un \textbf{lenguaje}. Por ejemplo:
+\emph{«dejo pasar solo las palabras que terminan en \code{01}»}, o
+\emph{«solo las que tienen un número par de unos»}.
+
+Un \textbf{autómata} (en el libro, \textbf{AFD}) es la portera más simple posible:
+
+\begin{itemize}
+  \item Tiene unos \textbf{estados}, como «estados de ánimo». Piensa en focos:
+        en cada momento hay exactamente uno encendido.
+  \item Lee tu palabra \textbf{letra por letra, de izquierda a derecha}, sin
+        volver atrás jamás.
+  \item Cada letra la hace \textbf{saltar} de un foco a otro, siguiendo flechas fijas.
+  \item Al terminar, mira en qué foco quedó. Si es un foco «bueno» (de
+        aceptación), dice \textbf{«pasas»}.
+\end{itemize}
+
+\begin{callout}{accent2}{Ejemplo: «número par de unos»}
+Foco \textbf{A} = «he visto una cantidad \emph{par} de unos» (el bueno).\quad
+Foco \textbf{B} = «cantidad \emph{impar} de unos».\\[3pt]
+Cada \code{1} que lee la hace saltar al otro foco; los ceros no cambian nada.
+Empieza en A. Si al final sigue en A $\Rightarrow$ par $\Rightarrow$ \textbf{pasas}.
+\end{callout}
+
+Un autómata es \textbf{memoria mínima}: solo recuerda «en qué foco estoy», nada
+más. Por eso es rapidísimo, pero también limitado.
+
+% ------------------------------------------------------------------
+\section{La expresión regular (la forma cómoda de escribir la regla)}
+
+Dibujar focos y flechas a mano es tedioso. Una \textbf{expresión regular}
+(o \emph{regex}) es una forma corta de \textbf{escribir} la regla con símbolos:
+
+\begin{itemize}
+  \item \code{01} = «un cero seguido de un uno».
+  \item \code{a|b} = «una \code{a} \textbf{o} una \code{b}».
+  \item \code{a*} = «cero o más \code{a} seguidas»: \code{""}, \code{a}, \code{aa}, \ldots
+  \item \code{(0|1)*01} = «cualquier cosa hecha de ceros y unos \textbf{que termine en} \code{01}».
+\end{itemize}
+
+Tú escribes la regex, y \textbf{el programa te construye la portera
+automáticamente}. Lo hace en tres pasos internos:
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Leer la regex} y entenderla como una receta.
+  \item \textbf{Armar una primera portera} a partir de la receta (rápida de
+        construir, pero «desordenada»).
+  \item \textbf{Ordenarla y encogerla}: fusionar los focos que se comportan
+        igual hasta obtener la portera \textbf{más pequeña posible}. Esta versión
+        mínima será clave en el paso final.
+\end{enumerate}
+
+% ------------------------------------------------------------------
+\section{El monoide: la parte estrella \ding{72}}
+
+Aquí está la idea más bonita del proyecto. La voy a explicar con mucho cuidado.
+
+\subsection{La pregunta clave}
+Ya tenemos la portera. Ahora nos hacemos una pregunta \emph{distinta}:
+\begin{center}
+  \itshape\color{accent}«¿Qué le hace \textbf{cada palabra} a los focos de la portera?»
+\end{center}
+Una palabra no solo se acepta o rechaza: una palabra es una
+\textbf{instrucción de reordenamiento} de los focos. Una \emph{coreografía}.
+
+\subsection{Cada palabra es una coreografía}
+Volvamos a la portera de «par de unos» (dos focos, A y B). Pregúntate qué hace
+la palabra \code{1}:
+\begin{itemize}
+  \item Si estabas en A, te manda a B.\qquad Si estabas en B, te manda a A.
+\end{itemize}
+O sea, \code{1} es la instrucción \textbf{«intercambia los dos focos»}.
+Ahora la palabra \code{11}: de A pasas a B y vuelves a A; de B a A y vuelves a B.
+La palabra \code{11} es la instrucción \textbf{«déjalo todo igual»}.
+
+Y resulta que \code{1}, \code{111}, \code{101}\ldots\ todas hacen «intercambia»;
+mientras que \code{""}, \code{11}, \code{1001}\ldots\ todas hacen «deja igual».
+
+\begin{callout}{accent}{El descubrimiento}
+Aunque hay \textbf{infinitas palabras}, ¡en esta portera solo existen
+\textbf{dos coreografías posibles}!
+\emph{«deja todo igual»} y \emph{«intercambia los dos focos»}.\\[3pt]
+A la colección de coreografías distintas se le llama el \textbf{monoide de
+transición}, escrito $M(A)$. Es como haber comprimido infinitas palabras en un
+puñadito de «movimientos esenciales».
+\end{callout}
+
+\subsection{¿Cómo lo calcula el programa?}
+Con mucha paciencia y de forma automática:
+\begin{enumerate}[leftmargin=1.6em]
+  \item Empieza con la coreografía «no hacer nada» (la palabra vacía).
+  \item Le añade \textbf{una letra} y anota la coreografía resultante.
+  \item Si esa coreografía \textbf{ya la había visto}, la ignora; si es
+        \textbf{nueva}, la guarda.
+  \item Repite hasta que \textbf{no aparecen coreografías nuevas}.
+\end{enumerate}
+Al terminar tiene la lista completa. Para «par de unos» encuentra 2; para otras
+reglas encontrará 3, 4, 5\ldots
+
+\subsection{Combinar coreografías}
+Lo mágico: hacer una coreografía y luego otra da como resultado \textbf{otra
+coreografía de la misma lista} (por ejemplo, «intercambia» $+$ «intercambia» $=$
+«deja igual»). El programa arma una \textbf{tabla} —como una tabla de
+multiplicar— que dice qué coreografía resulta de encadenar cualquier par. Esa
+tabla es la que se examina en el último paso.
+
+% ------------------------------------------------------------------
+\section{La «personalidad» de la regla}
+
+Con esa tabla, el programa descubre \textbf{de qué tipo matemático} es tu regla,
+y lo muestra como etiquetas en la página:
+
+\begin{itemize}
+  \item \textbf{¿Es un «grupo»?} Un grupo es un conjunto de movimientos donde
+        \emph{todo movimiento se puede deshacer}. «Par de unos» lo es:
+        «intercambia» se deshace con otro «intercambia». Y ese grupo resulta ser
+        el \textbf{mismo objeto matemático} que un interruptor de luz o que sumar
+        pares e impares: se llama $\mathbb{Z}/2\mathbb{Z}$.
+  \item Otras reglas dan grupos más ricos: $\mathbb{Z}/3\mathbb{Z}$ (como un reloj
+        de 3 horas), $V_4$, $S_3$\ldots\ El programa reconoce cuál es.
+  \item \textbf{¿Es «aperiódico»?} Significa que la regla \emph{no cuenta en
+        ciclos}: si repites una misma palabra muchas veces, la coreografía deja
+        de cambiar (se «estabiliza»), en vez de girar en un ciclo como hace
+        «intercambia». La regla solo detecta patrones («¿apareció \code{01} al
+        final?»). «Termina en \code{01}» es de este tipo.
+\end{itemize}
+
+\begin{callout}{warn}{Un detalle honesto (y por qué importaba encoger la portera)}
+Para que ese objeto sea \emph{el correcto}, la portera debe ser la
+\textbf{mínima}. Un teorema llamado \textbf{Myhill--Nerode} garantiza que, con la
+portera mínima, el objeto que sale es \textbf{único y verdadero} para esa regla.
+Por eso el paso de «ordenar y fusionar focos» no era un adorno: era esencial.
+\end{callout}
+
+% ------------------------------------------------------------------
+\section{La Máquina de Turing (la segunda sección de la página)}
+
+La portera es sencilla, pero \textbf{hay reglas que no puede resolver}. Por
+ejemplo: \emph{«acepta $a^n b^n$»}, es decir, la misma cantidad de \code{a} que de
+\code{b}, en ese orden ($aabb$ sí, $aab$ no). No puede, porque \textbf{no sabe
+contar sin límite}: su memoria es fija.
+
+La \textbf{Máquina de Turing} es la portera con superpoderes: tiene una
+\textbf{cinta de papel infinita} donde puede \textbf{escribir, borrar y moverse}
+a izquierda y derecha cuantas veces quiera. Con eso sí puede contar y comparar.
+Su truco típico es \textbf{marcar y emparejar}: tacha una \code{a}, busca una
+\code{b} y la tacha, vuelve al inicio y repite. En la página ves la cinta
+moverse paso a paso, con el cabezal (la cabeza lectora) animado.
+
+\begin{callout}{accent2}{¿Y el álgebra aquí?}
+Si el lenguaje que describes \textbf{es simple} (regular), el programa construye
+su portera mínima y hace \textbf{exactamente el mismo análisis} de las secciones
+anteriores.\\[3pt]
+Si el lenguaje \textbf{necesita los superpoderes} (como $a^n b^n$), el programa
+te dice con honestidad que aquí el objeto ya no es un puñadito finito de
+coreografías, sino \textbf{infinito}, y te explica por qué. No lo esconde: te
+muestra justo dónde está la frontera.
+\end{callout}
+
+% ------------------------------------------------------------------
+\section*{\sffamily\color{accent}Resumen en una frase}
+\addcontentsline{toc}{section}{Resumen}
+
+\begin{center}
+\begin{minipage}{0.92\linewidth}\itshape\large\color{accent}
+Escribes una regla $\to$ el programa construye la máquina que la cumple $\to$
+mira qué le hace cada palabra a la máquina $\to$ comprime infinitas palabras en
+un objeto pequeño $\to$ y te dice a qué familia matemática pertenece tu regla.
+\end{minipage}
+\end{center}
+
+\vfill
+\begin{center}\small\color{gray}
+Autómatas y Máquinas de Turing por un lado; el puente hacia el álgebra abstracta
+de Matemática Discreta II por el otro. Eso es todo el programa.
+\end{center}
+
+\end{document}
