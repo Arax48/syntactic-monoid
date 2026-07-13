@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadenas que terminan en 01 · syntactic-monoid</title>
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.example-layout {
+  display: grid; grid-template-columns: 220px 1fr; gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .example-layout { grid-template-columns: 1fr; }
+}
+.examples-sidebar {
+  background: #f6f8fa; border: 1px solid #d1d9e0;
+  border-radius: 8px; padding: 1rem;
+  position: sticky; top: 75px;
+}
+.examples-sidebar h4 {
+  margin: 0 0 .6rem; font-size: .82rem; color: #57606a;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.examples-sidebar a {
+  display: block; padding: .35rem .6rem; border-radius: 5px;
+  color: #424a53; text-decoration: none; font-size: .9rem;
+  margin-bottom: .2rem;
+}
+.examples-sidebar a:hover { background: #eaecef; }
+.examples-sidebar a.active { background: #ddf4ff; color: #0969da;
+                              font-weight: 600; }
+.afd-card {
+  background: #f6f8fa; border: 1px solid #d1d9e0;
+  border-radius: 8px; padding: 1.1rem 1.3rem; margin-bottom: 1.5rem;
+}
+.afd-card h3 { margin-top: 0; }
+.afd-card .afd-name { font-family: ui-monospace, Menlo, monospace;
+                       color: #0969da; }
+table.afd-delta { width: auto; min-width: 50%; }
+table.afd-delta th, table.afd-delta td {
+  text-align: center; font-family: ui-monospace, Menlo, monospace;
+}
+.breadcrumb { color: #6e7681; font-size: .87rem; margin-bottom: .8rem; }
+.breadcrumb a { color: #6e7681; }
+
+/* Estilos del info-sheet renderizado */
+.info-sheet h1 { display: none; }    /* el h1 viene del template */
+.info-sheet h2 { margin-top: 1.8rem; font-size: 1.25rem;
+                  color: #0969da; border-bottom-color: #d1d9e0; }
+.info-sheet ul { padding-left: 1.4rem; }
+.info-sheet li { margin-bottom: .35rem; }
+.info-sheet p code, .info-sheet li code { font-size: .88em; }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="../index.html" class="brand">syntactic-monoid <small>ITC · Discrete Math II</small></a>
+  <a href="../index.html">Inicio</a>
+  <a href="../regex_visualizer.html">Regex → AFD</a>
+  <a href="../mt_visualizer.html">Máquinas de Turing</a>
+  <a href="parity_afd.html" class="active">Monoide</a>
+  <a href="../convenciones.html">Convenciones</a>
+  <span class="spacer"></span>
+  <span class="ref">basado en De Castro (2024)</span>
+</nav>
+
+<main>
+
+<p class="breadcrumb">
+  <a href="../index.html">Inicio</a> ›
+  Hojas informativas › <b>Cadenas que terminan en 01</b>
+</p>
+
+<div class="example-layout">
+
+  <aside class="examples-sidebar"><h4>Hojas informativas</h4><a href="parity_afd.html">Paridad de 1s</a><a href="mod3_afd.html">#1s ≡ 0 (mod 3)</a><a href="ends_with_01_afd.html" class="active">Termina en 01</a><a href="klein_v4_afd.html">Klein V4</a></aside>
+
+  <div>
+    <h1>Análisis algebraico — Cadenas que terminan en 01</h1>
+    <p class="lead">
+      Hoja informativa pedagógica generada por el motor de
+      <code>syntactic-monoid</code>: definición del AFD, monoide de
+      transición <em>M(A)</em>, estructura algebraica y conexión con el
+      libro de De Castro.
+    </p>
+
+    
+<div class="afd-card">
+  <h3>Definicion del AFD <span class="afd-name">Cadenas que terminan en 01</span></h3>
+  <p>M = (Σ, Q, q<sub>0</sub>, F, δ) (§2.3) con:</p>
+  <ul>
+    <li><b>Σ</b> = {<code>0</code>, <code>1</code>}</li>
+    <li><b>Q</b> = {<code>s0</code>, <code>s1</code>, <code>s2</code>}</li>
+    <li><b>q<sub>0</sub></b> = <code>s0</code></li>
+    <li><b>F</b> = {<code>s2</code>}</li>
+  </ul>
+  <p><b>Función de transición δ</b> (→ = inicial, ★ = aceptación):</p>
+  <table class="afd-delta"><thead><tr><th>δ</th><th>0</th><th>1</th></tr></thead><tbody><tr><th>→ s0</th><td>s1</td><td>s0</td></tr><tr><th>s1</th><td>s1</td><td>s2</td></tr><tr><th>★ s2</th><td>s1</td><td>s0</td></tr></tbody></table>
+</div>
+
+
+    <div class="info-sheet">
+      <h1>Hoja informativa — Cadenas que terminan en 01</h1>
+<h2>1. Tu autómata</h2>
+<ul>
+<li><strong>Nombre:</strong> Cadenas que terminan en 01</li>
+<li><strong>|Q|:</strong> 3  (s0, s1, s2)</li>
+<li><strong>|Σ|:</strong> 2  (0, 1)</li>
+<li><strong>q₀:</strong> s0</li>
+<li><strong>F:</strong> {s2}</li>
+</ul>
+<h2>2. Monoide de transición M(A)</h2>
+<ul>
+<li><strong>|M(A)|:</strong> 5</li>
+<li><strong>Cota teórica:</strong> |Q|^|Q| = 27</li>
+<li><strong>Idempotentes:</strong> 4</li>
+<li><strong>Unidades:</strong> 1</li>
+<li><strong>Centro Z(M):</strong> 1</li>
+</ul>
+<h2>3. ¿Es un grupo?</h2>
+<p><strong>No</strong> — existen elementos sin inverso.</p>
+<ul>
+<li>Unidades: 1 &lt; |M(A)| = 5</li>
+<li>Aperiódico: sí</li>
+</ul>
+<h2>4. Conexiones con Discrete Math II</h2>
+<p>M(A) NO es un grupo, pero ES APERIODICO.</p>
+<p>Aperiodico (definicion, via Saracino §3 &lsquo;potencias de un
+elemento&rsquo;): para todo elemento x de M(A) existe un k tal
+que x^k = x^(k+1); es decir, ninguna palabra genera un
+ciclo no trivial al iterarse.</p>
+<ul>
+<li>Equivale a que M(A) no contenga ningun SUBGRUPO no
+trivial (no hay elementos con &lsquo;orden&rsquo; &gt; 1 en el sentido
+de Saracino §3): toda potencia acaba estabilizandose.</li>
+<li>Contrasta con el caso grupo, donde cada elemento tiene
+inverso y sus potencias recorren un ciclo (Saracino §2).</li>
+</ul>
+<h2>5. Curiosidades</h2>
+<ul>
+<li>M(A) es notablemente pequeno comparado con la cota teorica |Q|^|Q| = 27: la dinamica del automata es muy estructurada.</li>
+<li>Hay 4 elementos idempotentes (e² = e). En un grupo solo la identidad lo es; aqui hay mas, lo que confirma que M(A) NO es grupo.</li>
+<li>M(A) es aperiodico: al iterar cualquier palabra, la transformacion inducida se estabiliza (x^k = x^(k+1)). No hay ninguna palabra que actue como una &lsquo;rotacion&rsquo; ciclica.</li>
+</ul>
+<h2>6. ¿Y ahora qué?</h2>
+<ul>
+<li>Tome una palabra cualquiera y componga f_w consigo misma varias veces: vera que a partir de cierta potencia deja de cambiar (x^k = x^(k+1)). Esa es la aperiodicidad en accion.</li>
+<li>Use <code>python main.py verify &lt;su_dfa&gt;.json --regex "..."</code> para verificar que su AFD reconoce el lenguaje que cree.</li>
+<li>Use la opcion 6 del menu para ver la TABLA DE CAYLEY de M(A) y la opcion 9 para exportar un reporte completo con figuras.</li>
+</ul>
+<h2>7. En el libro de De Castro</h2>
+<p>El monoide de transicion M(A) es una construccion propia que
+une las dos fuentes del curso:</p>
+<p>ALGEBRA (Saracino):
+§1     Operacion binaria asociativa con identidad: M(A) es un
+monoide bajo la composicion de funciones.
+§6     Funciones y su composicion — cada transformacion
+f_w: Q -&gt; Q y el producto f_u . f_v = f_(uv).
+§2,§3  Grupos, potencias y grupos ciclicos: sustentan &lsquo;¿es
+grupo?&rsquo;, &lsquo;ciclico&rsquo;, el generador y la clase ℤ/nℤ.
+§8,§11,§12  Relaciones de equivalencia y clases, homomorfismos
+y teorema de isomorfismo: el nucleo de φ y Σ*/Ker(φ).</p>
+<p>COMPUTACION (De Castro Korgi):
+§2.3   AFD M = (Σ, Q, q0, F, δ) — la 5-tupla con la que se
+construyo este monoide.
+§2.7.2 Funcion de transicion extendida δ̂ — es exactamente
+la formula que define cada transformacion f_w de M(A)
+(f_w(q) = δ̂(q, w)).
+§2.15  Teorema de Myhill-Nerode. Dos palabras son
+≡_L-equivalentes sii ningun sufijo las distingue.
+En este AFD, el nucleo de φ (de tamano 5) es un
+REFINAMIENTO de ≡_L; ambas coinciden si el AFD es minimo.
+§2.16  Algoritmo de minimizacion. El AFD minimo es unico
+(Teorema 2.15.4) y sus estados son exactamente las
+clases de ≡_L; por eso M(A) es un invariante de L.</p>
+<p>La aperiodicidad (seccion 4) se define aqui con las potencias
+de un elemento (Saracino §3): para todo x, x^k = x^(k+1).
+Es una lectura puramente algebraica de M(A), sin salir de
+las dos fuentes del curso.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  syntactic-monoid · hoja informativa generada por
+  <code>scripts/build_web_examples.py</code> · regenera con
+  <code>python scripts/build_web_examples.py</code>
+</footer>
+
+</main>
+
+</body>
+</html>

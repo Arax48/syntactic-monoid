@@ -13,11 +13,12 @@
 > Funciona en cualquier navegador moderno, sin instalación.
 >
 > 📦 La versión anterior del sitio (multi-página: portada, visualizadores
-> separados, convenciones y hojas informativas precalculadas) se conserva
-> íntegra en la rama
+> separados, convenciones y hojas informativas precalculadas) está
+> publicada en vivo en
+> **<https://arax48.github.io/syntactic-monoid/web/v1/>** (carpeta
+> `web/v1/`), y su historial completo se conserva en la rama
 > [`version-anterior-multipagina`](https://github.com/Arax48/syntactic-monoid/tree/version-anterior-multipagina).
-> GitHub Pages solo sirve `main`; para ver la versión anterior en el
-> navegador, haz checkout de esa rama y abre su `web/index.html` localmente.
+> Ambas versiones usan las mismas dos fuentes (Saracino + De Castro Korgi).
 
 Implementación matemáticamente rigurosa y completa en Python para construir
 el **monoide de transición** `M(A)` asociado a un Autómata Finito Determinista,

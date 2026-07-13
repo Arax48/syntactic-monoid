@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visualizador interactivo de regex</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+  margin: 0; line-height: 1.5; color: #1f2328; background: #fff;
+}
+main.page-content {
+  max-width: 1200px; margin: 0 auto;
+  padding: 1.2rem 1.6rem 4rem;
+}
+/* --- Barra de navegacion (compartida con el resto del sitio) --- */
+.site-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #eaecef;
+  padding: .55rem 1.2rem;
+  display: flex; align-items: center; gap: 1.3rem; flex-wrap: wrap;
+  font-size: .9rem;
+}
+.site-nav .brand {
+  font-weight: 700; color: #0969da; font-size: .98rem; text-decoration: none;
+}
+.site-nav .brand small {
+  color: #6e7681; font-weight: 400; font-size: .82rem; margin-left: .3rem;
+}
+.site-nav a:not(.brand) {
+  color: #424a53; text-decoration: none; font-weight: 500;
+  padding: .25rem .55rem; border-radius: 5px; transition: background .15s;
+}
+.site-nav a:not(.brand):hover { background: #eaecef; color: #24292f; }
+.site-nav a.active { background: #ddf4ff; color: #0969da; }
+.site-nav .spacer { flex-grow: 1; }
+.site-nav .ref { color: #6e7681; font-size: .8rem; font-style: italic; }
+@media (max-width: 700px) {
+  .site-nav { gap: .5rem; padding: .5rem .8rem; }
+  .site-nav .ref { display: none; }
+  main.page-content { padding: 1rem .9rem 2rem; }
+}
+h1 { font-size: 1.5rem; margin: 0 0 .3rem 0; }
+header .lead { color: #57606a; margin: 0 0 1rem; }
+h2 { font-size: 1.05rem; margin: 1.6rem 0 .5rem;
+     padding-bottom: .3rem; border-bottom: 2px solid #eaecef; }
+h2 .stat { color: #6e7681; font-size: .88rem; font-weight: 400; }
+
+.controls {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 10px;
+  padding: 1rem 1.2rem; margin: .6rem 0;
+}
+.controls label { display: block; font-size: .9rem; color: #57606a;
+                  margin-bottom: .3rem; }
+.controls input[type="text"] {
+  width: 100%; padding: .55rem .8rem; border: 1px solid #d0d7de;
+  border-radius: 6px; font-size: 1.05rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #fff;
+}
+.controls input[type="text"]:focus { outline: 2px solid #0969da; outline-offset: -1px; }
+.controls .row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+@media (max-width: 720px) { .controls .row { grid-template-columns: 1fr; } }
+.examples { margin-top: .8rem; color: #57606a; font-size: .9rem; }
+.examples button {
+  background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: .25rem .55rem; font-size: .85rem; cursor: pointer;
+  margin: .15rem .15rem 0 0; color: #1f2328;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.examples button:hover { background: #f0f3f6; border-color: #8c959f; }
+
+#error {
+  background: #ffebe9; border: 1px solid #ff8182; border-radius: 6px;
+  padding: .6rem 1rem; margin: 1rem 0; color: #82071e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+#status { color: #6e7681; font-size: .85rem; margin: .5rem 0 0; }
+
+code, .pattern-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+code { background: #f0f3f6; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
+
+details.syntax { margin: 1rem 0; }
+details.syntax summary { cursor: pointer; color: #0969da; font-size: .92rem;
+                         user-select: none; padding: .4rem 0; }
+details.syntax summary:hover { text-decoration: underline; }
+details.syntax table { border-collapse: collapse; width: 100%;
+                       font-size: .9rem; margin-top: .5rem; }
+details.syntax th { text-align: left; background: #f0f3f6;
+                    padding: .4rem .7rem; font-weight: 600; }
+details.syntax td { border-top: 1px solid #eaecef; padding: .4rem .7rem;
+                    vertical-align: top; }
+details.syntax td:first-child { width: 8rem; }
+.note { background: #fff8e1; border-left: 4px solid #ffca28;
+        padding: .5rem .9rem; border-radius: 4px; margin: .7rem 0;
+        font-size: .88rem; }
+
+.svg-wrap {
+  overflow-x: auto; padding: .8rem; background: #fbfbfd;
+  border-radius: 8px; border: 1px solid #eaecef;
+  display: flex; justify-content: center; min-height: 80px;
+}
+.svg-wrap svg { max-width: 100%; height: auto; }
+.dot-fallback-pre {
+  background: #fff; border: 1px dashed #bbb; padding: .7rem 1rem;
+  border-radius: 4px; font-size: .8rem; line-height: 1.4;
+  overflow-x: auto; white-space: pre; margin: 0; width: 100%;
+}
+
+.test-words { margin-top: 2rem; }
+.test-words p { color: #57606a; font-size: .9rem; margin: .3rem 0 .6rem; }
+.word-input-row { display: flex; gap: .6rem; align-items: stretch;
+                  margin: .6rem 0; }
+#word-input {
+  flex: 1; padding: .55rem .9rem;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1rem;
+  border: 1px solid #d1d9e0; border-radius: 6px; background: #fff;
+}
+#word-input:focus { outline: 2px solid #0969da; outline-offset: -1px;
+                    border-color: #0969da; }
+#btn-probar { padding: .55rem 1.2rem; background: #0969da; color: #fff;
+              border: 1px solid #0969da; border-radius: 6px; cursor: pointer;
+              font-weight: 600; font-size: .95rem; }
+#btn-probar:hover { background: #0860c4; }
+
+/* Resaltado del estado actual y la transición tomada en el AFD mínimo,
+   sincronizado con la cinta de la palabra seleccionada. */
+.svg-wrap svg g.node.active > ellipse,
+.svg-wrap svg g.node.active > polygon,
+.svg-wrap svg g.node.active > circle,
+.svg-wrap svg g.node.active > path {
+  fill: #fff4d6 !important;
+  stroke: #cf222e !important;
+  stroke-width: 3 !important;
+}
+.svg-wrap svg g.node.active > text {
+  fill: #cf222e !important;
+  font-weight: 700;
+}
+.svg-wrap svg g.edge.active > path {
+  stroke: #cf222e !important;
+  stroke-width: 2.4 !important;
+}
+.svg-wrap svg g.edge.active > polygon {
+  fill: #cf222e !important;
+  stroke: #cf222e !important;
+}
+/* Sección de estructura algebraica de M(A) */
+.algebra-section { margin-top: 2rem; }
+.algebra-section h2 { margin-bottom: .4rem; }
+.algebra-meta { display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: .4rem 1.5rem; font-size: .92rem;
+                color: #424a53; margin: .6rem 0 1rem; }
+.algebra-meta b { color: #57606a; font-weight: 600; }
+.algebra-meta code { background: #f6f8fa; padding: .15rem .4rem;
+                     border-radius: 4px; border: 1px solid #eaecef; }
+.algebra-badges { display: flex; gap: .4rem; flex-wrap: wrap;
+                  margin: .6rem 0 1rem; }
+.algebra-badges .badge {
+  display: inline-block; padding: .2rem .65rem; border-radius: 5px;
+  font-size: .85rem; font-weight: 600;
+}
+.algebra-badges .badge.yes { background: #dafbe1; color: #1a7f37; }
+.algebra-badges .badge.no  { background: #f6f8fa; color: #6e7681; }
+.algebra-badges .badge.spec { background: #ddf4ff; color: #0969da; }
+.algebra-summary { background: #f0f6ff; border: 1px solid #c7e0ff;
+                   border-radius: 8px; padding: .9rem 1.2rem;
+                   font-size: .98rem; margin: .6rem 0;
+                   color: #24292f; }
+.algebra-summary strong { color: #0969da; }
+.algebra-summary code { background: #fff; padding: .1rem .4rem;
+                        border-radius: 4px; border: 1px solid #c7e0ff; }
+.algebra-note { color: #57606a; font-size: .85rem; margin-top: .9rem;
+                font-style: italic; }
+.algebra-not-applicable {
+  background: #fff8c5; border: 1px solid #d4a72c; border-radius: 8px;
+  padding: .9rem 1.2rem; font-size: .92rem; color: #424a53;
+}
+.algebra-not-applicable strong { color: #9a6700; }
+
+/* Vista de la cinta del AFD (palabra ingresada) */
+.tape-section { margin-top: 1.6rem; }
+.tape-section h3 { margin: 0 0 .6rem 0; font-size: 1.02rem; }
+.trace-ctl { display: flex; gap: .4rem; align-items: center;
+             flex-wrap: wrap; margin-bottom: .8rem; }
+.trace-ctl button { padding: .3rem .7rem; border: 1px solid #d1d9e0;
+                    background: #fff; border-radius: 6px; cursor: pointer;
+                    font-size: .85rem; }
+.trace-ctl button:hover:not(:disabled) { background: #f3f4f6; }
+.trace-ctl button:disabled { opacity: .45; cursor: not-allowed; }
+.trace-ctl .step-info { font-size: .85rem; color: #57606a;
+                        margin-left: .6rem; font-family: ui-monospace, Menlo, monospace; }
+.tape-box { background: #fff; border: 1px solid #eaecef; border-radius: 8px;
+            padding: 1.2rem 1rem; overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+.tape-box .tape-inner { display: flex; flex-direction: column;
+                        align-items: center; min-width: max-content; }
+.tape-box .cells { display: flex; gap: 0; }
+.tape-box .cells .cell {
+  width: 2.4rem; height: 2.4rem;
+  display: flex; align-items: center; justify-content: center;
+  font-family: ui-monospace, Menlo, monospace; font-size: 1.05rem;
+  border: 1px solid #d1d9e0; background: #fff; margin: 0 -1px;
+  transition: background-color .15s, border-color .15s;
+}
+.tape-box .cells .cell.head { background: #ddf4ff; border-color: #0969da;
+                              border-width: 2px; font-weight: 700; z-index: 1; }
+.tape-box .cells .cell.blank { color: #afb8c1; }
+.tape-box .cells .cell.consumed { background: #f6f8fa; color: #6e7681; }
+.tape-box .arrows { display: flex; gap: 0; margin-top: .3rem; }
+.tape-box .arrows .slot { width: 2.4rem; text-align: center;
+                          color: #0969da; margin: 0 -1px; font-weight: 700; }
+.trace-meta-r { margin-top: 1rem; display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: .4rem 1.5rem; font-size: .92rem; color: #424a53; }
+.trace-meta-r b { color: #57606a; font-weight: 600; }
+.trace-meta-r code { background: #f6f8fa; padding: .15rem .4rem;
+                     border-radius: 4px; border: 1px solid #eaecef; }
+.r-badge { display: inline-block; padding: .12rem .5rem; border-radius: 4px;
+           font-size: .8rem; font-weight: 600; }
+.r-badge.acepta  { background: #dafbe1; color: #1a7f37; }
+.r-badge.rechaza { background: #ffe5e5; color: #cf222e; }
+.r-badge.encurso { background: #ddf4ff; color: #0969da; }
+
+footer { color: #6e7681; font-size: .82rem; margin-top: 3rem;
+         border-top: 1px solid #eaecef; padding-top: 1rem; text-align: center; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.10.0/lib/viz-standalone.js"></script>
+<script src="shared/regex_afd.js"></script>
+<script src="shared/monoid.js"></script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand">syntactic-monoid <small>ITC · Discrete Math II</small></a>
+  <a href="index.html">Inicio</a>
+  <a href="regex_visualizer.html" class="active">Regex → AFD</a>
+  <a href="mt_visualizer.html">Máquinas de Turing</a>
+  <a href="ejemplos/parity_afd.html">Monoide</a>
+  <a href="convenciones.html">Convenciones</a>
+  <span class="spacer"></span>
+  <span class="ref">basado en De Castro (2024)</span>
+</nav>
+
+<main class="page-content">
+
+<header>
+  <h1>Expresiones regulares</h1>
+  <p class="lead">
+    Escribe una expresión regular y observa el AFD que reconoce su
+    lenguaje. Todo en tu navegador.
+  </p>
+</header>
+
+<section class="controls">
+  <div class="row">
+    <div>
+      <label for="pattern">Expresion regular</label>
+      <input id="pattern" type="text" value="(0|1)*01"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div>
+      <label for="alphabet">Alfabeto (opcional)</label>
+      <input id="alphabet" type="text" placeholder="auto (se infiere)"
+             autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+  </div>
+  <div class="examples">
+    Prueba estos:
+    <button data-pattern="(0|1)*01">termina en 01</button>
+    <button data-pattern="(0*10*1)*0*">paridad de 1s</button>
+    <button data-pattern="0*(10*10*10*)*">|1|s ≡ 0 (mod 3)</button>
+    <button data-pattern="(ab)+">una o mas 'ab'</button>
+    <button data-pattern="a?b*c+">a?b*c+</button>
+    <button data-pattern="[01]+0">binario que acaba en 0</button>
+    <button data-pattern=".*ab.*">contiene 'ab'</button>
+  </div>
+  <p id="status"></p>
+</section>
+
+<details class="syntax">
+  <summary>Como escribir tu expresion regular (§2.2 De Castro)</summary>
+  <table>
+    <thead>
+      <tr><th>Sintaxis (ASCII)</th>
+          <th>Notacion del libro</th>
+          <th>Significado</th>
+          <th>Ejemplo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>a</code></td>
+          <td><code>a</code></td>
+          <td>simbolo literal <em>a</em> ∈ Σ; <em>L</em>[a] = {a}</td>
+          <td><code>0</code> reconoce <code>"0"</code></td></tr>
+      <tr><td><em>(linea vacia)</em></td>
+          <td><code>λ</code></td>
+          <td>cadena vacia; <em>L</em>[λ] = {λ}</td>
+          <td>al evaluar palabras, una linea vacia representa a <code>λ</code></td></tr>
+      <tr><td><code>ab</code></td>
+          <td><code>ab</code> (yuxtaposicion)</td>
+          <td>concatenacion; <em>L</em>[RS] = <em>L</em>[R]·<em>L</em>[S]</td>
+          <td><code>01</code> reconoce <code>"01"</code></td></tr>
+      <tr><td><code>a|b</code></td>
+          <td><code>a ∪ b</code></td>
+          <td>union; <em>L</em>[R ∪ S] = <em>L</em>[R] ∪ <em>L</em>[S]</td>
+          <td><code>0|1</code> reconoce <code>"0"</code> o <code>"1"</code></td></tr>
+      <tr><td><code>a*</code></td>
+          <td><code>a*</code></td>
+          <td>clausura de Kleene; <em>L</em>[R*] = <em>L</em>[R]*</td>
+          <td><code>0*</code> reconoce <code>""</code>, <code>"0"</code>, <code>"00"</code>...</td></tr>
+      <tr><td><code>a+</code></td>
+          <td><code>a+</code></td>
+          <td>clausura positiva (<em>R</em>+ ≡ <em>R</em><em>R</em>*)</td>
+          <td><code>1+</code> reconoce <code>"1"</code>, <code>"11"</code>...</td></tr>
+      <tr><td><code>a?</code></td>
+          <td><code>(λ ∪ a)</code></td>
+          <td>opcional (azucar)</td>
+          <td><code>0?1</code> reconoce <code>"1"</code> o <code>"01"</code></td></tr>
+      <tr><td><code>(...)</code></td>
+          <td><code>(...)</code></td>
+          <td>agrupacion</td>
+          <td><code>(01)*</code> reconoce <code>""</code>, <code>"01"</code>, ...</td></tr>
+      <tr><td><code>[abc]</code></td>
+          <td><code>(a ∪ b ∪ c)</code></td>
+          <td>clase de caracteres (azucar)</td>
+          <td><code>[01]+</code> = cadena binaria no vacia</td></tr>
+      <tr><td><code>[a-z]</code></td>
+          <td>idem para todo el rango</td>
+          <td>rango de caracteres</td>
+          <td><code>[a-c]</code> = a ∪ b ∪ c</td></tr>
+      <tr><td><code>.</code></td>
+          <td>union de todo Σ</td>
+          <td>comodin</td>
+          <td><code>.*01</code> = termina en <code>01</code></td></tr>
+      <tr><td><code>\x</code></td>
+          <td>literal</td>
+          <td>escape</td>
+          <td><code>\*</code> = el caracter <code>*</code></td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    <strong>Precedencia (§2.2, de mayor a menor):</strong>
+    <code>*</code> &gt; concatenacion &gt; union <code>|</code> (≡ <code>∪</code>).
+    Usa parentesis para forzar agrupamiento: <code>(0|1)*</code> &ne; <code>0|1*</code>.
+  </p>
+  <p class="note">
+    <strong>Alfabeto Σ:</strong> si lo dejas vacio, se infiere de los
+    literales que aparecen en la expresion. Para usar el comodin
+    <code>.</code> con simbolos que no aparecen literalmente, especifica
+    Σ a mano (por ejemplo: <code>01</code> o <code>a,b,c</code>).
+  </p>
+  <p class="note">
+    <strong>Importante:</strong> las expresiones regulares solo
+    describen lenguajes <strong>regulares</strong> (Cap 2 del libro).
+    Lenguajes como <code>a<sup>n</sup>b<sup>n</sup></code> no son
+    regulares (§3.1) y se aceptan con autómatas con pila (Cap 4) o
+    maquinas de Turing (Cap 6).
+  </p>
+</details>
+
+<div id="error" hidden></div>
+
+<!-- Elementos auxiliares: el motor calcula el AFN-λ y un AFD intermedio
+     para llegar al AFD mínimo, pero los mantenemos ocultos. -->
+<div style="display:none">
+  <span id="afn-stat"></span><div id="afn-svg"></div>
+  <span id="afd-stat"></span><div id="afd-svg"></div>
+</div>
+
+<section>
+  <h2>AFD <span class="stat" id="min-stat"></span></h2>
+  <div class="svg-wrap" id="min-svg"></div>
+</section>
+
+<section class="algebra-section" id="algebra" hidden>
+  <h2>Estructura algebraica de M(A)</h2>
+  <p style="color:#57606a; font-size:.9rem; margin:.2rem 0 .8rem;">
+    Monoide de transición del AFD mínimo. Se calcula
+    <em>f<sub>w</sub></em>(q) = δ̂(q, w) para todas las palabras
+    distinguibles y se analiza la estructura algebraica de M(A) =
+    {<em>f<sub>w</sub></em> : w ∈ Σ*}.
+  </p>
+  <div id="algebra-content"></div>
+</section>
+
+<section class="test-words">
+  <h2>Probar una palabra</h2>
+  <p>Escribe una cadena de entrada y pulsa <b>Probar</b> (o Enter) para
+     simular el AFD paso a paso sobre ella.</p>
+  <div class="word-input-row">
+    <input id="word-input" type="text" placeholder="ej: 1101"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="btn-probar">Probar</button>
+  </div>
+
+  <div class="tape-section" id="afd-tape" hidden>
+    <h3>Cinta — <code id="r-word"></code></h3>
+    <div class="trace-ctl">
+      <button id="r-reset">⏮ inicio</button>
+      <button id="r-back">◀ paso atrás</button>
+      <button id="r-fwd">paso ▶</button>
+      <button id="r-play">▶▶ animar</button>
+      <button id="r-pause" hidden>⏸ pausar</button>
+      <span class="step-info" id="r-step-info"></span>
+    </div>
+    <div class="tape-box">
+      <div class="tape-inner">
+        <div class="cells" id="r-cells"></div>
+        <div class="arrows" id="r-arrows"></div>
+      </div>
+    </div>
+    <div class="trace-meta-r">
+      <div><b>Estado actual</b>: <code id="r-state">—</code></div>
+      <div><b>Símbolo leído</b>: <code id="r-read">—</code></div>
+      <div><b>Resultado</b>: <span id="r-res">—</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  syntactic-monoid &middot; renderizado con <a href="https://github.com/mdaines/viz-js" target="_blank" rel="noopener">viz.js</a>
+  &middot; sin servidor: todo corre en tu navegador
+</footer>
+
+<script>
+"use strict";
+
+/* El pipeline regex → AFN-λ → AFD → AFD mínimo se carga desde
+ * shared/regex_afd.js (clases Empty, Lambda, Sym, CharCls, AnyCh, Uni,
+ * Cat, Kln; funciones regexToNFA, afnToAfd, minimizeAfd, afdAccepts,
+ * y el atajo regexToAfdMin). Aqui solo quedan generacion de DOT y UI. */
+;
+
+/* ==================================================================
+ * 4. Generacion de DOT
+ * ================================================================== */
+
+function dotQuote(s) {
+  return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+
+function afnToDot(afn) {
+  const lines = [
+    "digraph G {",
+    "  rankdir=LR;",
+    '  fontname="Helvetica";',
+    '  node [fontname="Helvetica", fontsize=11];',
+    '  edge [fontname="Helvetica", fontsize=10];',
+    '  __start__ [shape=none, label="", width=0, height=0];',
+  ];
+  const sorted = [...afn.states].sort();
+  for (const q of sorted) {
+    const shape = afn.accepting.has(q) ? "doublecircle" : "circle";
+    lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
+  }
+  lines.push(`  __start__ -> ${dotQuote(afn.start)};`);
+  for (const q of sorted) {
+    const bucket = new Map();
+    for (const a of [...afn.alphabet].sort()) {
+      const targets = afn.trans.get(q)?.get(a);
+      if (!targets) continue;
+      for (const t of [...targets].sort()) {
+        if (!bucket.has(t)) bucket.set(t, []);
+        bucket.get(t).push(a);
+      }
+    }
+    for (const [t, syms] of bucket) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
+    }
+    for (const t of [...(afn.lam.get(q) || [])].sort()) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label="λ", style="dashed", color="#888888", fontcolor="#666666"];`);
+    }
+  }
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function afdToDot(afd) {
+  const lines = [
+    "digraph G {",
+    "  rankdir=LR;",
+    '  fontname="Helvetica";',
+    '  node [fontname="Helvetica", fontsize=11];',
+    '  edge [fontname="Helvetica", fontsize=10];',
+    '  __start__ [shape=none, label="", width=0, height=0];',
+  ];
+  const sorted = [...afd.states].sort();
+  for (const q of sorted) {
+    const shape = afd.accepting.has(q) ? "doublecircle" : "circle";
+    lines.push(`  ${dotQuote(q)} [shape=${shape}];`);
+  }
+  lines.push(`  __start__ -> ${dotQuote(afd.start)};`);
+  for (const q of sorted) {
+    const bucket = new Map();
+    for (const a of [...afd.alphabet].sort()) {
+      const t = afd.trans.get(q).get(a);
+      if (!bucket.has(t)) bucket.set(t, []);
+      bucket.get(t).push(a);
+    }
+    for (const [t, syms] of bucket) {
+      lines.push(`  ${dotQuote(q)} -> ${dotQuote(t)} [label=${dotQuote(syms.join(","))}];`);
+    }
+  }
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function edgeCountAfn(afn) {
+  let n = 0;
+  for (const q of afn.states) {
+    for (const targets of (afn.trans.get(q) || new Map()).values()) n += targets.size;
+    n += (afn.lam.get(q) || new Set()).size;
+  }
+  return n;
+}
+function edgeCountAfd(afd) { return afd.states.size * afd.alphabet.size; }
+
+/* ==================================================================
+ * 5. Render via viz.js + UI
+ * ================================================================== */
+
+let vizPromise = null;
+function getViz() {
+  if (typeof Viz === "undefined") return null;
+  if (!vizPromise) vizPromise = Viz.instance();
+  return vizPromise;
+}
+
+async function renderDot(dot) {
+  const p = getViz();
+  if (!p) {
+    const pre = document.createElement("pre");
+    pre.className = "dot-fallback-pre";
+    pre.textContent =
+      "No se pudo cargar viz.js (sin internet?). DOT:\n\n" + dot;
+    return pre;
+  }
+  try {
+    const viz = await p;
+    return viz.renderSVGElement(dot);
+  } catch (err) {
+    const pre = document.createElement("pre");
+    pre.className = "dot-fallback-pre";
+    pre.textContent = "Error renderizando con Graphviz: " + err.message
+                    + "\n\nDOT:\n\n" + dot;
+    return pre;
+  }
+}
+
+function parseAlphabetInput(s) {
+  s = s.trim();
+  if (s === "") return null;
+  if (s.includes(",")) return new Set(s.split(",").map(t => t.trim()).filter(t => t));
+  return new Set([...s]);
+}
+
+const $ = id => document.getElementById(id);
+
+let lastReqId = 0;
+let renderTimeout = null;
+function scheduleRender() {
+  if (renderTimeout) clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(doRender, 200);
+}
+
+async function doRender() {
+  const reqId = ++lastReqId;
+  const pattern = $("pattern").value;
+  const alphaSet = parseAlphabetInput($("alphabet").value);
+  const errEl = $("error");
+  const status = $("status");
+
+  errEl.hidden = true; errEl.textContent = "";
+  status.textContent = "Procesando...";
+
+  let afn, afd, minimal;
+  try {
+    afn = regexToNFA(pattern, alphaSet);
+    afd = afnToAfd(afn);
+    minimal = minimizeAfd(afd);
+  } catch (err) {
+    if (reqId !== lastReqId) return;
+    errEl.hidden = false;
+    errEl.textContent = "✗ " + err.message;
+    status.textContent = "";
+    $("afn-svg").replaceChildren();
+    $("afd-svg").replaceChildren();
+    $("min-svg").replaceChildren();
+    $("afn-stat").textContent = "";
+    $("afd-stat").textContent = "";
+    $("min-stat").textContent = "";
+    afdActualMin = null;
+    $("afd-tape").hidden = true;
+    return;
+  }
+
+  $("afn-stat").textContent = `· ${afn.states.size} estados, ${edgeCountAfn(afn)} transiciones`;
+  $("afd-stat").textContent = `· ${afd.states.size} estados, ${edgeCountAfd(afd)} transiciones`;
+  let redNote;
+  if (minimal.states.size < afd.states.size) {
+    redNote = `· ${minimal.states.size} estados (reduccion ${afd.states.size}→${minimal.states.size})`;
+  } else {
+    redNote = `· ${minimal.states.size} estados (el AFD ya era minimo)`;
+  }
+  $("min-stat").textContent = redNote;
+  status.textContent = "Alfabeto Σ = {" + [...afn.alphabet].sort().join(", ") + "}";
+
+  const [nfaSvg, dfaSvg, minSvg] = await Promise.all([
+    renderDot(afnToDot(afn)),
+    renderDot(afdToDot(afd)),
+    renderDot(afdToDot(minimal)),
+  ]);
+  if (reqId !== lastReqId) return;
+  $("afn-svg").replaceChildren(nfaSvg);
+  $("afd-svg").replaceChildren(dfaSvg);
+  $("min-svg").replaceChildren(minSvg);
+
+  // Guardar el AFD minimo actual; ocultar cinta vieja porque puede
+  // pertenecer a un AFD distinto. El usuario re-prueba si quiere.
+  afdActualMin = minimal;
+  $("afd-tape").hidden = true;
+
+  // Estructura algebraica del monoide de transicion.
+  renderAlgebra(minimal);
+}
+
+/* ====================================================================
+ * Estructura algebraica de M(A)
+ * ==================================================================== */
+
+function renderAlgebra(afd) {
+  const sec = $("algebra");
+  const cont = $("algebra-content");
+  sec.hidden = false;
+
+  const Qsize = afd.states.size;
+  const cota = Math.pow(Qsize, Qsize);
+
+  let monoid, info;
+  try {
+    monoid = computeMonoid(afd, 4096);
+    info = analyzeMonoid(monoid);
+  } catch (e) {
+    cont.innerHTML =
+      `<div class="algebra-not-applicable">` +
+      `<strong>No se pudo construir M(A):</strong> ${e.message} ` +
+      `Esto ocurre con AFDs de muchos estados; el calculo crece como ` +
+      `|Q|<sup>|Q|</sup>.` +
+      `</div>`;
+    return;
+  }
+
+  const yes = (cond, txt) =>
+    `<span class="badge ${cond ? "yes" : "no"}">${cond ? "✓" : "✗"} ${txt}</span>`;
+
+  const badges = [
+    yes(info.isGroup, "es un grupo"),
+    yes(info.isAbelian, "abeliano"),
+  ];
+  if (info.isGroup) badges.push(yes(info.isCyclic, "cíclico"));
+  if (!info.isGroup && info.isAperiodic)
+    badges.push('<span class="badge spec">aperiódico</span>');
+
+  let summary;
+  if (info.isGroup && info.isCyclic) {
+    const w = info.cyclicGenWord;
+    const gen = (w === "" || w == null) ? "λ" : `<code>${w}</code>`;
+    summary = `M(A) ≅ <strong>${info.isoLabel}</strong>, generado por la palabra ${gen}.`;
+  } else if (info.isGroup) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>.`;
+  } else if (info.isAperiodic) {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>: para cada ` +
+              `elemento <em>x</em> alguna potencia se estabiliza ` +
+              `(<em>x<sup>k</sup> = x<sup>k+1</sup></em>), es decir, no contiene ` +
+              `ningún subgrupo no trivial.`;
+  } else {
+    summary = `M(A) es un <strong>${info.isoLabel}</strong>. ` +
+              `Contiene subgrupos no triviales pero algunas transformaciones no son invertibles.`;
+  }
+
+  cont.innerHTML = `
+    <div class="algebra-meta">
+      <div><b>|M(A)|:</b> <code>${info.n}</code></div>
+      <div><b>cota |Q|<sup>|Q|</sup>:</b> <code>${cota}</code></div>
+      <div><b>identidad:</b> <code>f<sub>λ</sub> = id<sub>Q</sub></code></div>
+      <div><b>idempotentes:</b> <code>${info.idempotents.length}</code></div>
+      <div><b>unidades U(M):</b> <code>${info.units.length}</code></div>
+      <div><b>centro Z(M):</b> <code>${info.center.length}</code></div>
+    </div>
+    <div class="algebra-badges">${badges.join("")}</div>
+    <div class="algebra-summary">${summary}</div>
+    <p class="algebra-note">
+      El monoide de transición es M(A) = {<em>f<sub>w</sub></em> : w ∈ Σ*}
+      con la composición de funciones (Saracino §1 y §6). El homomorfismo
+      natural φ : Σ* → M(A) envía cada palabra w a su transformación
+      inducida f<sub>w</sub>; agrupar las palabras por «inducen la misma
+      transformación» da el cociente Σ*/Ker(φ) ≅ M(A), en el espíritu del
+      teorema de isomorfismo (Saracino §12). Por el Teorema de
+      Myhill-Nerode (De Castro §2.15) y la minimización (§2.16), tomar el
+      AFD mínimo garantiza que M(A) es un invariante del lenguaje L(A).
+    </p>
+  `;
+}
+
+let afdActualMin = null;   // ultimo AFD minimo construido (para la cinta)
+let traceAFD = null;       // simulacion de la palabra ingresada
+let pasoAFD = 0;
+let timerAFD = null;
+
+function probarPalabra() {
+  if (!afdActualMin) return;
+  const palabra = $("word-input").value;
+  seleccionarAFD(palabra);
+}
+
+/* Simula el AFD minimo sobre una palabra y devuelve la traza
+   por configuracion (estado, posicion, simbolo leido). */
+function simulateAFD(afd, palabra) {
+  const configs = [{ paso: 0, estado: afd.start, posicion: 0,
+                     leido: palabra.length > 0 ? palabra[0] : null,
+                     aceptado: null }];
+  let estado = afd.start;
+  for (let i = 0; i < palabra.length; i++) {
+    const sym = palabra[i];
+    if (!afd.alphabet.has(sym)) {
+      return { configuraciones: configs, resultado: "rechazo",
+               razon: `Símbolo '${sym}' fuera del alfabeto` };
+    }
+    estado = afd.trans.get(estado).get(sym);
+    configs.push({
+      paso: i + 1, estado, posicion: i + 1,
+      leido: i + 1 < palabra.length ? palabra[i + 1] : null,
+      aceptado: null,
+    });
+  }
+  const ok = afd.accepting.has(estado);
+  configs[configs.length - 1].aceptado = ok;
+  return { configuraciones: configs,
+           resultado: ok ? "aceptacion" : "rechazo" };
+}
+
+function seleccionarAFD(palabra) {
+  if (!afdActualMin) return;
+  pausarAFD();
+  traceAFD = simulateAFD(afdActualMin, palabra);
+  pasoAFD = 0;
+  $("afd-tape").hidden = false;
+  $("r-word").textContent = palabra === "" ? "(palabra vacía λ)" : palabra;
+  pintarPasoAFD();
+}
+
+function pintarPasoAFD() {
+  if (!traceAFD) return;
+  const palabra = $("r-word").textContent === "(palabra vacía λ)"
+                ? "" : $("r-word").textContent;
+  const total = traceAFD.configuraciones.length;
+  const c = traceAFD.configuraciones[pasoAFD];
+
+  const cellsEl = $("r-cells");
+  const arrowsEl = $("r-arrows");
+  cellsEl.innerHTML = ""; arrowsEl.innerHTML = "";
+
+  // Mostrar como cinta: la palabra (con un blanco al final) y el cabezal
+  const chars = palabra === "" ? ["□"] : palabra.split("");
+  if (palabra !== "") chars.push("□");  // marcador de fin
+  const headPos = c.posicion;
+
+  chars.forEach((ch, i) => {
+    const cell = document.createElement("div");
+    const isHead = i === headPos;
+    const consumed = i < headPos;
+    const isBlank = ch === "□";
+    cell.className = "cell" + (isHead ? " head" : "")
+                   + (consumed ? " consumed" : "")
+                   + (isBlank ? " blank" : "");
+    cell.textContent = ch;
+    cellsEl.appendChild(cell);
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    slot.textContent = isHead ? "▲" : "";
+    arrowsEl.appendChild(slot);
+  });
+
+  $("r-state").textContent = c.estado;
+  $("r-read").textContent = c.leido === null ? "—" : c.leido;
+
+  const ultimoPaso = pasoAFD === total - 1;
+  const resEl = $("r-res");
+  resEl.innerHTML = "";
+  const badge = document.createElement("span");
+  if (!ultimoPaso) {
+    badge.className = "r-badge encurso";
+    badge.textContent = "en curso...";
+  } else if (traceAFD.resultado === "aceptacion") {
+    badge.className = "r-badge acepta";
+    badge.textContent = "✓ acepta";
+  } else {
+    badge.className = "r-badge rechaza";
+    badge.textContent = traceAFD.razon || "✗ rechaza";
+  }
+  resEl.appendChild(badge);
+
+  $("r-step-info").textContent = `paso ${pasoAFD} / ${total - 1}`;
+  $("r-reset").disabled = pasoAFD === 0;
+  $("r-back").disabled  = pasoAFD === 0;
+  $("r-fwd").disabled   = pasoAFD === total - 1;
+  $("r-play").disabled  = pasoAFD === total - 1;
+
+  // Resaltar el estado actual y la transición tomada en el grafo del AFD.
+  const prev = pasoAFD > 0
+    ? traceAFD.configuraciones[pasoAFD - 1].estado
+    : null;
+  highlightSvgTrace(document.getElementById("min-svg"), c.estado, prev);
+}
+
+/* Resalta el nodo del estado actual y la arista tomada en el último
+   paso (prev -> current) dentro del SVG indicado. */
+function highlightSvgTrace(container, currentState, prevState) {
+  if (!container) return;
+  for (const g of container.querySelectorAll("g.node, g.edge")) {
+    g.classList.remove("active");
+  }
+  if (currentState) {
+    for (const g of container.querySelectorAll("g.node")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === currentState) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
+  if (prevState && currentState) {
+    const target = `${prevState}->${currentState}`;
+    for (const g of container.querySelectorAll("g.edge")) {
+      const t = g.querySelector("title");
+      if (t && t.textContent === target) {
+        g.classList.add("active"); break;
+      }
+    }
+  }
+}
+
+function resetAFD() { pausarAFD(); pasoAFD = 0; pintarPasoAFD(); }
+function backAFD()  { if (pasoAFD > 0) { pasoAFD--; pintarPasoAFD(); } }
+function fwdAFD()   {
+  if (traceAFD && pasoAFD < traceAFD.configuraciones.length - 1) {
+    pasoAFD++; pintarPasoAFD();
+  }
+}
+function playAFD() {
+  pausarAFD();
+  $("r-play").hidden  = true;
+  $("r-pause").hidden = false;
+  timerAFD = setInterval(() => {
+    if (!traceAFD || pasoAFD >= traceAFD.configuraciones.length - 1) {
+      pausarAFD(); return;
+    }
+    pasoAFD++; pintarPasoAFD();
+  }, 400);
+}
+function pausarAFD() {
+  if (timerAFD) { clearInterval(timerAFD); timerAFD = null; }
+  $("r-play").hidden  = false;
+  $("r-pause").hidden = true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("pattern").addEventListener("input", scheduleRender);
+  $("alphabet").addEventListener("input", scheduleRender);
+  $("r-reset").addEventListener("click", resetAFD);
+  $("r-back").addEventListener("click", backAFD);
+  $("r-fwd").addEventListener("click", fwdAFD);
+  $("r-play").addEventListener("click", playAFD);
+  $("r-pause").addEventListener("click", pausarAFD);
+  $("btn-probar").addEventListener("click", probarPalabra);
+  $("word-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") probarPalabra();
+  });
+  for (const btn of document.querySelectorAll(".examples button")) {
+    btn.addEventListener("click", () => {
+      $("pattern").value = btn.dataset.pattern;
+      scheduleRender();
+    });
+  }
+  doRender();
+});
+</script>
+
+</main>
+
+</body>
+</html>

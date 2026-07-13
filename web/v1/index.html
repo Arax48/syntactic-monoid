@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>syntactic-monoid &middot; ITC + Discrete Math II</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div style="background:#fff8c5;border-bottom:1px solid #d4a72c;
+            padding:.55rem 1.2rem;font-size:.88rem;color:#7a5c00;
+            text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  📦 Estás viendo la <strong>versión anterior</strong> (multipágina).
+  <a href="../" style="color:#0969da;font-weight:600;">Ir a la versión actual &rarr;</a>
+</div>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand">syntactic-monoid <small>ITC · Discrete Math II</small></a>
+  <a href="index.html" class="active">Inicio</a>
+  <a href="regex_visualizer.html">Regex → AFD</a>
+  <a href="mt_visualizer.html">Máquinas de Turing</a>
+  <a href="ejemplos/parity_afd.html">Monoide</a>
+  <a href="convenciones.html">Convenciones</a>
+  <span class="spacer"></span>
+  <span class="ref">basado en De Castro (2024)</span>
+</nav>
+
+<main>
+
+<section class="hero">
+  <div class="hero-text">
+    <h1>Autómatas, expresiones regulares y monoides de transición</h1>
+    <p class="lead">
+      Visualizadores interactivos y análisis algebraico para los cursos
+      de Teoría de la Computación y Matemática Discreta II. Toda la
+      teoría sigue las convenciones del libro
+      <em>Introducción a la Teoría de la Computación</em> de Rodrigo
+      De Castro K. (Universidad Nacional de Colombia, 2024).
+    </p>
+    <p>
+      Construye y verifica un AFD, compila una expresión regular a
+      AFN-λ (Teorema de Kleene Parte I) y al AFD mínimo (Hopcroft),
+      simula una Máquina de Turing del modelo estándar (§6.1) sobre una
+      cinta bidireccional, y conecta todo con el monoide de transición
+      <em>M</em>(<em>A</em>) y el teorema de isomorfismo (Saracino §12).
+    </p>
+    <div class="meta">
+      <span><b>Convenciones:</b> AFD/AFN/AFN-λ, λ, ∪, □</span>
+      <span><b>Modelo MT:</b> 6-upla (Q, q<sub>0</sub>, F, Σ, Γ, δ)</span>
+      <span><b>Sin servidor:</b> HTML + JS</span>
+    </div>
+  </div>
+
+  <svg class="hero-diagram" viewBox="0 0 540 280"
+       xmlns="http://www.w3.org/2000/svg" aria-label="Diagrama del flujo del proyecto">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#0969da"/>
+      </marker>
+      <marker id="arrow-dim" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#9a6700"/>
+      </marker>
+      <style>
+        .node { fill: #fff; stroke: #0969da; stroke-width: 2; }
+        .node-text { font-family: ui-monospace, Menlo, monospace;
+                     font-size: 15px; fill: #0969da; font-weight: 600; }
+        .node-sub  { font-family: -apple-system, sans-serif; font-size: 10px;
+                     fill: #57606a; }
+        .arrow-line { stroke: #0969da; stroke-width: 2; fill: none; }
+        .arrow-label { font-family: -apple-system, sans-serif; font-size: 10px;
+                       fill: #57606a; font-style: italic; }
+        .alt-node { fill: #fff8c5; stroke: #9a6700; stroke-width: 2; }
+        .alt-text { font-family: ui-monospace, Menlo, monospace;
+                    font-size: 13px; fill: #9a6700; font-weight: 600; }
+        .alt-line { stroke: #9a6700; stroke-width: 2; fill: none;
+                    stroke-dasharray: 4 3; }
+      </style>
+    </defs>
+
+    <!-- regex -->
+    <g transform="translate(20, 30)">
+      <rect class="node" width="100" height="48" rx="8"/>
+      <text class="node-text" x="50" y="22" text-anchor="middle">R</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">expr. regular</text>
+    </g>
+    <!-- arrow regex -> AFN-λ -->
+    <line class="arrow-line" x1="125" y1="54" x2="170" y2="54" marker-end="url(#arrow)"/>
+    <text class="arrow-label" x="147" y="48" text-anchor="middle">§2.12</text>
+
+    <!-- AFN-λ -->
+    <g transform="translate(175, 30)">
+      <rect class="node" width="100" height="48" rx="8"/>
+      <text class="node-text" x="50" y="22" text-anchor="middle">AFN-λ</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">Thompson</text>
+    </g>
+    <!-- arrow AFN-λ -> AFD -->
+    <line class="arrow-line" x1="280" y1="54" x2="325" y2="54" marker-end="url(#arrow)"/>
+    <text class="arrow-label" x="302" y="48" text-anchor="middle">§2.7.1</text>
+
+    <!-- AFD -->
+    <g transform="translate(330, 30)">
+      <rect class="node" width="100" height="48" rx="8"/>
+      <text class="node-text" x="50" y="22" text-anchor="middle">AFD</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">subconjuntos</text>
+    </g>
+    <!-- arrow AFD -> AFD min -->
+    <line class="arrow-line" x1="380" y1="83" x2="380" y2="118" marker-end="url(#arrow)"/>
+    <text class="arrow-label" x="395" y="103">§2.16</text>
+
+    <!-- AFD min -->
+    <g transform="translate(330, 120)">
+      <rect class="node" width="100" height="48" rx="8"/>
+      <text class="node-text" x="50" y="22" text-anchor="middle">AFD mín.</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">Hopcroft</text>
+    </g>
+    <!-- arrow AFD min -> M(A) -->
+    <line class="arrow-line" x1="325" y1="144" x2="280" y2="144" marker-end="url(#arrow)"/>
+    <text class="arrow-label" x="302" y="138" text-anchor="middle">aporte</text>
+
+    <!-- M(A) -->
+    <g transform="translate(175, 120)">
+      <rect class="node" width="100" height="48" rx="8" style="stroke:#1a7f37;"/>
+      <text class="node-text" x="50" y="22" text-anchor="middle" style="fill:#1a7f37;">M(A)</text>
+      <text class="node-sub"  x="50" y="38" text-anchor="middle">monoide de transición</text>
+    </g>
+    <!-- arrow M(A) -> ℤ/nℤ -->
+    <line class="arrow-line" x1="220" y1="170" x2="220" y2="205" marker-end="url(#arrow)" style="stroke:#1a7f37;"/>
+    <text class="arrow-label" x="235" y="190">primer iso.</text>
+
+    <!-- ℤ/nℤ etc -->
+    <g transform="translate(150, 207)">
+      <rect class="node" width="150" height="48" rx="8" style="stroke:#1a7f37;"/>
+      <text class="node-text" x="75" y="22" text-anchor="middle" style="fill:#1a7f37; font-size:13px;">ℤ/nℤ, V₄, S₃...</text>
+      <text class="node-sub"  x="75" y="38" text-anchor="middle">estructura algebraica</text>
+    </g>
+
+    <!-- MT (camino paralelo) -->
+    <g transform="translate(420, 207)">
+      <rect class="alt-node" width="100" height="48" rx="8"/>
+      <text class="alt-text" x="50" y="22" text-anchor="middle">MT</text>
+      <text class="node-sub" x="50" y="38" text-anchor="middle" style="fill:#9a6700;">modelo §6.1</text>
+    </g>
+    <!-- MT más expresiva -->
+    <text class="arrow-label" x="470" y="200" text-anchor="middle"
+          style="fill:#9a6700;">más expresivo</text>
+    <line class="alt-line" x1="430" y1="207" x2="430" y2="78" marker-end="url(#arrow-dim)"/>
+  </svg>
+</section>
+
+<h2>Visualizadores interactivos</h2>
+
+<div class="cards">
+
+  <a class="card" href="regex_visualizer.html">
+    <div class="icon">∪*</div>
+    <div class="label">§2.2 – §2.16</div>
+    <div class="title">Expresiones regulares → AFD</div>
+    <div class="desc">
+      Escribe una regex y mira la construcción de Thompson
+      (Teorema 2.12.1), el AFD por subconjuntos (Teorema 2.7.1) y el
+      AFD mínimo de Hopcroft, lado a lado. Evalúa palabras de prueba
+      contra el AFD mínimo en vivo.
+    </div>
+    <div class="footer-row">regex_visualizer.html</div>
+  </a>
+
+  <a class="card" href="mt_visualizer.html">
+    <div class="icon">⌶</div>
+    <div class="label">§6.1 – §6.2</div>
+    <div class="title">Máquina de Turing</div>
+    <div class="desc">
+      Edita una MT del modelo estándar, simula paso a paso sobre una
+      cinta bidireccional, observa el cabezal y la configuración
+      instantánea <em>uqv</em>. Incluye los ejemplos canónicos del
+      libro (<em>a<sup>n</sup>b<sup>n</sup>c<sup>n</sup></em>,
+      #a = #b).
+    </div>
+    <div class="footer-row">mt_visualizer.html</div>
+  </a>
+
+  <a class="card" href="ejemplos/parity_afd.html">
+    <div class="icon">M(A)</div>
+    <div class="label">aporte propio</div>
+    <div class="title">Monoide de transición</div>
+    <div class="desc">
+      Análisis algebraico de cuatro AFDs canónicos: monoide
+      <em>M</em>(<em>A</em>), tabla de Cayley, idempotentes, unidades,
+      estructura de grupo cuando aplica (ℤ/2ℤ, ℤ/3ℤ, V<sub>4</sub>,
+      monoides aperiódicos).
+    </div>
+    <div class="footer-row">ejemplos/ (4 hojas informativas)</div>
+  </a>
+
+  <a class="card" href="convenciones.html">
+    <div class="icon">Σ → δ</div>
+    <div class="label">tabla rápida</div>
+    <div class="title">Convenciones De Castro</div>
+    <div class="desc">
+      Cuadro de equivalencia: notación clásica (DFA, NFA, ε,
+      Thompson) frente a la que usa el libro y este proyecto
+      (AFD, AFN, λ, "Teorema de Kleene Parte I"). Útil al leer
+      otros textos.
+    </div>
+    <div class="footer-row">convenciones.html</div>
+  </a>
+
+</div>
+
+<h2>¿Qué hace este proyecto?</h2>
+
+<p>
+  Tres preguntas, una respuesta integrada:
+</p>
+
+<ol>
+  <li>
+    <b>Construcción.</b> Dada una expresión regular, compilarla a un
+    AFN-λ y luego a un AFD mínimo, mostrando cada paso visualmente.
+  </li>
+  <li>
+    <b>Simulación.</b> Editar y ejecutar una Máquina de Turing del modelo
+    estándar de De Castro (§6.1) sobre una cadena de entrada, con la
+    cinta bidireccional y la unidad de control animadas paso a paso.
+  </li>
+  <li>
+    <b>Análisis algebraico.</b> Para un AFD dado, construir
+    explícitamente su monoide de transición <em>M</em>(<em>A</em>),
+    el homomorfismo natural φ : Σ* → <em>M</em>(<em>A</em>), y
+    determinar si es un grupo, qué grupo, si es aperiódico, etc. Esto
+    conecta directamente con Matemática Discreta II (clases de
+    equivalencia, ℤ/nℤ, primer teorema del isomorfismo) y con el
+    Teorema de Myhill-Nerode (§2.15) del libro.
+  </li>
+</ol>
+
+<h2>Hojas informativas precalculadas</h2>
+
+<p>
+  Cada ejemplo canónico viene con un análisis algebraico completo
+  generado por la CLI del proyecto, listo para navegar:
+</p>
+
+<div class="cards">
+
+  <a class="card" href="ejemplos/parity_afd.html">
+    <span class="badge-algebra cyclic">ℤ/2ℤ</span>
+    <div class="label">|Q| = 2</div>
+    <div class="title">Paridad de 1s</div>
+    <div class="desc">
+      Lenguaje: cadenas binarias con número par de 1s.
+      <em>M</em>(<em>A</em>) ≅ ℤ/2ℤ.
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/mod3_afd.html">
+    <span class="badge-algebra cyclic">ℤ/3ℤ</span>
+    <div class="label">|Q| = 3</div>
+    <div class="title">#1s ≡ 0 (mod 3)</div>
+    <div class="desc">
+      Cadenas binarias con número de 1s múltiplo de 3.
+      <em>M</em>(<em>A</em>) ≅ ℤ/3ℤ.
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/ends_with_01_afd.html">
+    <span class="badge-algebra aperiodic">aperiódico</span>
+    <div class="label">|Q| = 3</div>
+    <div class="title">Termina en 01</div>
+    <div class="desc">
+      Cadenas binarias que terminan en "01". <em>M</em>(<em>A</em>)
+      <b>no</b> es grupo, pero es aperiódico.
+    </div>
+  </a>
+
+  <a class="card" href="ejemplos/klein_v4_afd.html">
+    <span class="badge-algebra abelian">V₄</span>
+    <div class="label">|Q| = 4</div>
+    <div class="title">Klein V<sub>4</sub></div>
+    <div class="desc">
+      Paridad de <em>a</em> ∧ paridad de <em>b</em>.
+      <em>M</em>(<em>A</em>) ≅ V<sub>4</sub> = ℤ/2ℤ × ℤ/2ℤ.
+    </div>
+  </a>
+
+</div>
+
+<h2>Analizar tu propio AFD</h2>
+
+<p>
+  El análisis algebraico (cálculo del monoide, idempotentes, tabla de
+  Cayley, identificación del grupo) corre en Python y requiere
+  instalación local. El flujo recomendado es:
+</p>
+
+<pre><code># 1) Clonar e instalar (Python 3.10+)
+git clone &lt;url-del-repo&gt;
+cd syntactic-monoid
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2) Definir tu AFD en JSON (ver examples/parity_afd.json)
+# 3) Generar la hoja informativa en Markdown
+python main.py infosheet mi_afd.json --out mi_afd.md --markdown
+
+# 4) Reporte completo con figuras Graphviz
+python main.py report mi_afd.json --out output/mi_afd/</code></pre>
+
+<p>
+  O bien, sin instalar nada, usa los visualizadores HTML de esta
+  página para todo lo que no requiera el aparato algebraico (compilar
+  regex, simular MT). Las hojas informativas precalculadas de los
+  cuatro ejemplos canónicos ya están listas aquí, sin Python.
+</p>
+
+<h2>Referencia bibliográfica</h2>
+
+<p>
+  Toda la notación y las definiciones de este sitio siguen el libro
+  base del curso:
+</p>
+
+<div class="callout">
+  <strong>De Castro K., R.</strong> <em>Introducción a la Teoría de la
+  Computación.</em> Departamento de Matemáticas, Universidad Nacional
+  de Colombia, II Semestre 2024. 219 pp.
+  <p style="margin-top:.5rem;">
+    Mapeo seccional principal: §2.2 (expresiones regulares), §2.3 (AFD),
+    §2.6 (AFN), §2.8 (AFN-λ), §2.12 (Teorema de Kleene I), §2.13
+    (Teorema de Kleene II), §2.15 (Myhill-Nerode), §2.16 (minimización),
+    §3.1 (no regularidad), §6.1 (modelo estándar MT), §6.2 (ejemplos
+    canónicos de MT).
+  </p>
+</div>
+
+<p>
+  El monoide de transición <em>M</em>(<em>A</em>) es una construcción
+  propia del proyecto: no aparece con ese nombre en ninguno de los dos
+  libros. Se apoya en el álgebra de Saracino (monoides, composición,
+  homomorfismos) y en los autómatas de De Castro Korgi. Detalles
+  completos en
+  <a href="../../docs/report.md"><code>docs/report.md</code></a>,
+  sección 12.
+</p>
+
+<footer>
+  syntactic-monoid · proyecto integrador ITC + Discrete Math II ·
+  todo el código y la teoría están alineados con el libro de De Castro
+  (2024)
+</footer>
+
+</main>
+
+</body>
+</html>
