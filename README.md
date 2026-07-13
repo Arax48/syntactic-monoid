@@ -8,8 +8,8 @@
 > cada MT generada, la página calcula las propiedades de álgebra
 > abstracta que le corresponden: el monoide de transición M(A), sus
 > idempotentes, unidades y centro, si es grupo (ℤ/nℤ, V₄, S₃, …),
-> abeliano, cíclico o aperiódico (star-free); para lenguajes no
-> regulares se explica por qué el monoide sintáctico es infinito.
+> abeliano, cíclico o aperiódico; para lenguajes no
+> regulares se explica por qué el monoide de transición sería infinito.
 > Funciona en cualquier navegador moderno, sin instalación.
 >
 > 📦 La versión anterior del sitio (multi-página: portada, visualizadores
@@ -177,7 +177,7 @@ Hopcroft (§2.16) portados a JavaScript; los grafos se renderizan con
 - **Estructura algebraica de M(A)**, calculada en vivo para cada AFD:
   |M(A)| vs la cota |Q|^|Q|, idempotentes, unidades U(M), centro Z(M),
   ¿es grupo?, ¿abeliano?, ¿cíclico (con palabra generadora)?,
-  ¿aperiódico? (Schützenberger / star-free) y clasificación
+  ¿aperiódico? (todo elemento estabiliza sus potencias) y clasificación
   (ℤ/nℤ, V₄, S₃, …).
 - Verificador de palabras con cinta animada paso a paso, sincronizada
   con el resaltado del estado y la transición en el digrafo.
@@ -197,7 +197,7 @@ desplazamientos `←/→/−`) portado a JavaScript.
   regular (`regex …`) se construye M(A) del AFD mínimo equivalente con
   el mismo análisis completo de la sección 1; si el lenguaje no es
   regular (aⁿbⁿ, palíndromos, ww, …) se explica que su monoide
-  sintáctico M(L) es infinito y por qué la construcción finita no
+  de transición sería infinito y por qué la construcción finita no
   aplica (§3.1).
 - Validación estructural según §6.1 (F ≠ ∅, Σ ⊆ Γ, `□ ∉ Γ`,
   no transiciones desde F, δ determinística).
@@ -255,7 +255,7 @@ de grupo (ℤ/nℤ, Klein V₄, S₃, …); y generación de la hoja informativa
 |--------|---|---|---|---|---|
 | `parity_afd.json` | 2 | nº par de 1s | 2 | sí | ≅ ℤ/2ℤ |
 | `mod3_afd.json`   | 3 | nº de 1s ≡ 0 (mód 3) | 3 | sí | ≅ ℤ/3ℤ |
-| `ends_with_01_afd.json` | 3 | termina en 01 | 5 | no | monoide aperiódico (star-free) |
+| `ends_with_01_afd.json` | 3 | termina en 01 | 5 | no | monoide aperiódico |
 | `klein_v4_afd.json` | 4 | paridad de `a` ∧ paridad de `b` | 4 | sí | ≅ V₄ = ℤ/2ℤ × ℤ/2ℤ |
 
 Más:
@@ -270,9 +270,27 @@ Más:
 - **Presentación:** [`docs/presentation.md`](docs/presentation.md) — 16
   diapositivas listas para defensa.
 
-## 7. Licencia y créditos
+## 7. Marco teórico y fuentes
 
-Proyecto académico, libre para fines educativos. Implementación inspirada
-en el clásico capítulo VIII de *Eilenberg, Automata, Languages and Machines*
-y el capítulo de monoides sintácticos de Pin (*Mathematical Foundations of
-Automata Theory*).
+El proyecto se apoya **exclusivamente** en dos textos:
+
+- **Álgebra abstracta:** Dan Saracino, *Abstract Algebra: A First Course*.
+  Fundamenta el monoide de transición y su análisis: operación binaria
+  asociativa con identidad (§1), grupos (§2), potencias y grupos cíclicos /
+  ℤ/nℤ (§3), productos directos (§5), funciones y composición (§6), grupos
+  simétricos S₃ (§7), relaciones de equivalencia y clases (§8), homomorfismos
+  (§11), teorema de isomorfismo (§12) y grupos abelianos finitos / V₄ (§13).
+- **Teoría de la computación:** R. De Castro Korgi, *Introducción a la Teoría
+  de la Computación* (2024). Fundamenta autómatas y MT: expresiones regulares
+  (§2.2), AFD/AFN/AFN-λ y Kleene (§2.6–2.13), Myhill–Nerode (§2.15),
+  minimización (§2.16), no regularidad (§3.1) y Máquinas de Turing (§6.1–6.2).
+
+El **monoide de transición** `M(A)` es una construcción propia que tiende un
+puente entre ambos: se define con las nociones de monoide y composición de
+Saracino sobre el AFD mínimo de De Castro. El nombre del repositorio
+(`syntactic-monoid`) es un identificador histórico; la terminología del
+proyecto usa «monoide de transición».
+
+## 8. Licencia
+
+Proyecto académico, libre para fines educativos.
